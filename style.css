@@ -448,3 +448,15 @@ body.nav-open{overflow:hidden;touch-action:none}
   .formActions{gap:10px}
   .authActions{grid-template-columns:1fr}
 }
+
+/* v9 iPhone navigation reliability fixes */
+@media (max-width:1080px){
+  .mobileOverlay{z-index:900 !important;}
+  .side{z-index:1001 !important;opacity:1 !important;filter:none !important;backdrop-filter:none !important;}
+  .side.open{pointer-events:auto !important;}
+  .nav,.nav *{pointer-events:auto !important;-webkit-tap-highlight-color:transparent;}
+  .nav{cursor:pointer;user-select:none;-webkit-user-select:none;position:relative;z-index:2;}
+  .nav:active{transform:scale(.985);background:rgba(37,99,235,.18);}
+  .mainContent{position:relative;z-index:1;}
+  body.nav-open .mainContent{pointer-events:none;}
+}

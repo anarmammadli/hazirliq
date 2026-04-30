@@ -583,10 +583,8 @@ window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.i
 window.deleteStudent=id=>{if(confirm('Şagird silinsin?')){data.students=data.students.filter(s=>s.id!==id);persistAndRender('Şagird silindi')}}
 window.deletePayment=id=>{if(confirm('Ödəniş silinsin?')){data.payments=data.payments.filter(p=>p.id!==id);persistAndRender('Ödəniş silindi')}}
 
-function openPage(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(p).classList.add('active');
-  document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.page===p));
-  let names={
+function pageMeta(p){
+  return {
     home:['Ana səhifə','Bu ay üçün alınmalı məbləğ, ödənişlər və ümumi görünüş.'],
     groups:['Qruplar','Hər qrup üçün dərs günləri və saatları rahat idarə olunur.'],
     schedule:['Cədvəl','Həftəlik dərs planını günlər üzrə aydın və rahat görün.'],
@@ -595,27 +593,53 @@ function openPage(p){
     debtors:['Keçmiş borclar','Vaxtı keçmiş ödənişləri ayrıca görün.'],
     reports:['Hesabat','Seçilən qrupa görə əsas göstəricilər avtomatik yenilənir.'],
     info:['Məlumat','Sistemin işləmə qaydası və faydalı seçimlər.']
-  };
-  $('title').textContent=names[p][0];
-  $('help').textContent=names[p][1];
-  renderAll();
-  if(window.innerWidth<=1080){$('sidebar')?.classList.remove('open');$('mobileOverlay')?.classList.remove('show');}
+  }[p] || null;
+}
+
+function closeMobileNav(){
+  $('sidebar')?.classList.remove('open');
+  $('mobileOverlay')?.classList.remove('show');
+  document.body.classList.remove('nav-open');
+  $('mobileNavToggle')?.setAttribute('aria-expanded','false');
+}
+
+function openMobileNav(){
+  $('sidebar')?.classList.add('open');
+  $('mobileOverlay')?.classList.add('show');
+  document.body.classList.add('nav-open');
+  $('mobileNavToggle')?.setAttribute('aria-expanded','true');
+}
+
+function openPage(p){
+  const meta=pageMeta(p);
+  const target=$(p);
+  if(!meta || !target) return;
+
+  document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active', x.id===p));
+  document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.page===p));
+  $('title').textContent=meta[0];
+  $('help').textContent=meta[1];
+
+  // Keep the selected page stable on mobile. Do not rebuild the whole UI here,
+  // because Safari can cancel the tapped menu item while the drawer is closing.
+  refreshIcons();
+  closeMobileNav();
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  const closeMobileNav=()=>{
-    $('sidebar')?.classList.remove('open');
-    $('mobileOverlay')?.classList.remove('show');
-    document.body.classList.remove('nav-open');
-    $('mobileNavToggle')?.setAttribute('aria-expanded','false');
+  const handleNavTap=(e)=>{
+    const btn=e.target.closest && e.target.closest('.nav[data-page]');
+    if(!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openPage(btn.dataset.page);
   };
-  const openMobileNav=()=>{
-    $('sidebar')?.classList.add('open');
-    $('mobileOverlay')?.classList.add('show');
-    document.body.classList.add('nav-open');
-    $('mobileNavToggle')?.setAttribute('aria-expanded','true');
-  };
-  document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{openPage(b.dataset.page); closeMobileNav();});
+
+  // Pointer events fix iPhone/Safari drawer taps. Click is kept for desktop.
+  document.querySelector('.navList')?.addEventListener('pointerup',handleNavTap,{passive:false});
+  document.querySelector('.navList')?.addEventListener('click',handleNavTap,{passive:false});
+
   $('mobileNavToggle').onclick=(e)=>{
     e.preventDefault();
     e.stopPropagation();
