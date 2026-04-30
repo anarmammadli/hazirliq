@@ -468,3 +468,47 @@ body.nav-open{overflow:hidden;touch-action:none}
   .nav:focus{outline:none;}
   .nav:focus-visible{outline:3px solid rgba(59,130,246,.35); outline-offset:2px;}
 }
+
+/* v11: drawer removed, simple mobile bottom navigation */
+.mobileBrandPill{display:none;width:52px;height:52px;border-radius:20px;background:linear-gradient(135deg,rgba(37,99,235,.95),rgba(14,165,233,.9));box-shadow:0 14px 30px rgba(37,99,235,.18);align-items:center;justify-content:center;flex:0 0 52px}
+.mobileBrandPill svg{width:24px;height:24px;color:#fff}
+.bottomTabBar{display:none}
+
+@media (max-width:1080px){
+  body.nav-open{overflow:auto!important;touch-action:auto!important}
+  .mobileOverlay{display:none!important}
+  .side{display:none!important}
+  .drawerClose{display:none!important}
+  .appShell{display:block!important;padding:12px 12px 104px!important}
+  .mainContent{width:100%;min-width:0;position:relative;z-index:1}
+  .mobileBrandPill{display:inline-flex}
+  .mobileNavToggle{display:none!important}
+  .topHeader{position:sticky;top:0;z-index:50;margin:-12px -12px 16px!important;padding:14px 12px 16px!important;background:rgba(247,250,255,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(203,213,225,.72);box-shadow:0 12px 30px rgba(15,23,42,.04)}
+  .topHeaderLeft{align-items:center;gap:12px;width:100%}
+  .topHeaderActions{display:none!important}
+  .bottomTabBar{position:fixed;left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:9999;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:8px;background:rgba(255,255,255,.94);border:1px solid rgba(191,211,238,.9);border-radius:26px;box-shadow:0 20px 60px rgba(15,23,42,.18);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+  .bottomTab{appearance:none;border:0;background:transparent;color:#64748b;min-height:58px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px 3px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  .bottomTab svg{width:21px;height:21px;stroke-width:2.25;pointer-events:none}
+  .bottomTab span{font-size:10.5px;font-weight:900;line-height:1;letter-spacing:-.02em;pointer-events:none;white-space:nowrap}
+  .bottomTab.active{background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.22)}
+  .bottomTab:active{transform:scale(.96)}
+  body.nav-open .mainContent{pointer-events:auto!important}
+}
+
+@media (max-width:760px){
+  .appShell{padding:10px 10px 104px!important}
+  .topHeader{margin:-10px -10px 14px!important;padding:12px 10px 14px!important}
+  .mobileBrandPill{width:50px;height:50px;border-radius:18px;flex-basis:50px}
+  .topHeader .eyebrow{font-size:10.5px;letter-spacing:.12em;max-width:calc(100vw - 84px)}
+  .topHeader h2{font-size:28px;max-width:calc(100vw - 84px)}
+  .bottomTabBar{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));border-radius:24px;padding:7px;gap:3px}
+  .bottomTab{min-height:56px;border-radius:18px}
+  .bottomTab svg{width:20px;height:20px}
+  .bottomTab span{font-size:10px}
+}
+
+@media (max-width:390px){
+  .bottomTabBar{grid-template-columns:repeat(5,1fr)}
+  .bottomTab.moreTab{display:none}
+  .bottomTab span{font-size:9.5px}
+}

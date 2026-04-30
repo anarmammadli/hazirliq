@@ -37,8 +37,6 @@
 
   <div class="ambient ambientOne"></div>
   <div class="ambient ambientTwo"></div>
-  <div class="mobileOverlay" id="mobileOverlay"></div>
-
   <div class="appShell locked" id="appShell">
     <aside class="side" id="sidebar" aria-label="Əsas menyu">
       <div class="brandWrap">
@@ -73,9 +71,9 @@
     <main class="mainContent">
       <header class="topHeader">
         <div class="topHeaderLeft">
-          <button class="mobileNavToggle" id="mobileNavToggle" type="button" aria-label="Menyunu aç">
-            <i data-lucide="menu"></i>
-          </button>
+          <div class="mobileBrandPill" aria-hidden="true">
+            <i data-lucide="graduation-cap"></i>
+          </div>
           <div>
             <div class="eyebrow">Premium idarəetmə paneli</div>
             <h2 id="title">Ana səhifə</h2>
@@ -370,6 +368,15 @@
         </div>
       </section>
     </main>
+
+    <nav class="bottomTabBar" aria-label="Mobil menyu">
+      <button type="button" class="bottomTab active" data-page="home"><i data-lucide="layout-dashboard"></i><span>Ana səhifə</span></button>
+      <button type="button" class="bottomTab" data-page="groups"><i data-lucide="layers-3"></i><span>Qruplar</span></button>
+      <button type="button" class="bottomTab" data-page="schedule"><i data-lucide="calendar-range"></i><span>Cədvəl</span></button>
+      <button type="button" class="bottomTab" data-page="students"><i data-lucide="users-round"></i><span>Şagirdlər</span></button>
+      <button type="button" class="bottomTab" data-page="payments"><i data-lucide="wallet-cards"></i><span>Ödəniş</span></button>
+      <button type="button" class="bottomTab moreTab" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
+    </nav>
   </div>
 
   <div id="toast"></div>

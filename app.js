@@ -597,17 +597,12 @@ function pageMeta(p){
 }
 
 function closeMobileNav(){
-  $('sidebar')?.classList.remove('open');
-  $('mobileOverlay')?.classList.remove('show');
+  // Drawer removed in v11. Kept as a safe no-op for older calls.
   document.body.classList.remove('nav-open');
-  $('mobileNavToggle')?.setAttribute('aria-expanded','false');
 }
 
 function openMobileNav(){
-  $('sidebar')?.classList.add('open');
-  $('mobileOverlay')?.classList.add('show');
-  document.body.classList.add('nav-open');
-  $('mobileNavToggle')?.setAttribute('aria-expanded','true');
+  // Drawer removed in v11. Mobile uses fixed bottom tabs instead.
 }
 
 function openPage(p){
@@ -616,7 +611,7 @@ function openPage(p){
   if(!meta || !target) return;
 
   document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active', x.id===p));
-  document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.page===p));
+  document.querySelectorAll('.nav, .bottomTab').forEach(x=>x.classList.toggle('active',x.dataset.page===p));
   $('title').textContent=meta[0];
   $('help').textContent=meta[1];
 
@@ -628,40 +623,14 @@ function openPage(p){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  let lastNavTap = 0;
-
-  const handleNavTap=(e)=>{
-    const btn=e.target.closest && e.target.closest('.nav[data-page]');
+  // v11: Mobile drawer removed completely. Navigation is now direct single-tap.
+  document.addEventListener('click',(e)=>{
+    const btn=e.target.closest('.nav[data-page], .bottomTab[data-page]');
     if(!btn) return;
-
-    // iPhone/Safari sometimes creates a delayed synthetic click after touch.
-    // Prevent it so one tap changes the page immediately instead of needing two taps.
     e.preventDefault();
-    e.stopPropagation();
-    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
-
-    const now = Date.now();
-    if(now - lastNavTap < 280) return;
-    lastNavTap = now;
-
     openPage(btn.dataset.page);
-  };
-
-  document.querySelectorAll('.nav[data-page]').forEach(btn=>{
-    btn.addEventListener('touchstart', handleNavTap, {passive:false, capture:true});
-    btn.addEventListener('pointerdown', handleNavTap, {passive:false, capture:true});
-    btn.addEventListener('click', handleNavTap, {passive:false, capture:true});
   });
 
-  $('mobileNavToggle').onclick=(e)=>{
-    e.preventDefault();
-    e.stopPropagation();
-    $('sidebar')?.classList.contains('open') ? closeMobileNav() : openMobileNav();
-  };
-  $('drawerClose') && ($('drawerClose').onclick=closeMobileNav);
-  $('mobileOverlay').onclick=closeMobileNav;
-  window.addEventListener('keydown',e=>{if(e.key==='Escape') closeMobileNav();});
-  window.addEventListener('resize',()=>{if(window.innerWidth>1080) closeMobileNav();});
   $('authForm').onsubmit=async(e)=>{
     e.preventDefault();
     if(!auth) return setAuthMessage('Supabase config tamamlanmayıb.');
