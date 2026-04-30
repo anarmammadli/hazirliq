@@ -9,14 +9,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script defer src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase-config.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
+  <div class="authScreen" id="authScreen">
+    <div class="authCard">
+      <div class="brandMark authMark"><i data-lucide="graduation-cap"></i></div>
+      <span class="panelLabel"><i data-lucide="cloud"></i> Supabase cloud yaddaş</span>
+      <h2>Hazırlıq sisteminə giriş</h2>
+      <p>Qruplar, şagirdlər, ödənişlər və cədvəl hesabınıza bağlı cloud database-də saxlanacaq.</p>
+      <form id="authForm" class="authForm">
+        <label>Email</label>
+        <input id="authEmail" type="email" required placeholder="email@example.com" autocomplete="email">
+        <label>Şifrə</label>
+        <input id="authPassword" type="password" required minlength="6" placeholder="Minimum 6 simvol" autocomplete="current-password">
+        <div class="authActions">
+          <button class="primary" id="loginBtn" type="submit"><i data-lucide="log-in"></i><span>Daxil ol</span></button>
+          <button class="secondary" id="registerBtn" type="button"><i data-lucide="user-plus"></i><span>Hesab yarat</span></button>
+        </div>
+      </form>
+      <div id="authMessage" class="authMessage"></div>
+      <div class="authHelp">İlk dəfə istifadə edirsinizsə, email və şifrə yazıb <b>Hesab yarat</b> düyməsinə basın.</div>
+    </div>
+  </div>
+
   <div class="ambient ambientOne"></div>
   <div class="ambient ambientTwo"></div>
   <div class="mobileOverlay" id="mobileOverlay"></div>
 
-  <div class="appShell">
+  <div class="appShell locked" id="appShell">
     <aside class="side" id="sidebar" aria-label="Əsas menyu">
       <div class="brandWrap">
         <div class="brandMark"><i data-lucide="graduation-cap"></i></div>
@@ -40,8 +63,8 @@
       <div class="sideNote">
         <i data-lucide="shield-check"></i>
         <div>
-          <b>Avtomatik yaddaş</b>
-          <span>Məlumatlar brauzerdə saxlanılır və dərhal yenilənir.</span>
+          <b>Cloud yaddaş</b>
+          <span>Məlumatlar Supabase-də saxlanılır və hesabınızla açılır.</span>
         </div>
       </div>
     </aside>
@@ -58,9 +81,12 @@
             <p id="help">Bu ay üçün alınmalı məbləğ, ödənişlər və qruplar.</p>
           </div>
         </div>
-        <div class="topBadge">
-          <i data-lucide="sparkles"></i>
-          <span>Yeni cədvəl görünüşü</span>
+        <div class="topHeaderActions">
+          <div class="topBadge">
+            <i data-lucide="cloud-check"></i>
+            <span id="cloudStatus">Cloud aktivdir</span>
+          </div>
+          <button class="secondary logoutBtn" id="logoutBtn" type="button"><i data-lucide="log-out"></i><span>Çıxış</span></button>
         </div>
       </header>
 
@@ -140,7 +166,7 @@
             </div>
             <input type="hidden" id="groupId">
             <label>Qrup adı</label>
-            <input id="groupName" required placeholder="Məsələn: 1-3 11-ci sinif">
+            <input id="groupName" required placeholder="Məsələn: 9-cu sinif Riyaziyyat">
             <label>Dərs günləri və saatları</label>
             <div id="scheduleRows"></div>
             <button type="button" class="secondary iconButton" id="addSchedule"><i data-lucide="plus"></i><span>Dərs günü əlavə et</span></button>

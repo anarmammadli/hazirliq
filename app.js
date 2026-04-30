@@ -1,12 +1,129 @@
-const KEY='hazirliq_odeme_correct_logic_v2';
 let data={groups:[],students:[],payments:[]};
+let auth=null;
+let db=null;
+let currentUser=null;
+let isHydrating=true;
+let saveTimer=null;
+let unsubscribeAuth=null;
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
 const months=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 
 function id(){return crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random().toString(16)}
-function save(){localStorage.setItem(KEY,JSON.stringify(data))}
-function load(){try{data=JSON.parse(localStorage.getItem(KEY))||data}catch{}}
+function isSupabaseConfigured(){
+  const cfg=window.HAZIRLIQ_SUPABASE_CONFIG;
+  return !!(cfg && cfg.url && cfg.anonKey && !String(cfg.url).includes('PASTE_') && !String(cfg.anonKey).includes('PASTE_'));
+}
+function normalizeData(cloudData){
+  return {
+    groups:Array.isArray(cloudData?.groups)?cloudData.groups:[],
+    students:Array.isArray(cloudData?.students)?cloudData.students:[],
+    payments:Array.isArray(cloudData?.payments)?cloudData.payments:[]
+  };
+}
+async function saveNow(){
+  if(!db || !currentUser || isHydrating) return false;
+  try{
+    if($('cloudStatus')) $('cloudStatus').textContent='Cloud yazılır...';
+    const {error}=await db
+      .from('user_states')
+      .upsert({user_id:currentUser.id,data,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    if(error) throw error;
+    if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
+    return true;
+  }catch(err){
+    console.error(err);
+    if($('cloudStatus')) $('cloudStatus').textContent='Cloud xətası';
+    toast('Supabase yaddaşa yazmaq alınmadı: '+(err?.message||''));
+    return false;
+  }
+}
+function save(){
+  if(!db || !currentUser || isHydrating) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>saveNow(),250);
+}
+async function loadCloudData(){
+  isHydrating=true;
+  try{
+    const {data:row,error}=await db
+      .from('user_states')
+      .select('data')
+      .eq('user_id',currentUser.id)
+      .maybeSingle();
+    if(error) throw error;
+    if(row?.data){
+      data=normalizeData(row.data);
+    }else{
+      data={groups:[],students:[],payments:[]};
+      const {error:insertError}=await db
+        .from('user_states')
+        .insert({user_id:currentUser.id,data});
+      if(insertError) throw insertError;
+    }
+    if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
+  }catch(err){
+    console.error(err);
+    toast('Supabase məlumatları yüklənmədi');
+  }finally{
+    isHydrating=false;
+    $('appShell')?.classList.remove('locked');
+    $('authScreen')?.classList.add('locked');
+    renderAll();
+  }
+}
+function setAuthMessage(text,ok=false){
+  const box=$('authMessage');
+  if(!box) return;
+  box.textContent=text||'';
+  box.classList.toggle('ok',!!ok);
+}
+function supabaseErrorMessage(err){
+  const msg=String(err?.message||'').toLowerCase();
+  if(msg.includes('invalid login credentials')) return 'Email və ya şifrə yanlışdır.';
+  if(msg.includes('already registered') || msg.includes('user already registered')) return 'Bu email ilə hesab artıq var.';
+  if(msg.includes('password')) return 'Şifrə minimum 6 simvol olmalıdır.';
+  if(msg.includes('email not confirmed')) return 'Email təsdiqlənməyib. Supabase-də email confirmation-u söndürün və ya emaili təsdiqləyin.';
+  if(msg.includes('failed to fetch') || msg.includes('network')) return 'İnternet bağlantısını yoxlayın.';
+  return err?.message||'Supabase xətası baş verdi.';
+}
+async function initSupabase(){
+  if(!isSupabaseConfigured()){
+    $('appShell')?.classList.add('locked');
+    $('authScreen')?.classList.remove('locked');
+    setAuthMessage('Supabase config hələ yazılmayıb. supabase-config.js faylını doldurun.');
+    return;
+  }
+  db=window.supabase.createClient(window.HAZIRLIQ_SUPABASE_CONFIG.url, window.HAZIRLIQ_SUPABASE_CONFIG.anonKey);
+  auth=db.auth;
+
+  const {data:sessionData}=await auth.getSession();
+  currentUser=sessionData?.session?.user||null;
+  if(currentUser){
+    await loadCloudData();
+  }else{
+    isHydrating=true;
+    data={groups:[],students:[],payments:[]};
+    $('appShell')?.classList.add('locked');
+    $('authScreen')?.classList.remove('locked');
+  }
+
+  const {data:listener}=auth.onAuthStateChange(async(event,session)=>{
+    currentUser=session?.user||null;
+    if(currentUser){
+      setAuthMessage('Uğurla daxil oldunuz.',true);
+      await loadCloudData();
+    }else{
+      isHydrating=true;
+      data={groups:[],students:[],payments:[]};
+      $('appShell')?.classList.add('locked');
+      $('authScreen')?.classList.remove('locked');
+    }
+    refreshIcons();
+  });
+  unsubscribeAuth=listener?.subscription;
+  refreshIcons();
+}
 function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function money(n){return Number(n||0).toFixed(0)+' AZN'}
 function today(){return new Date().toISOString().slice(0,10)}
@@ -350,8 +467,7 @@ function addQuickPayment(studentId, amountInputId){
   if(amount <= 0) return alert('Məbləği düzgün yazın.');
   data.payments.push({id:id(),studentId:studentId,amount:amount,date:$('quickPaymentDate').value || today(),method:$('quickPaymentMethod').value,note:''});
   input.value = '';
-  toast('Ödəniş yadda saxlandı');
-  renderAll();
+  persistAndRender('Ödəniş yadda saxlandı');
 }
 
 function fillQuickAmount(studentId, inputId, type){
@@ -452,15 +568,20 @@ function renderAll(){
   renderPayments();
   renderDebtors();
   renderReport();
-  save();
   refreshIcons();
 }
 
+async function persistAndRender(message){
+  renderAll();
+  const ok=await saveNow();
+  if(message) toast(ok?message:'Yaddaşa yazılmadı. Console-u yoxlayın.');
+}
+
 window.editGroup=id=>{let g=group(id); if(!g)return;$('groupId').value=g.id;$('groupName').value=g.name;$('groupNote').value=g.note||'';$('scheduleRows').innerHTML='';(g.schedule||[]).forEach(s=>addSchedule(s.day,s.start,s.end));openPage('groups')}
-window.deleteGroup=id=>{if(data.students.some(s=>s.groupId===id))return alert('Bu qrupda şagird var. Əvvəl şagirdləri silin və ya başqa qrupa keçirin.'); if(confirm('Qrup silinsin?')){data.groups=data.groups.filter(g=>g.id!==id);renderAll()}}
+window.deleteGroup=id=>{if(data.students.some(s=>s.groupId===id))return alert('Bu qrupda şagird var. Əvvəl şagirdləri silin və ya başqa qrupa keçirin.'); if(confirm('Qrup silinsin?')){data.groups=data.groups.filter(g=>g.id!==id);persistAndRender('Qrup silindi')}}
 window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.id;$('studentName').value=s.name;$('studentPhone').value=s.phone||'';$('parentPhone').value=s.parent||'';$('studentGroup').value=s.groupId;$('joinDate').value=s.joinDate;$('monthlyFee').value=s.fee;$('studentStatus').value=s.status;openPage('students')}
-window.deleteStudent=id=>{if(confirm('Şagird silinsin?')){data.students=data.students.filter(s=>s.id!==id);renderAll()}}
-window.deletePayment=id=>{if(confirm('Ödəniş silinsin?')){data.payments=data.payments.filter(p=>p.id!==id);renderAll()}}
+window.deleteStudent=id=>{if(confirm('Şagird silinsin?')){data.students=data.students.filter(s=>s.id!==id);persistAndRender('Şagird silindi')}}
+window.deletePayment=id=>{if(confirm('Ödəniş silinsin?')){data.payments=data.payments.filter(p=>p.id!==id);persistAndRender('Ödəniş silindi')}}
 
 function openPage(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(p).classList.add('active');
@@ -482,10 +603,30 @@ function openPage(p){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  load();
   document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>openPage(b.dataset.page));
   $('mobileNavToggle').onclick=()=>{$('sidebar').classList.toggle('open');$('mobileOverlay').classList.toggle('show')};
   $('mobileOverlay').onclick=()=>{$('sidebar').classList.remove('open');$('mobileOverlay').classList.remove('show')};
+  $('authForm').onsubmit=async(e)=>{
+    e.preventDefault();
+    if(!auth) return setAuthMessage('Supabase config tamamlanmayıb.');
+    try{
+      setAuthMessage('Daxil olunur...',true);
+      const {error}=await auth.signInWithPassword({email:$('authEmail').value.trim(),password:$('authPassword').value});
+      if(error) throw error;
+    }catch(err){setAuthMessage(supabaseErrorMessage(err));}
+  };
+  $('registerBtn').onclick=async()=>{
+    if(!auth) return setAuthMessage('Supabase config tamamlanmayıb.');
+    try{
+      setAuthMessage('Hesab yaradılır...',true);
+      const {data:signupData,error}=await auth.signUp({email:$('authEmail').value.trim(),password:$('authPassword').value});
+      if(error) throw error;
+      if(signupData?.user && !signupData?.session){
+        setAuthMessage('Hesab yaradıldı. Email təsdiqi aktivdirsə, emailinizi təsdiqləyin və sonra daxil olun.',true);
+      }
+    }catch(err){setAuthMessage(supabaseErrorMessage(err));}
+  };
+  $('logoutBtn').onclick=()=>auth?.signOut();
   $('addSchedule').onclick=()=>addSchedule();
   $('paymentSearch').oninput=renderQuickPaymentGroups;
   $('reportGroup').onchange=()=>renderReport();
@@ -503,7 +644,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     let gid=$('groupId').value||id();
     let g={id:gid,name:$('groupName').value.trim(),schedule:sched,note:$('groupNote').value.trim()};
     let i=data.groups.findIndex(x=>x.id===gid); i>=0?data.groups[i]=g:data.groups.push(g);
-    $('clearGroup').click();toast('Qrup yadda saxlandı');renderAll();
+    $('clearGroup').click();persistAndRender('Qrup yadda saxlandı');
   };
   $('studentForm').onsubmit=e=>{
     e.preventDefault();
@@ -511,16 +652,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     let sid=$('studentId').value||id();
     let s={id:sid,name:$('studentName').value.trim(),phone:$('studentPhone').value.trim(),parent:$('parentPhone').value.trim(),groupId:$('studentGroup').value,joinDate:$('joinDate').value,fee:Number($('monthlyFee').value),status:$('studentStatus').value};
     let i=data.students.findIndex(x=>x.id===sid); i>=0?data.students[i]=s:data.students.push(s);
-    $('clearStudent').click();toast('Şagird yadda saxlandı');renderAll();
+    $('clearStudent').click();persistAndRender('Şagird yadda saxlandı');
   };
   $('paymentForm').onsubmit=e=>{
     e.preventDefault();
     let sid=$('paymentStudent').value;
     if(!sid)return alert('Şagird seçin.');
     data.payments.push({id:id(),studentId:sid,amount:Number($('paymentAmount').value),date:$('paymentDate').value,method:$('paymentMethod').value,note:$('paymentNote').value.trim()});
-    $('paymentForm').reset();$('paymentDate').value=today();toast('Ödəniş yazıldı');renderAll();
+    $('paymentForm').reset();$('paymentDate').value=today();persistAndRender('Ödəniş yazıldı');
   };
   $('exportData').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hazirliq-melumatlari.json';a.click();};
-  $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};renderAll()}};
-  $('joinDate').value=today();$('paymentDate').value=today();addSchedule();renderAll();refreshIcons();
+  $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};persistAndRender('Bütün məlumatlar silindi')}};
+  $('joinDate').value=today();$('paymentDate').value=today();addSchedule();initSupabase();refreshIcons();
 });
