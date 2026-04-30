@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hazırlıq Ödəniş Sistemi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="ambient ambientOne"></div>
+  <div class="ambient ambientTwo"></div>
+  <div class="mobileOverlay" id="mobileOverlay"></div>
+
+  <div class="appShell">
+    <aside class="side" id="sidebar" aria-label="Əsas menyu">
+      <div class="brandWrap">
+        <div class="brandMark"><i data-lucide="graduation-cap"></i></div>
+        <div class="brandText">
+          <h1>Hazırlıq</h1>
+          <p>Qrup, cədvəl və ödəniş idarəetməsi</p>
+        </div>
+      </div>
+
+      <nav class="navList">
+        <button class="nav active" data-page="home"><i data-lucide="layout-dashboard"></i><span>Ana səhifə</span></button>
+        <button class="nav" data-page="groups"><i data-lucide="layers-3"></i><span>Qruplar</span></button>
+        <button class="nav" data-page="schedule"><i data-lucide="calendar-range"></i><span>Cədvəl</span></button>
+        <button class="nav" data-page="students"><i data-lucide="users-round"></i><span>Şagirdlər</span></button>
+        <button class="nav" data-page="payments"><i data-lucide="wallet-cards"></i><span>Ödənişlər</span></button>
+        <button class="nav" data-page="debtors"><i data-lucide="circle-alert"></i><span>Keçmiş borclar</span></button>
+        <button class="nav" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
+        <button class="nav" data-page="info"><i data-lucide="settings-2"></i><span>Məlumat</span></button>
+      </nav>
+
+      <div class="sideNote">
+        <i data-lucide="shield-check"></i>
+        <div>
+          <b>Avtomatik yaddaş</b>
+          <span>Məlumatlar brauzerdə saxlanılır və dərhal yenilənir.</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="mainContent">
+      <header class="topHeader">
+        <div class="topHeaderLeft">
+          <button class="mobileNavToggle" id="mobileNavToggle" type="button" aria-label="Menyunu aç">
+            <i data-lucide="menu"></i>
+          </button>
+          <div>
+            <div class="eyebrow">Premium idarəetmə paneli</div>
+            <h2 id="title">Ana səhifə</h2>
+            <p id="help">Bu ay üçün alınmalı məbləğ, ödənişlər və qruplar.</p>
+          </div>
+        </div>
+        <div class="topBadge">
+          <i data-lucide="sparkles"></i>
+          <span>Yeni cədvəl görünüşü</span>
+        </div>
+      </header>
+
+      <section id="home" class="page active">
+        <div class="heroPanel">
+          <div>
+            <span class="panelLabel"><i data-lucide="sparkle"></i> Maliyyə baxışı</span>
+            <h3>Qruplar, cədvəl və ödənişlər indi daha aydın görünür.</h3>
+            <p>Alınmalı məbləğ, keçmiş borc, bu ay ödənilən pul və həftəlik dərs planı bir yerdə izlənir.</p>
+          </div>
+          <div class="heroMiniCard">
+            <i data-lucide="badge-dollar-sign"></i>
+            <span>Aylıq potensial</span>
+            <strong id="stMonthlyMax">0 AZN</strong>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="statCard">
+            <div class="statMeta"><span class="statIcon"><i data-lucide="users-round"></i></span><span>Aktiv şagird</span></div>
+            <b id="stActive">0</b>
+          </div>
+          <div class="statCard">
+            <div class="statMeta"><span class="statIcon"><i data-lucide="banknote-arrow-down"></i></span><span>Bu ay ödənilib</span></div>
+            <b id="stPaid">0 AZN</b>
+          </div>
+          <div class="statCard accent">
+            <div class="statMeta"><span class="statIcon"><i data-lucide="inbox"></i></span><span>Alınmalı ümumi məbləğ</span></div>
+            <b id="stExpected">0 AZN</b>
+          </div>
+          <div class="statCard softDanger">
+            <div class="statMeta"><span class="statIcon"><i data-lucide="circle-alert"></i></span><span>Keçmiş aylardan borc</span></div>
+            <b id="stDebt">0 AZN</b>
+          </div>
+          <div class="statCard compactStat">
+            <div class="statMeta"><span class="statIcon"><i data-lucide="wallet"></i></span><span>Nəğd</span></div>
+            <b id="stCash">0 AZN</b>
+          </div>
+          <div class="statCard compactStat">
+            <div class="statMeta"><span class="statIcon"><i data-lucide="credit-card"></i></span><span>Kart</span></div>
+            <b id="stCard">0 AZN</b>
+          </div>
+        </div>
+
+        <div class="surfaceCard quickScheduleCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="calendar-range"></i> Həftəlik baxış</span>
+              <h3>Bu həftənin dərs planı</h3>
+              <p>Bütün qrupların dərs günlərini qısa görünüşdə izləyin. Ətraflı görünüş üçün Cədvəl bölməsinə keçin.</p>
+            </div>
+          </div>
+          <div id="homeSchedulePreview"></div>
+        </div>
+
+        <div class="surfaceCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="clock-3"></i> Növbəti ödənişlər</span>
+              <h3>Yaxın ödəniş tarixləri</h3>
+              <p>Qruplar üzrə növbəti ödənişləri, alınmalı məbləği və borc vəziyyətini izləyin.</p>
+            </div>
+          </div>
+          <div id="homeGroups"></div>
+        </div>
+      </section>
+
+      <section id="groups" class="page">
+        <div class="twoColumn">
+          <form id="groupForm" class="surfaceCard formCard">
+            <div class="sectionHeader">
+              <div>
+                <span class="panelLabel"><i data-lucide="plus-circle"></i> Yeni qrup</span>
+                <h3>Qrup əlavə et</h3>
+                <p>Dərs günlərini və saatları ayrıca əlavə edin.</p>
+              </div>
+            </div>
+            <input type="hidden" id="groupId">
+            <label>Qrup adı</label>
+            <input id="groupName" required placeholder="Məsələn: 1-3 11-ci sinif">
+            <label>Dərs günləri və saatları</label>
+            <div id="scheduleRows"></div>
+            <button type="button" class="secondary iconButton" id="addSchedule"><i data-lucide="plus"></i><span>Dərs günü əlavə et</span></button>
+            <label>Qeyd</label>
+            <textarea id="groupNote" placeholder="İstəyə bağlı qeyd"></textarea>
+            <div class="formActions">
+              <button class="primary"><i data-lucide="save"></i><span>Yadda saxla</span></button>
+              <button type="button" class="secondary" id="clearGroup">Formanı təmizlə</button>
+            </div>
+          </form>
+
+          <div class="surfaceCard">
+            <div class="sectionHeader">
+              <div>
+                <span class="panelLabel"><i data-lucide="layers-3"></i> Qrup siyahısı</span>
+                <h3>Qruplar</h3>
+                <p>Bütün qruplar, dərs günləri və ümumi göstəricilər.</p>
+              </div>
+            </div>
+            <div id="groupList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="schedule" class="page">
+        <div class="surfaceCard timetableCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="calendar-range"></i> Həftəlik görünüş</span>
+              <h3>Dərs cədvəli</h3>
+              <p>Qrupların dərs günləri və saatları real cədvəl görnüşündə göstərilir.</p>
+            </div>
+          </div>
+          <div id="weekSchedule"></div>
+        </div>
+      </section>
+
+      <section id="students" class="page">
+        <div class="twoColumn">
+          <form id="studentForm" class="surfaceCard formCard">
+            <div class="sectionHeader">
+              <div>
+                <span class="panelLabel"><i data-lucide="user-plus"></i> Yeni şagird</span>
+                <h3>Şagird əlavə et</h3>
+                <p>Şagirdin qrupu, qoşulma tarixi və aylıq məbləği burada qeyd olunur.</p>
+              </div>
+            </div>
+            <input type="hidden" id="studentId">
+            <label>Ad Soyad</label>
+            <input id="studentName" required placeholder="Şagirdin adı və soyadı">
+            <label>Telefon</label>
+            <input id="studentPhone" placeholder="Şagird telefonu">
+            <label>Valideyn telefonu</label>
+            <input id="parentPhone" placeholder="Valideyn telefonu">
+            <label>Qrup</label>
+            <select id="studentGroup" required></select>
+            <label>Qoşulduğu tarix</label>
+            <input id="joinDate" type="date" required>
+            <label>Aylıq ödəniş</label>
+            <input id="monthlyFee" type="number" min="0" required placeholder="AZN">
+            <label>Status</label>
+            <select id="studentStatus">
+              <option value="active">Aktiv</option>
+              <option value="inactive">Çıxıb</option>
+            </select>
+            <div class="formActions">
+              <button class="primary"><i data-lucide="save"></i><span>Yadda saxla</span></button>
+              <button type="button" class="secondary" id="clearStudent">Formanı təmizlə</button>
+            </div>
+          </form>
+
+          <div class="surfaceCard">
+            <div class="sectionHeader">
+              <div>
+                <span class="panelLabel"><i data-lucide="search"></i> Şagird bazası</span>
+                <h3>Şagirdlər</h3>
+                <p>Qrup-qrupla görünüş və sürətli axtarış.</p>
+              </div>
+            </div>
+            <input id="studentSearch" class="searchInput" placeholder="Ada görə axtar">
+            <div id="studentList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="payments" class="page">
+        <div class="surfaceCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="wallet-cards"></i> Sürətli ödəniş</span>
+              <h3>Ödəniş əlavə et</h3>
+              <p>Tarix və ödəniş formasını seçin, sonra şagirdin yanında məbləği yazıb yadda saxlayın.</p>
+            </div>
+          </div>
+
+          <div class="toolbarGrid">
+            <input id="paymentSearch" placeholder="Şagird adı ilə axtar">
+            <select id="quickPaymentMethod">
+              <option value="cash">Nəğd</option>
+              <option value="card">Kart</option>
+            </select>
+            <input id="quickPaymentDate" type="date">
+          </div>
+
+          <div id="quickPaymentGroups"></div>
+        </div>
+
+        <div class="surfaceCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="history"></i> Arxiv</span>
+              <h3>Ödəniş tarixçəsi</h3>
+              <p>Qruplar üzrə edilmiş bütün ödənişlər burada görünür.</p>
+            </div>
+          </div>
+          <div id="paymentList"></div>
+        </div>
+
+        <form id="paymentForm" class="hiddenPaymentForm">
+          <select id="paymentStudent" required></select>
+          <input id="paymentAmount" type="number" min="0" required>
+          <input id="paymentDate" type="date" required>
+          <select id="paymentMethod"><option value="cash">Nəğd</option><option value="card">Kart</option></select>
+          <textarea id="paymentNote"></textarea>
+        </form>
+      </section>
+
+      <section id="debtors" class="page">
+        <div class="surfaceCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="triangle-alert"></i> Borclular</span>
+              <h3>Keçmiş borclar</h3>
+              <p>Ödəniş vaxtı keçmiş və hələ ödənilməmiş şagirdləri ayrıca görün.</p>
+            </div>
+          </div>
+          <div id="debtorList"></div>
+        </div>
+      </section>
+
+      <section id="reports" class="page">
+        <div class="surfaceCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="chart-no-axes-combined"></i> Analitika</span>
+              <h3>Hesabat</h3>
+              <p>Qrup seçərək əsas göstəriciləri bir yerdə görün.</p>
+            </div>
+          </div>
+
+          <div class="reportFilter">
+            <label>Qrup seç
+              <select id="reportGroup"></select>
+            </label>
+          </div>
+
+          <div class="stats compact">
+            <div class="statCard">
+              <div class="statMeta"><span class="statIcon"><i data-lucide="inbox"></i></span><span>Alınmalı ümumi</span></div>
+              <b id="rpExpected">0 AZN</b>
+            </div>
+            <div class="statCard">
+              <div class="statMeta"><span class="statIcon"><i data-lucide="banknote-arrow-down"></i></span><span>Ödənilib</span></div>
+              <b id="rpPaid">0 AZN</b>
+            </div>
+            <div class="statCard softDanger">
+              <div class="statMeta"><span class="statIcon"><i data-lucide="circle-alert"></i></span><span>Keçmiş aylardan borc</span></div>
+              <b id="rpDebt">0 AZN</b>
+            </div>
+            <div class="statCard">
+              <div class="statMeta"><span class="statIcon"><i data-lucide="wallet-cards"></i></span><span>Nəğd / Kart</span></div>
+              <b id="rpCashCard">0 / 0</b>
+            </div>
+          </div>
+
+          <div id="reportList"></div>
+        </div>
+      </section>
+
+      <section id="info" class="page">
+        <div class="surfaceCard infoCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="settings-2"></i> Sistem qaydası</span>
+              <h3>Məlumat</h3>
+              <p>Sistemin əsas işləmə prinsipi qısa formada.</p>
+            </div>
+          </div>
+          <ol class="infoList">
+            <li>Əvvəl qrup yaradın və dərs günlərini daxil edin.</li>
+            <li>Qrupların həftəlik görünüşünü Cədvəl bölməsində dərhal izləyin.</li>
+            <li>Şagird qoşulduqdan bir ay sonra ilk ödəniş yaranır.</li>
+            <li>Hər ay ödənişi əlavə etdikcə borc və alınmalı məbləğ yenilənir.</li>
+            <li>Qismən ödəniş olduqda qalan məbləğ sistemdə saxlanılır.</li>
+          </ol>
+          <div class="formActions">
+            <button class="secondary iconButton" id="exportData" type="button"><i data-lucide="download"></i><span>Məlumatları yüklə</span></button>
+            <button class="danger iconButton" id="clearAll" type="button"><i data-lucide="trash-2"></i><span>Bütün məlumatları sil</span></button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast"></div>
+</body>
+</html>
