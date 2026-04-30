@@ -362,3 +362,89 @@ td b{font-weight:900;letter-spacing:-.02em}
   .authActions{grid-template-columns:1fr}
   .topHeaderActions{justify-content:flex-start;width:100%}
 }
+
+/* v8 mobile premium fixes */
+.drawerClose{display:none;width:42px;height:42px;border-radius:16px;border:1px solid rgba(191,211,238,.18);background:rgba(255,255,255,.08);color:#fff;align-items:center;justify-content:center;cursor:pointer}
+.drawerClose svg{width:20px;height:20px}
+body.nav-open{overflow:hidden;touch-action:none}
+
+@media (max-width:1080px){
+  .mobileOverlay{z-index:999;background:rgba(2,6,23,.48);backdrop-filter:none;pointer-events:none}
+  .mobileOverlay.show{pointer-events:auto}
+  .side{z-index:1000;top:10px;left:10px;bottom:10px;width:min(360px,calc(100vw - 20px));max-width:calc(100vw - 20px);height:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:30px;padding:18px;box-shadow:0 30px 90px rgba(2,6,23,.45);transform:translate3d(-120%,0,0);will-change:transform}
+  .side.open{transform:translate3d(0,0,0)}
+  .drawerClose{display:inline-flex;margin-left:auto;flex:0 0 42px}
+  .brandWrap{gap:12px;align-items:center;margin-bottom:20px}
+  .brandText{min-width:0}
+  .brandText h1,.brandText p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .navList{gap:8px}
+  .nav{min-height:52px;padding:14px 14px;border-radius:18px;font-size:15px;touch-action:manipulation}
+  .nav svg{width:21px;height:21px}
+  .sideNote{display:none}
+  .mainContent{min-width:0}
+  .topHeader{position:sticky;top:0;z-index:50;margin:-16px -16px 16px;padding:14px 16px 16px;background:rgba(246,249,254,.92);backdrop-filter:blur(18px);border-bottom:1px solid rgba(203,213,225,.7);align-items:flex-start}
+  .topHeaderLeft{width:100%;min-width:0}
+  .mobileNavToggle{position:relative;z-index:51;background:#fff;border-color:var(--line-strong);box-shadow:0 10px 26px rgba(15,23,42,.08)}
+}
+
+@media (max-width:760px){
+  html,body{width:100%;overflow-x:hidden}
+  .appShell{padding:10px;min-height:100vh}
+  .topHeader{margin:-10px -10px 14px;padding:12px 10px 14px;gap:12px;flex-direction:column}
+  .topHeaderLeft{gap:10px;align-items:center}
+  .topHeader .eyebrow{font-size:10.5px;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 86px)}
+  .topHeader h2{font-size:28px;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 86px)}
+  .topHeader p{display:none}
+  .topHeaderActions{display:none}
+  .mobileNavToggle{width:48px;height:48px;flex:0 0 48px;border-radius:18px}
+  .heroPanel,.surfaceCard{padding:18px;border-radius:24px}
+  .heroPanel{gap:18px}
+  .heroPanel h3{font-size:28px;line-height:1.08}
+  .heroPanel p,.sectionHeader p{font-size:14px;line-height:1.55}
+  .heroMiniCard{padding:16px;border-radius:22px}
+  .stats{gap:10px}
+  .statCard{min-height:104px;padding:16px;border-radius:22px}
+  .statCard b{font-size:30px}
+  .sectionHeader{gap:12px;align-items:flex-start}
+  .sectionHeader h3{font-size:22px;line-height:1.15}
+  input,select,textarea{font-size:16px;min-height:50px;border-radius:18px}
+  button{min-height:46px}
+  .primary,.secondary,.danger,.mini,.presetBtn,.savePayBtn{border-radius:16px}
+  .twoColumn{gap:14px}
+  .toolbarGrid{gap:10px}
+  .accHead{padding:18px;gap:12px}
+  .accHead b{font-size:20px}
+  .accBody{padding:0 18px 18px}
+  .pills{gap:6px}
+  .pill{padding:8px 10px;font-size:11.5px}
+  .tableWrap{border-radius:18px;margin-left:-2px;margin-right:-2px}
+  table{min-width:620px}
+  th,td{padding:13px 12px}
+  .timetableWrap{margin-left:-18px;margin-right:-18px;padding:0 18px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .timetable{min-width:760px;border-radius:20px}
+  .timetableHeader{grid-template-columns:74px repeat(7,98px)}
+  .timetableMain{grid-template-columns:74px repeat(7,98px)}
+  .timetableHeaderCell{padding:12px 8px}
+  .timetableHeaderCell b{font-size:12px}
+  .timetableHeaderCell span{font-size:10.5px}
+  .timeCell,.slotLine{height:54px;font-size:11px}
+  .sessionBlock{left:5px;right:5px;border-radius:14px;padding:9px 8px}
+  .sessionBlock h4{font-size:12px;margin-top:7px}
+  .sessionBlock p,.blockMeta{display:none}
+  .sessionBlock .blockTime{font-size:10px;padding:5px 7px}
+  .authScreen{padding:14px;align-items:start;padding-top:34px}
+  .authCard{padding:22px;border-radius:26px}
+}
+
+@media (max-width:430px){
+  .side{top:8px;left:8px;bottom:8px;width:calc(100vw - 16px);max-width:calc(100vw - 16px);border-radius:26px}
+  .brandMark{width:46px;height:46px;border-radius:17px}
+  .brandText h1{font-size:20px}
+  .brandText p{font-size:11.5px}
+  .drawerClose{width:40px;height:40px;border-radius:15px}
+  .topHeader h2{font-size:25px}
+  .heroPanel h3{font-size:25px}
+  .statCard b{font-size:28px}
+  .formActions{gap:10px}
+  .authActions{grid-template-columns:1fr}
+}

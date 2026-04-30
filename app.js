@@ -603,9 +603,28 @@ function openPage(p){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>openPage(b.dataset.page));
-  $('mobileNavToggle').onclick=()=>{$('sidebar').classList.toggle('open');$('mobileOverlay').classList.toggle('show')};
-  $('mobileOverlay').onclick=()=>{$('sidebar').classList.remove('open');$('mobileOverlay').classList.remove('show')};
+  const closeMobileNav=()=>{
+    $('sidebar')?.classList.remove('open');
+    $('mobileOverlay')?.classList.remove('show');
+    document.body.classList.remove('nav-open');
+    $('mobileNavToggle')?.setAttribute('aria-expanded','false');
+  };
+  const openMobileNav=()=>{
+    $('sidebar')?.classList.add('open');
+    $('mobileOverlay')?.classList.add('show');
+    document.body.classList.add('nav-open');
+    $('mobileNavToggle')?.setAttribute('aria-expanded','true');
+  };
+  document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{openPage(b.dataset.page); closeMobileNav();});
+  $('mobileNavToggle').onclick=(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    $('sidebar')?.classList.contains('open') ? closeMobileNav() : openMobileNav();
+  };
+  $('drawerClose') && ($('drawerClose').onclick=closeMobileNav);
+  $('mobileOverlay').onclick=closeMobileNav;
+  window.addEventListener('keydown',e=>{if(e.key==='Escape') closeMobileNav();});
+  window.addEventListener('resize',()=>{if(window.innerWidth>1080) closeMobileNav();});
   $('authForm').onsubmit=async(e)=>{
     e.preventDefault();
     if(!auth) return setAuthMessage('Supabase config tamamlanmayıb.');
