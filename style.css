@@ -460,3 +460,11 @@ body.nav-open{overflow:hidden;touch-action:none}
   .mainContent{position:relative;z-index:1;}
   body.nav-open .mainContent{pointer-events:none;}
 }
+
+
+/* v10 one-tap mobile drawer navigation */
+@media (max-width:1080px){
+  .nav{touch-action:manipulation; -webkit-touch-callout:none;}
+  .nav:focus{outline:none;}
+  .nav:focus-visible{outline:3px solid rgba(59,130,246,.35); outline-offset:2px;}
+}

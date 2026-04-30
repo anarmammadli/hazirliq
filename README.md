@@ -87,3 +87,7 @@ Vercel-ə bu faylları upload et:
 ## Qeyd
 
 Supabase Free project istifadə olunmasa pause ola bilər. Məlumatlar adətən silinmir, sadəcə dashboard-dan project-i resume etmək lazımdır.
+
+
+## v10 fix
+Mobile drawer navigation now uses direct touchstart/pointerdown handlers so menu items open with one tap on iPhone/Safari.

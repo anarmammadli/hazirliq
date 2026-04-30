@@ -628,17 +628,30 @@ function openPage(p){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
+  let lastNavTap = 0;
+
   const handleNavTap=(e)=>{
     const btn=e.target.closest && e.target.closest('.nav[data-page]');
     if(!btn) return;
+
+    // iPhone/Safari sometimes creates a delayed synthetic click after touch.
+    // Prevent it so one tap changes the page immediately instead of needing two taps.
     e.preventDefault();
     e.stopPropagation();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+    const now = Date.now();
+    if(now - lastNavTap < 280) return;
+    lastNavTap = now;
+
     openPage(btn.dataset.page);
   };
 
-  // Pointer events fix iPhone/Safari drawer taps. Click is kept for desktop.
-  document.querySelector('.navList')?.addEventListener('pointerup',handleNavTap,{passive:false});
-  document.querySelector('.navList')?.addEventListener('click',handleNavTap,{passive:false});
+  document.querySelectorAll('.nav[data-page]').forEach(btn=>{
+    btn.addEventListener('touchstart', handleNavTap, {passive:false, capture:true});
+    btn.addEventListener('pointerdown', handleNavTap, {passive:false, capture:true});
+    btn.addEventListener('click', handleNavTap, {passive:false, capture:true});
+  });
 
   $('mobileNavToggle').onclick=(e)=>{
     e.preventDefault();
