@@ -8,6 +8,7 @@ let unsubscribeAuth=null;
 let pendingCloudSave=false;
 let resumeTimer=null;
 let sessionCheckPromise=null;
+let saveChain=Promise.resolve();
 const LOCAL_BACKUP_KEY='hazirliq_supabase_unsaved_backup_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
@@ -55,32 +56,37 @@ async function ensureActiveUser(forceRefresh=false){
   if(sessionCheckPromise) return sessionCheckPromise;
 
   sessionCheckPromise=(async()=>{
-    let session=null;
     try{
-      const sessionData=await withTimeout(auth.getSession(),4500,'Session yoxlanışı gecikdi');
+      const sessionData=await withTimeout(auth.getSession(),5000,'Session yoxlanışı gecikdi');
       if(sessionData.error) throw sessionData.error;
-      session=sessionData.data?.session||null;
+      let session=sessionData.data?.session||null;
 
       const expiresAt=session?.expires_at ? session.expires_at*1000 : 0;
-      const almostExpired=expiresAt && expiresAt-Date.now()<60000;
-      if((forceRefresh || almostExpired) && session && typeof auth.refreshSession==='function'){
-        const refreshed=await withTimeout(auth.refreshSession(),4500,'Session yenilənməsi gecikdi');
+      const almostExpired=expiresAt && expiresAt-Date.now()<120000;
+      if(session && (forceRefresh || almostExpired) && typeof auth.refreshSession==='function'){
+        const refreshed=await withTimeout(auth.refreshSession(),6000,'Session yenilənməsi gecikdi');
         if(refreshed.error) throw refreshed.error;
         session=refreshed.data?.session||session;
       }
+
+      // Important: do not trust only the cached session after tab/Alt+Tab.
+      // getUser() validates the currently active Supabase user before save.
+      const userData=await withTimeout(auth.getUser(),6000,'İstifadəçi yoxlanışı gecikdi');
+      if(userData.error) throw userData.error;
+      currentUser=userData.data?.user || session?.user || null;
+      return currentUser;
     }catch(err){
-      // Do not keep the whole app stuck on "Session yoxlanılır".
-      console.warn('Session check failed:', err);
+      console.warn('Session/user check failed:', err);
+      currentUser=null;
       throw err;
     }finally{
-      setTimeout(()=>{sessionCheckPromise=null},50);
+      setTimeout(()=>{sessionCheckPromise=null},80);
     }
-    currentUser=session?.user || null;
-    return currentUser;
   })();
   return sessionCheckPromise;
 }
-async function saveNow(options={}){
+
+async function saveNowCore(options={}){
   backupUnsavedData();
   if(isHydrating) return false;
   let lastErr=null;
@@ -90,7 +96,7 @@ async function saveNow(options={}){
       if(!navigator.onLine) throw new Error('İnternet bağlantısı yoxdur.');
       if($('cloudStatus')) $('cloudStatus').textContent=attempt?'Yenidən cəhd edilir...':'Cloud yazılır...';
 
-      const user=await ensureActiveUser(attempt>0);
+      const user=await ensureActiveUser(Boolean(options.forceRefresh) || attempt>0);
       if(!user){
         $('appShell')?.classList.add('locked');
         $('authScreen')?.classList.remove('locked');
@@ -124,31 +130,44 @@ async function saveNow(options={}){
   if(!options.silent) toast('Yaddaşa yazılmadı. Bir az sonra yenə cəhd edin.');
   return false;
 }
+function saveNow(options={}){
+  saveChain=saveChain.catch(()=>false).then(()=>saveNowCore(options));
+  return saveChain;
+}
+
 async function resumeSupabaseConnection(reason='resume'){
   if(!auth || !db || document.hidden) return;
   clearTimeout(resumeTimer);
   resumeTimer=setTimeout(async()=>{
     try{
-      // Lightweight check only. Do not force refresh on every focus/click.
       if($('cloudStatus')) $('cloudStatus').textContent='Cloud yoxlanır...';
-      const user=await ensureActiveUser(false);
+      const user=await ensureActiveUser(reason==='online');
       if(!user){
         $('appShell')?.classList.add('locked');
         $('authScreen')?.classList.remove('locked');
         if($('cloudStatus')) $('cloudStatus').textContent='Session bitib';
         return;
       }
-      if(pendingCloudSave || localStorage.getItem(LOCAL_BACKUP_KEY)){
-        await saveNow({silent:true});
-      }else if($('cloudStatus')){
-        $('cloudStatus').textContent='Cloud aktivdir';
+
+      // A tiny read verifies that RLS + auth are actually usable, not just cached.
+      const {error}=await withTimeout(
+        db.from('user_states').select('user_id').eq('user_id',user.id).maybeSingle(),
+        6000,
+        'Cloud yoxlanışı gecikdi'
+      );
+      if(error) throw error;
+
+      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
+      if(pendingCloudSave && navigator.onLine){
+        await saveNow({silent:true, forceRefresh:true});
       }
     }catch(err){
-      console.warn('Session resume skipped:', reason, err);
-      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
+      console.warn('Resume check failed:', reason, err);
+      if($('cloudStatus')) $('cloudStatus').textContent='Cloud gözləyir';
     }
-  },500);
+  },700);
 }
+
 function save(){
   if(isHydrating) return;
   clearTimeout(saveTimer);
@@ -230,15 +249,25 @@ async function initSupabase(){
   }
 
   const {data:listener}=auth.onAuthStateChange(async(event,session)=>{
+    const previousUserId=currentUser?.id||null;
     currentUser=session?.user||null;
-    if(currentUser){
-      setAuthMessage('Uğurla daxil oldunuz.',true);
-      await loadCloudData();
-    }else{
+
+    if(!currentUser){
       isHydrating=true;
       data={groups:[],students:[],payments:[]};
       $('appShell')?.classList.add('locked');
       $('authScreen')?.classList.remove('locked');
+      refreshIcons();
+      return;
+    }
+
+    // Only load data when a user actually signs in or changes.
+    // Do NOT reload all data on TOKEN_REFRESHED after tab/Alt+Tab.
+    if(event==='SIGNED_IN' || event==='INITIAL_SESSION' || previousUserId!==currentUser.id){
+      setAuthMessage('Uğurla daxil oldunuz.',true);
+      await loadCloudData();
+    }else{
+      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
     }
     refreshIcons();
   });
