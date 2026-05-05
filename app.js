@@ -5,6 +5,7 @@ let currentUser=null;
 let isHydrating=true;
 let saveTimer=null;
 let unsubscribeAuth=null;
+const LOCAL_BACKUP_KEY='hazirliq_supabase_unsaved_backup_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
 const months=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
@@ -21,27 +22,54 @@ function normalizeData(cloudData){
     payments:Array.isArray(cloudData?.payments)?cloudData.payments:[]
   };
 }
-async function saveNow(){
-  if(!db || !currentUser || isHydrating) return false;
+function backupUnsavedData(){
   try{
+    localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify({data, savedAt:new Date().toISOString()}));
+  }catch(e){
+    console.warn('Local backup failed', e);
+  }
+}
+function clearUnsavedBackup(){
+  try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
+}
+async function ensureActiveUser(){
+  if(!auth) return null;
+  const {data:sessionData,error}=await auth.getSession();
+  if(error) throw error;
+  currentUser=sessionData?.session?.user || null;
+  return currentUser;
+}
+async function saveNow(){
+  backupUnsavedData();
+  if(isHydrating) return false;
+  try{
+    if(!db || !auth) throw new Error('Supabase client hazır deyil. Səhifəni refresh edin.');
+    const user=await ensureActiveUser();
+    if(!user){
+      $('appShell')?.classList.add('locked');
+      $('authScreen')?.classList.remove('locked');
+      throw new Error('Sessiya bitib. Yenidən daxil olun.');
+    }
     if($('cloudStatus')) $('cloudStatus').textContent='Cloud yazılır...';
+    const payload={user_id:user.id,data:normalizeData(data),updated_at:new Date().toISOString()};
     const {error}=await db
       .from('user_states')
-      .upsert({user_id:currentUser.id,data,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+      .upsert(payload,{onConflict:'user_id'});
     if(error) throw error;
+    clearUnsavedBackup();
     if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
     return true;
   }catch(err){
-    console.error(err);
+    console.error('Supabase save error:', err);
     if($('cloudStatus')) $('cloudStatus').textContent='Cloud xətası';
-    toast('Supabase yaddaşa yazmaq alınmadı: '+(err?.message||''));
+    toast('Yaddaşa yazılmadı: '+(err?.message||'Console-u yoxlayın.'));
     return false;
   }
 }
 function save(){
-  if(!db || !currentUser || isHydrating) return;
+  if(isHydrating) return;
   clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>saveNow(),250);
+  saveTimer=setTimeout(()=>saveNow(),350);
 }
 async function loadCloudData(){
   isHydrating=true;
@@ -61,6 +89,16 @@ async function loadCloudData(){
         .insert({user_id:currentUser.id,data});
       if(insertError) throw insertError;
     }
+    try{
+      const backup=JSON.parse(localStorage.getItem(LOCAL_BACKUP_KEY)||'null');
+      const b=backup?.data;
+      const hasBackup=b && ((b.groups||[]).length || (b.students||[]).length || (b.payments||[]).length);
+      const cloudEmpty=!data.groups.length && !data.students.length && !data.payments.length;
+      if(hasBackup && cloudEmpty){
+        data=normalizeData(b);
+        await saveNow();
+      }
+    }catch(e){console.warn('Backup restore skipped', e)}
     if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
   }catch(err){
     console.error(err);
@@ -600,7 +638,7 @@ function renderAll(){
 async function persistAndRender(message){
   renderAll();
   const ok=await saveNow();
-  if(message) toast(ok?message:'Yaddaşa yazılmadı. Console-u yoxlayın.');
+  if(message) toast(ok?message:'Yaddaşa yazılmadı. İnternet/session/RLS yoxlayın.');
 }
 
 window.editGroup=id=>{let g=group(id); if(!g)return;$('groupId').value=g.id;$('groupName').value=g.name;$('groupNote').value=g.note||'';$('scheduleRows').innerHTML='';(g.schedule||[]).forEach(s=>addSchedule(s.day,s.start,s.end));openPage('groups')}
