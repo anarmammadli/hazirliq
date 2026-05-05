@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem("hazirliqTheme")||"light";}catch(e){}</script>
   <link rel="stylesheet" href="style.css">
   <script defer src="https://unpkg.com/lucide@latest"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -17,7 +18,10 @@
   <div class="authScreen" id="authScreen">
     <div class="authCard multiAuthCard">
       <div class="brandMark authMark"><i data-lucide="graduation-cap"></i></div>
-      <span class="panelLabel"><i data-lucide="users-round"></i> Müəllim girişi</span>
+      <div class="authTopLine">
+        <span class="panelLabel"><i data-lucide="users-round"></i> Müəllim girişi</span>
+        <button class="themeToggle" type="button" data-theme-toggle aria-label="Dark mode"><i data-lucide="moon"></i><span>Dark</span></button>
+      </div>
       <h2>Hazırlıq sisteminə giriş</h2>
       <p>Hər müəllim yalnız öz username və kodu ilə daxil olur. Hər müəllimin məlumatı Supabase-də ayrıca saxlanılır.</p>
 
@@ -113,6 +117,7 @@
           </div>
         </div>
         <div class="topHeaderActions">
+          <button class="themeToggle topThemeToggle" type="button" data-theme-toggle aria-label="Dark mode"><i data-lucide="moon"></i><span>Dark</span></button>
           <div class="topBadge">
             <i data-lucide="cloud-check"></i>
             <span id="cloudStatus">Cloud aktivdir</span>

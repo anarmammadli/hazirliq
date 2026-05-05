@@ -1037,7 +1037,30 @@ function openPage(p){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function applyTheme(theme){
+  const safe = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = safe;
+  try{localStorage.setItem('hazirliqTheme', safe);}catch(e){}
+  document.querySelectorAll('[data-theme-toggle]').forEach(btn=>{
+    const icon = btn.querySelector('i');
+    const label = btn.querySelector('span');
+    if(icon) icon.setAttribute('data-lucide', safe === 'dark' ? 'sun' : 'moon');
+    if(label) label.textContent = safe === 'dark' ? 'Light' : 'Dark';
+    btn.setAttribute('aria-label', safe === 'dark' ? 'Light mode' : 'Dark mode');
+  });
+  refreshIcons();
+}
+function initTheme(){
+  let saved='light';
+  try{saved=localStorage.getItem('hazirliqTheme') || 'light';}catch(e){}
+  applyTheme(saved);
+  document.querySelectorAll('[data-theme-toggle]').forEach(btn=>{
+    btn.onclick=()=>applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  });
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
+  initTheme();
   window.addEventListener('pageshow',()=>resumeSupabaseConnection('pageshow'));
   window.addEventListener('online',()=>resumeSupabaseConnection('online'));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden) resumeSupabaseConnection('visibilitychange')});
