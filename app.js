@@ -25,7 +25,7 @@ function isSupabaseConfigured(){
   return !!(cfg && cfg.url && cfg.anonKey && !String(cfg.url).includes('PASTE_') && !String(cfg.anonKey).includes('PASTE_'));
 }
 function adminPassword(){
-  return String(window.HAZIRLIQ_SUPABASE_CONFIG?.adminPassword || '123456');
+  return String(window.HAZIRLIQ_SUPABASE_CONFIG?.adminPassword || 'a0516600094');
 }
 function normalizeData(cloudData){
   return {
@@ -198,12 +198,12 @@ async function loadCloudData(){
       if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     }else if(cloudData && (!local || newerOrEqual(cloudTime, localTime))){
       data=cloudData;
-      try{localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify({data, updatedAt:cloudTime}))}catch(e){}
+      try{localStorage.setItem(localDataKey(), JSON.stringify({data, updatedAt:cloudTime}))}catch(e){}
       markCloudSynced();
       if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
     }else if(local?.data){
       data=normalizeData(local.data);
-      try{localStorage.setItem(LOCAL_PENDING_KEY,'1')}catch(e){}
+      try{localStorage.setItem(localPendingKey(),'1')}catch(e){}
       setTimeout(()=>syncToCloud(),600);
       if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     }else{
@@ -285,9 +285,9 @@ async function renderTeacherAdminList(){
   const box=$('teacherAdminList');
   if(!box || !db) return;
   try{
-    const {data:rows,error}=await db.from('teacher_states').select('username,name,updated_at').order('username');
+    const {data:rows,error}=await db.from('teacher_states').select('username,name,code,updated_at').order('username');
     if(error) throw error;
-    box.innerHTML=(rows||[]).map(t=>`<div class="teacherAdminRow"><div><b>${esc(t.name||t.username)}</b><span>${esc(t.username)} • ${t.updated_at?new Date(t.updated_at).toLocaleString('az-AZ'):'-'}</span></div><button type="button" class="mini red" onclick="deleteTeacherAccount('${esc(t.username)}')">Sil</button></div>`).join('') || '<div class="empty smallEmpty">Müəllim yoxdur.</div>';
+    box.innerHTML=(rows||[]).map(t=>`<div class="teacherAdminRow"><div><b>${esc(t.name||t.username)}</b><span>Username: <strong>${esc(t.username)}</strong> • Kod: <strong>${esc(t.code||'')}</strong> • Yenilənib: ${esc(t.updated_at?dateAz(String(t.updated_at).slice(0,10)):'-')}</span></div><div class="teacherRowActions"><button type="button" class="mini" onclick="copyTeacherLogin('${esc(t.username)}','${esc(t.code||'')}')">Kopyala</button><button type="button" class="mini red" onclick="deleteTeacherAccount('${esc(t.username)}')">Sil</button></div></div>`).join('') || '<div class="empty smallEmpty">Müəllim yoxdur.</div>';
   }catch(err){
     console.error('Teacher list failed:', err);
     box.innerHTML='<div class="empty smallEmpty">Müəllim siyahısı yüklənmədi.</div>';
@@ -324,6 +324,11 @@ async function createTeacherAccount(){
   }
 }
 
+window.copyTeacherLogin=async(username, code)=>{
+  const text=`Username: ${username}\nKod: ${code}`;
+  try{await navigator.clipboard.writeText(text);toast('Username və kod kopyalandı');}
+  catch(e){alert(text);}
+};
 window.deleteTeacherAccount=async(username)=>{
   if(!confirm(username+' müəllimi silinsin? Bu müəllimin datası da silinəcək.')) return;
   try{
@@ -345,7 +350,30 @@ function active(){return data.students.filter(s=>s.status==='active')}
 function group(id){return data.groups.find(g=>g.id===id)}
 function student(id){return data.students.find(s=>s.id===id)}
 function monthName(m){if(!m)return'-';let [y,mo]=m.split('-');return months[+mo-1]+' '+y}
-function dateAz(d){return d?new Date(d).toLocaleDateString('az-AZ'):'-'}
+function dateAz(d){
+  if(!d) return '-';
+  const iso=toIsoDate(d);
+  if(!iso) return '-';
+  const [y,m,day]=iso.split('-');
+  return `${day}/${m}/${y}`;
+}
+function toIsoDate(v){
+  v=String(v||'').trim();
+  if(!v) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const m=v.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+  if(!m) return '';
+  const day=m[1].padStart(2,'0'), mon=m[2].padStart(2,'0'), year=m[3];
+  const dt=new Date(`${year}-${mon}-${day}T00:00:00`);
+  if(dt.getFullYear()!=Number(year)||dt.getMonth()+1!=Number(mon)||dt.getDate()!=Number(day)) return '';
+  return `${year}-${mon}-${day}`;
+}
+function fromIsoDate(iso){
+  iso=toIsoDate(iso);
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-');
+  return `${d}/${m}/${y}`;
+}
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
 function cleanDate(d){const x=new Date(d);x.setHours(0,0,0,0);return x;}
 function addMonths(date,count){const d=new Date(date);const originalDay=d.getDate();d.setMonth(d.getMonth()+count);if(d.getDate()!==originalDay)d.setDate(0);return d;}
@@ -449,18 +477,18 @@ function methodHtml(method){
   return `<span class="methodTag"><i data-lucide="${icon}"></i><span>${label}</span></span>`;
 }
 function refreshIcons(){if(window.lucide&&typeof window.lucide.createIcons==='function'){window.lucide.createIcons();}}
-function timeOptions(sel='15:00'){
-  let out='';
+function timeOptions(sel=''){
+  let out='<option value="">Saat seç</option>';
   for(let h=7;h<=22;h++)for(let m of [0,30]){
     let v=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
     out+=`<option ${v===sel?'selected':''}>${v}</option>`;
   }
   return out;
 }
-function addSchedule(day=days[0],start='15:00',end='17:00'){
+function addSchedule(day='',start='',end=''){
   let div=document.createElement('div');
   div.className='scheduleRow';
-  div.innerHTML=`<select class="schDay">${days.map(d=>`<option ${d===day?'selected':''}>${d}</option>`).join('')}</select><select class="schStart">${timeOptions(start)}</select><select class="schEnd">${timeOptions(end)}</select><button type="button" class="mini red">X</button>`;
+  div.innerHTML=`<select class="schDay"><option value="">Gün seç</option>${days.map(d=>`<option ${d===day?'selected':''}>${d}</option>`).join('')}</select><select class="schStart">${timeOptions(start)}</select><select class="schEnd">${timeOptions(end)}</select><button type="button" class="mini red">X</button>`;
   div.querySelector('button').onclick=()=>div.remove();
   $('scheduleRows').appendChild(div);
 }
@@ -508,14 +536,16 @@ function scheduleSessions(){
 
 function fillSelects(){
   let gs=data.groups.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
-  $('studentGroup').innerHTML=gs||'<option value="">Əvvəl qrup yaradın</option>';
+  $('studentGroup').innerHTML='<option value="">Qrup seç</option>'+(gs||'');
+  if(!data.groups.length) $('studentGroup').innerHTML='<option value="">Əvvəl qrup yaradın</option>';
   const currentReport = $('reportGroup')?.value || 'all';
   $('reportGroup').innerHTML='<option value="all">Bütün qruplar</option>'+gs;
   if ([...$('reportGroup').options].some(o=>o.value===currentReport)) $('reportGroup').value = currentReport;
-  $('paymentStudent').innerHTML=active().map(s=>{
+  $('paymentStudent').innerHTML='<option value="">Şagird seç</option>'+active().map(s=>{
     const f=studentFinance(s);
     return `<option value="${s.id}">${esc(s.name)} — ${esc(group(s.groupId)?.name||'Qrupsuz')} — Bu ay: ${money(f.expected)}</option>`;
-  }).join('')||'<option value="">Aktiv şagird yoxdur</option>';
+  }).join('');
+  if(!active().length) $('paymentStudent').innerHTML='<option value="">Aktiv şagird yoxdur</option>';
 }
 
 function renderHome(){
@@ -705,7 +735,10 @@ function addQuickPayment(studentId, amountInputId){
   const input = $(amountInputId);
   const amount = Number(input.value || 0);
   if(amount <= 0) return alert('Məbləği düzgün yazın.');
-  data.payments.push({id:id(),studentId:studentId,amount:amount,date:$('quickPaymentDate').value || today(),method:$('quickPaymentMethod').value,note:''});
+  const payDate=toIsoDate($('quickPaymentDate').value);
+  if(!payDate) return alert('Ödəniş tarixini Gün/Ay/İl formatında yazın. Məsələn: 05/05/2025');
+  if(!$('quickPaymentMethod').value) return alert('Ödəniş üsulunu seçin.');
+  data.payments.push({id:id(),studentId:studentId,amount:amount,date:payDate,method:$('quickPaymentMethod').value,note:''});
   input.value = '';
   persistAndRender('Ödəniş yadda saxlandı');
 }
@@ -818,7 +851,7 @@ function persistAndRender(message){
 
 window.editGroup=id=>{let g=group(id); if(!g)return;$('groupId').value=g.id;$('groupName').value=g.name;$('groupNote').value=g.note||'';$('scheduleRows').innerHTML='';(g.schedule||[]).forEach(s=>addSchedule(s.day,s.start,s.end));openPage('groups')}
 window.deleteGroup=id=>{if(data.students.some(s=>s.groupId===id))return alert('Bu qrupda şagird var. Əvvəl şagirdləri silin və ya başqa qrupa keçirin.'); if(confirm('Qrup silinsin?')){data.groups=data.groups.filter(g=>g.id!==id);persistAndRender('Qrup silindi')}}
-window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.id;$('studentName').value=s.name;$('studentPhone').value=s.phone||'';$('parentPhone').value=s.parent||'';$('studentGroup').value=s.groupId;$('joinDate').value=s.joinDate;$('monthlyFee').value=s.fee;$('studentStatus').value=s.status;openPage('students')}
+window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.id;$('studentName').value=s.name;$('studentPhone').value=s.phone||'';$('parentPhone').value=s.parent||'';$('studentGroup').value=s.groupId;$('joinDate').value=fromIsoDate(s.joinDate);$('monthlyFee').value=s.fee;$('studentStatus').value=s.status;openPage('students')}
 window.deleteStudent=id=>{if(confirm('Şagird silinsin?')){data.students=data.students.filter(s=>s.id!==id);persistAndRender('Şagird silindi')}}
 window.deletePayment=id=>{if(confirm('Ödəniş silinsin?')){data.payments=data.payments.filter(p=>p.id!==id);persistAndRender('Ödəniş silindi')}}
 
@@ -893,16 +926,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('addSchedule').onclick=()=>addSchedule();
   $('paymentSearch').oninput=renderQuickPaymentGroups;
   $('reportGroup').onchange=()=>renderReport();
-  $('quickPaymentDate').value=today();
+  $('quickPaymentDate').value='';
   $('quickPaymentMethod').onchange=renderQuickPaymentGroups;
   $('quickPaymentDate').onchange=renderQuickPaymentGroups;
   $('clearGroup').onclick=()=>{$('groupForm').reset();$('groupId').value='';$('scheduleRows').innerHTML='';addSchedule()};
-  $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value='';$('joinDate').value=today()};
+  $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value='';$('joinDate').value=''};
   $('studentSearch').oninput=renderStudents;
   $('groupForm').onsubmit=e=>{
     e.preventDefault();
     let sched=getSchedule();
     if(!sched.length)return alert('Ən azı bir dərs günü seçin.');
+    if(sched.some(s=>!s.day||!s.start||!s.end))return alert('Dərs günü, başlama saatı və bitmə saatını seçin.');
     if(sched.some(s=>s.end<=s.start))return alert('Bitmə saatı başlama saatından sonra olmalıdır.');
     let gid=$('groupId').value||id();
     let g={id:gid,name:$('groupName').value.trim(),schedule:sched,note:$('groupNote').value.trim()};
@@ -913,7 +947,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     e.preventDefault();
     if(!data.groups.length)return alert('Əvvəl qrup yaradın.');
     let sid=$('studentId').value||id();
-    let s={id:sid,name:$('studentName').value.trim(),phone:$('studentPhone').value.trim(),parent:$('parentPhone').value.trim(),groupId:$('studentGroup').value,joinDate:$('joinDate').value,fee:Number($('monthlyFee').value),status:$('studentStatus').value};
+    const joinDate=toIsoDate($('joinDate').value);
+    if(!$('studentGroup').value) return alert('Qrup seçin.');
+    if(!joinDate) return alert('Qoşulduğu tarixi Gün/Ay/İl formatında yazın. Məsələn: 05/05/2025');
+    if(!$('studentStatus').value) return alert('Status seçin.');
+    let s={id:sid,name:$('studentName').value.trim(),phone:$('studentPhone').value.trim(),parent:$('parentPhone').value.trim(),groupId:$('studentGroup').value,joinDate:joinDate,fee:Number($('monthlyFee').value),status:$('studentStatus').value};
     let i=data.students.findIndex(x=>x.id===sid); i>=0?data.students[i]=s:data.students.push(s);
     $('clearStudent').click();persistAndRender('Şagird yadda saxlandı');
   };
@@ -921,10 +959,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     e.preventDefault();
     let sid=$('paymentStudent').value;
     if(!sid)return alert('Şagird seçin.');
-    data.payments.push({id:id(),studentId:sid,amount:Number($('paymentAmount').value),date:$('paymentDate').value,method:$('paymentMethod').value,note:$('paymentNote').value.trim()});
-    $('paymentForm').reset();$('paymentDate').value=today();persistAndRender('Ödəniş yazıldı');
+    const paymentDate=toIsoDate($('paymentDate').value);
+    if(!paymentDate) return alert('Ödəniş tarixini Gün/Ay/İl formatında yazın. Məsələn: 05/05/2025');
+    if(!$('paymentMethod').value) return alert('Ödəniş üsulunu seçin.');
+    data.payments.push({id:id(),studentId:sid,amount:Number($('paymentAmount').value),date:paymentDate,method:$('paymentMethod').value,note:$('paymentNote').value.trim()});
+    $('paymentForm').reset();$('paymentDate').value='';persistAndRender('Ödəniş yazıldı');
   };
   if($('exportData')) $('exportData').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hazirliq-melumatlari.json';a.click();};
   if($('clearAll')) $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};persistAndRender('Bütün məlumatlar silindi')}};
-  $('joinDate').value=today();$('paymentDate').value=today();addSchedule();initSupabase();refreshIcons();
+  $('joinDate').value='';$('paymentDate').value='';addSchedule();initSupabase();refreshIcons();
 });

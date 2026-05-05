@@ -58,7 +58,7 @@
             <label>Username</label>
             <input id="newTeacherUsername" type="text" placeholder="məsələn: ayten">
             <label>Kod</label>
-            <input id="newTeacherCode" type="text" placeholder="məsələn: 123456">
+            <input id="newTeacherCode" type="text" placeholder="məsələn: 482917">
             <button class="primary" type="submit"><i data-lucide="user-plus"></i><span>Müəllim yarat / yenilə</span></button>
           </form>
           <div id="teacherAdminList" class="teacherAdminList"></div>
@@ -66,7 +66,6 @@
       </div>
 
       <div id="authMessage" class="authMessage"></div>
-      <div class="authHelp">Admin şifrəsi standart olaraq <b>123456</b>-dır. Onu <b>supabase-config.js</b> içində dəyişə bilərsən.</div>
     </div>
   </div>
 
@@ -250,12 +249,13 @@
             <input id="parentPhone" placeholder="Valideyn telefonu">
             <label>Qrup</label>
             <select id="studentGroup" required></select>
-            <label>Qoşulduğu tarix</label>
-            <input id="joinDate" type="date" required>
+            <label>Qoşulduğu tarix <span class="dateHint">Gün/Ay/İl</span></label>
+            <input id="joinDate" type="text" required placeholder="GG/AA/İİİİ, məsələn 05/05/2025" inputmode="numeric">
             <label>Aylıq ödəniş</label>
             <input id="monthlyFee" type="number" min="0" required placeholder="AZN">
             <label>Status</label>
-            <select id="studentStatus">
+            <select id="studentStatus" required>
+              <option value="">Status seç</option>
               <option value="active">Aktiv</option>
               <option value="inactive">Çıxıb</option>
             </select>
@@ -291,11 +291,12 @@
 
           <div class="toolbarGrid">
             <input id="paymentSearch" placeholder="Şagird adı ilə axtar">
-            <select id="quickPaymentMethod">
+            <select id="quickPaymentMethod" required>
+              <option value="">Ödəniş üsulunu seç</option>
               <option value="cash">Nəğd</option>
               <option value="card">Kart</option>
             </select>
-            <input id="quickPaymentDate" type="date">
+            <input id="quickPaymentDate" type="text" placeholder="Ödəniş tarixi: GG/AA/İİİİ" inputmode="numeric">
           </div>
 
           <div id="quickPaymentGroups"></div>
@@ -315,8 +316,8 @@
         <form id="paymentForm" class="hiddenPaymentForm">
           <select id="paymentStudent" required></select>
           <input id="paymentAmount" type="number" min="0" required>
-          <input id="paymentDate" type="date" required>
-          <select id="paymentMethod"><option value="cash">Nəğd</option><option value="card">Kart</option></select>
+          <input id="paymentDate" type="text" required placeholder="GG/AA/İİİİ" inputmode="numeric">
+          <select id="paymentMethod" required><option value="">Ödəniş üsulunu seç</option><option value="cash">Nəğd</option><option value="card">Kart</option></select>
           <textarea id="paymentNote"></textarea>
         </form>
       </section>

@@ -15,7 +15,5 @@ create table if not exists public.teacher_states (
 -- This is stable and simple, but not high-security. Do not use for sensitive data.
 alter table public.teacher_states disable row level security;
 
--- Optional demo teacher. You can delete/change this row later from admin panel.
-insert into public.teacher_states (username, name, code, data, updated_at)
-values ('demo', 'Demo müəllim', '123456', '{"groups":[],"students":[],"payments":[],"__updatedAt":"1970-01-01T00:00:00.000Z"}'::jsonb, now())
-on conflict (username) do nothing;
+-- No demo teacher is inserted. If an older demo row exists, remove it.
+delete from public.teacher_states where username = 'demo';
