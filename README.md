@@ -1,18 +1,10 @@
-# Hazırlıq Ödəniş Sistemi - hazirliqanarv1
+# Hazırlıq Anar v2
 
-Bu versiyada mobil görünüş düzəldildi.
+Bu versiyada:
 
-## Dəyişikliklər
-
-- Şagirdlər bölməsi mobil telefonda artıq table kimi yox, kart-kart görünür.
-- Ödənişlər, keçmiş borclar, hesabat və qrup içi siyahılar mobil kart dizaynına keçirildi.
-- Mobil versiyada çıxış düyməsi header-də görünür.
-- Mobil menyuda Məlumat bölməsi əlavə edildi.
-- Bottom tab bar 2 sətrli oldu ki, bölmələr gizlənməsin.
-- Ana səhifədə “Maliyyə baxışı” mətni “Ümumi baxış” olaraq dəyişdirildi.
-- Login zamanı arxadakı panel və ana səhifə gizlədildi; yalnız login kartı görünür.
-- Supabase cloud yaddaş sistemi saxlanıldı.
-
-## Deploy
-
-Faylları GitHub repo-ya upload edin və Vercel avtomatik redeploy edəcək.
+- Məlumat bölməsi tamamilə menyudan və mobil tabdan silindi.
+- Borclar bölməsi silindi, çünki borc məlumatı Hesabat və Ana səhifədə görünür.
+- Qrup panellərinə açılıb-bağlandığını göstərən indikator əlavə edildi.
+- Accordion başlığı bir row formatına salındı.
+- Mobil responsivlik saxlanıldı və bottom tab bar daha sadə bir row kimi düzəldildi.
+- Supabase cloud yaddaş saxlanılıb.
