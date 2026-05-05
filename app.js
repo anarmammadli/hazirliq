@@ -264,9 +264,28 @@ function responsiveList(head,rows,cards,empty='Məlumat yoxdur'){
   return table(head,rows,empty)+mobileCards(cards,empty);
 }
 function acc(id,title,sub,pills,body,open=false){
-  return `<div class="accordion ${open?'open':''}" id="${id}"><button class="accHead" onclick="toggle('${id}')"><div><b>${title}</b><br><span>${sub}</span></div><div class="pills">${pills.map(p=>`<span class="pill">${p}</span>`).join('')}</div></button><div class="accBody">${body}</div></div>`
+  const safeId=esc(id);
+  const firstPill=pills?.[0] ? `<span class="accMiniPill">${pills[0]}</span>` : '';
+  const otherPills=(pills||[]).slice(1).map(p=>`<span class="pill">${p}</span>`).join('');
+  return `<div class="accordion ${open?'open':''}" id="${safeId}">
+    <button class="accHead" type="button" aria-expanded="${open?'true':'false'}" onclick="toggle('${safeId}')">
+      <div class="accMainLine">
+        <div class="accTitleBlock"><b>${title}</b><span>${sub}</span></div>
+        <div class="accRowMeta">${firstPill}${otherPills?`<div class="pills compactPills">${otherPills}</div>`:''}</div>
+        <div class="accIndicator"><span class="accIndicatorText">Aç</span><i data-lucide="chevron-down"></i></div>
+      </div>
+    </button>
+    <div class="accBody">${body}</div>
+  </div>`;
 }
-window.toggle=x=>$(x).classList.toggle('open');
+window.toggle=x=>{
+  const el=$(x);
+  if(!el) return;
+  el.classList.toggle('open');
+  const btn=el.querySelector('.accHead');
+  if(btn) btn.setAttribute('aria-expanded', el.classList.contains('open')?'true':'false');
+  refreshIcons();
+};
 
 function scheduleSessions(){
   return data.groups.flatMap(g=>(g.schedule||[]).map(s=>({
@@ -362,7 +381,21 @@ function groupAccordions(onlyDebt=false){
 }
 
 function renderGroups(){
-  $('groupList').innerHTML=data.groups.map(g=>`<div class="accordion open"><div class="accHead"><div><b>${esc(g.name)}</b><br>${scheduleText(g)}</div><div><button class="mini" onclick="editGroup('${g.id}')">Dəyiş</button> <button class="mini red" onclick="deleteGroup('${g.id}')">Sil</button></div></div></div>`).join('')||'<div class="empty">Qrup yoxdur.</div>'
+  if(!data.groups.length){
+    $('groupList').innerHTML='<div class="empty">Qrup yoxdur.</div>';
+    return;
+  }
+  $('groupList').innerHTML=data.groups.map((g,i)=>{
+    const body=`<div class="groupDetailsRow">
+      <div class="groupDetailBox"><span>Dərs cədvəli</span><b>${scheduleText(g)}</b></div>
+      <div class="groupDetailBox"><span>Şagird sayı</span><b>${active().filter(s=>s.groupId===g.id).length}</b></div>
+      <div class="groupDetailActions">
+        <button class="mini" onclick="editGroup('${g.id}')">Dəyiş</button>
+        <button class="mini red" onclick="deleteGroup('${g.id}')">Sil</button>
+      </div>
+    </div>`;
+    return acc('groupRow'+g.id,esc(g.name),scheduleText(g),[`Şagird: ${active().filter(s=>s.groupId===g.id).length}`,`Alınmalı: ${money(totalExpected(g.id))}`],body,i===0);
+  }).join('');
 }
 
 function scheduleColor(index){
@@ -579,7 +612,6 @@ function renderPayments(){
   }).join('');
 }
 
-function renderDebtors(){$('debtorList').innerHTML=groupAccordions(true);}
 function renderReport(){
   const gid = $('reportGroup') ? ($('reportGroup').value || 'all') : 'all';
   const selectedGroups = gid === 'all' ? data.groups : data.groups.filter(g => g.id === gid);
@@ -626,7 +658,6 @@ function renderAll(){
   renderStudents();
   renderQuickPaymentGroups();
   renderPayments();
-  renderDebtors();
   renderReport();
   refreshIcons();
 }
@@ -650,9 +681,7 @@ function pageMeta(p){
     schedule:['Cədvəl','Həftəlik dərs planını günlər üzrə aydın və rahat görün.'],
     students:['Şagirdlər','Şagirdləri qrup-qrupla izləyin və idarə edin.'],
     payments:['Ödənişlər','Ödənişləri qrup və şagird üzrə sürətli şəkildə əlavə edin.'],
-    debtors:['Keçmiş borclar','Vaxtı keçmiş ödənişləri ayrıca görün.'],
-    reports:['Hesabat','Seçilən qrupa görə əsas göstəricilər avtomatik yenilənir.'],
-    info:['Məlumat','Sistemin işləmə qaydası və faydalı seçimlər.']
+    reports:['Hesabat','Seçilən qrupa görə əsas göstəricilər avtomatik yenilənir.']
   }[p] || null;
 }
 
@@ -747,7 +776,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     data.payments.push({id:id(),studentId:sid,amount:Number($('paymentAmount').value),date:$('paymentDate').value,method:$('paymentMethod').value,note:$('paymentNote').value.trim()});
     $('paymentForm').reset();$('paymentDate').value=today();persistAndRender('Ödəniş yazıldı');
   };
-  $('exportData').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hazirliq-melumatlari.json';a.click();};
-  $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};persistAndRender('Bütün məlumatlar silindi')}};
+  if($('exportData')) $('exportData').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hazirliq-melumatlari.json';a.click();};
+  if($('clearAll')) $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};persistAndRender('Bütün məlumatlar silindi')}};
   $('joinDate').value=today();$('paymentDate').value=today();addSchedule();initSupabase();refreshIcons();
 });

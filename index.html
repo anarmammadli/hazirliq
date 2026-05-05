@@ -54,9 +54,7 @@
         <button type="button" class="nav" data-page="schedule"><i data-lucide="calendar-range"></i><span>Cədvəl</span></button>
         <button type="button" class="nav" data-page="students"><i data-lucide="users-round"></i><span>Şagirdlər</span></button>
         <button type="button" class="nav" data-page="payments"><i data-lucide="wallet-cards"></i><span>Ödənişlər</span></button>
-        <button type="button" class="nav" data-page="debtors"><i data-lucide="circle-alert"></i><span>Keçmiş borclar</span></button>
         <button type="button" class="nav" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
-        <button type="button" class="nav" data-page="info"><i data-lucide="settings-2"></i><span>Məlumat</span></button>
       </nav>
 
       <div class="sideNote">
@@ -294,19 +292,6 @@
         </form>
       </section>
 
-      <section id="debtors" class="page">
-        <div class="surfaceCard">
-          <div class="sectionHeader">
-            <div>
-              <span class="panelLabel"><i data-lucide="triangle-alert"></i> Borclular</span>
-              <h3>Keçmiş borclar</h3>
-              <p>Ödəniş vaxtı keçmiş və hələ ödənilməmiş şagirdləri ayrıca görün.</p>
-            </div>
-          </div>
-          <div id="debtorList"></div>
-        </div>
-      </section>
-
       <section id="reports" class="page">
         <div class="surfaceCard">
           <div class="sectionHeader">
@@ -346,28 +331,6 @@
         </div>
       </section>
 
-      <section id="info" class="page">
-        <div class="surfaceCard infoCard">
-          <div class="sectionHeader">
-            <div>
-              <span class="panelLabel"><i data-lucide="settings-2"></i> Sistem qaydası</span>
-              <h3>Məlumat</h3>
-              <p>Sistemin əsas işləmə prinsipi qısa formada.</p>
-            </div>
-          </div>
-          <ol class="infoList">
-            <li>Əvvəl qrup yaradın və dərs günlərini daxil edin.</li>
-            <li>Qrupların həftəlik görünüşünü Cədvəl bölməsində dərhal izləyin.</li>
-            <li>Şagird qoşulduqdan bir ay sonra ilk ödəniş yaranır.</li>
-            <li>Hər ay ödənişi əlavə etdikcə borc və alınmalı məbləğ yenilənir.</li>
-            <li>Qismən ödəniş olduqda qalan məbləğ sistemdə saxlanılır.</li>
-          </ol>
-          <div class="formActions">
-            <button class="secondary iconButton" id="exportData" type="button"><i data-lucide="download"></i><span>Məlumatları yüklə</span></button>
-            <button class="danger iconButton" id="clearAll" type="button"><i data-lucide="trash-2"></i><span>Bütün məlumatları sil</span></button>
-          </div>
-        </div>
-      </section>
     </main>
 
     <nav class="bottomTabBar" aria-label="Mobil menyu">
@@ -376,9 +339,7 @@
       <button type="button" class="bottomTab" data-page="schedule"><i data-lucide="calendar-range"></i><span>Cədvəl</span></button>
       <button type="button" class="bottomTab" data-page="students"><i data-lucide="users-round"></i><span>Şagird</span></button>
       <button type="button" class="bottomTab" data-page="payments"><i data-lucide="wallet-cards"></i><span>Ödəniş</span></button>
-      <button type="button" class="bottomTab" data-page="debtors"><i data-lucide="circle-alert"></i><span>Borclar</span></button>
       <button type="button" class="bottomTab" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
-      <button type="button" class="bottomTab" data-page="info"><i data-lucide="settings-2"></i><span>Məlumat</span></button>
     </nav>
   </div>
 

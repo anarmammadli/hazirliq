@@ -573,3 +573,55 @@ body.auth-mode .ambient,body.auth-mode .appShell{display:none!important}
   .bottomTab span{font-size:9px!important}
   .mobileInfoGrid{grid-template-columns:1fr}
 }
+
+/* hazirliqanarv2: remove info/debt tabs, clearer one-row accordion headers */
+.accHead{padding:0!important;align-items:stretch!important;display:block!important}
+.accMainLine{width:100%;min-height:76px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;align-items:center;gap:16px;padding:16px 18px}
+.accTitleBlock{min-width:0;display:flex;flex-direction:column;gap:4px}
+.accTitleBlock b{display:block;font-size:20px!important;line-height:1.15;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.accTitleBlock span{display:block;font-size:13px!important;line-height:1.35;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.accRowMeta{min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;overflow:hidden}
+.accMiniPill{display:inline-flex;align-items:center;justify-content:center;max-width:180px;padding:8px 11px;border-radius:999px;background:#eef4ff;border:1px solid var(--line);color:#2563eb;font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compactPills{display:flex;gap:6px;flex-wrap:nowrap;overflow:hidden;justify-content:flex-end}
+.compactPills .pill{max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.accIndicator{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:76px;padding:10px 12px;border-radius:999px;background:#f8fbff;border:1px solid var(--line);color:#64748b;font-size:12px;font-weight:900;transition:.18s ease}
+.accIndicator svg{width:17px;height:17px;transition:transform .18s ease;stroke-width:2.6}
+.accordion.open .accIndicator{background:linear-gradient(135deg,#2563eb,#0ea5e9);border-color:transparent;color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.18)}
+.accordion.open .accIndicator svg{transform:rotate(180deg)}
+.accordion.open .accIndicatorText{font-size:0}
+.accordion.open .accIndicatorText::after{content:'Bağla';font-size:12px}
+.groupDetailsRow{display:grid;grid-template-columns:minmax(0,1.2fr) 180px auto;gap:12px;align-items:stretch}
+.groupDetailBox{padding:14px 15px;border-radius:18px;background:#f8fbff;border:1px solid var(--line)}
+.groupDetailBox span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-weight:900;margin-bottom:5px}
+.groupDetailBox b{display:block;font-size:14px;line-height:1.4;color:#0f172a;font-weight:900}
+.groupDetailActions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+
+@media (max-width:1080px){
+  .accMainLine{grid-template-columns:minmax(0,1fr) auto;gap:10px;min-height:70px;padding:14px 15px}
+  .accRowMeta{grid-column:1/-1;grid-row:2;justify-content:flex-start;order:3}
+  .accMiniPill{max-width:100%}
+  .compactPills{display:none}
+  .accIndicator{grid-column:2;grid-row:1;min-width:68px;padding:9px 10px}
+  .accTitleBlock{grid-column:1;grid-row:1}
+  .groupDetailsRow{grid-template-columns:1fr;gap:10px}
+  .groupDetailActions{justify-content:stretch}
+  .groupDetailActions .mini{width:100%}
+}
+
+@media (max-width:760px){
+  .appShell{padding-bottom:112px!important}
+  .bottomTabBar{grid-template-columns:repeat(6,1fr)!important;grid-template-rows:1fr!important;gap:3px!important;padding:7px!important;border-radius:23px!important}
+  .bottomTab{min-height:54px!important;border-radius:17px!important;gap:3px!important;padding:4px 1px!important}
+  .bottomTab svg{width:18px!important;height:18px!important}
+  .bottomTab span{font-size:9.2px!important;letter-spacing:-.04em;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .accMainLine{min-height:64px;padding:13px}
+  .accTitleBlock b{font-size:18px!important}
+  .accTitleBlock span{font-size:12px!important;max-width:100%}
+  .accIndicator{min-width:60px;font-size:11px;padding:8px 9px}
+}
+
+@media (max-width:390px){
+  .bottomTabBar{grid-template-columns:repeat(6,1fr)!important}
+  .bottomTab.moreTab{display:flex!important}
+  .bottomTab span{font-size:8.5px!important}
+}
