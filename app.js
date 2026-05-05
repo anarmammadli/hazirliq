@@ -143,44 +143,56 @@ function todayDayName(){return days[(new Date().getDay()+6)%7]}
 function totalHoursText(minutes){const h=Math.floor(minutes/60);const m=minutes%60;if(h&&m)return `${h} saat ${m} dəq`;if(h)return `${h} saat`;return `${m} dəq`;}
 
 /*
-Correct payment logic:
-- Registration day is free/not debt.
-- First charge is after 1 month from join date.
-- Every next monthly anniversary creates one more charge.
-- Debt = overdue charges - all paid.
-- Expected = debt + next upcoming monthly charge, then minus paid amount already covering it.
-- Payments are treated as money credit. Partial payments reduce remaining amount.
+Payment logic used in this version:
+- A student starts a monthly period on the join date.
+- The active/current period is counted as "Bu ay alınacaq məbləğ".
+- Finished periods that were not fully paid move to "1 aydan artıq ödənməyən pul".
+- Payments are applied to older finished periods first, then to the current period.
+Example: joined 04 Apr, today 05 May, fee 70:
+  04 Apr - 04 May -> old unpaid amount
+  04 May - 04 Jun -> current amount
 */
 function studentFinance(s, referenceDate=new Date()){
   const fee=Number(s.fee||0);
   const now=cleanDate(referenceDate);
   const join=cleanDate(s.joinDate);
 
-  if(!s.joinDate || fee<=0){
-    return {fee, paid:0, overdueCharges:0, expectedCharges:0, debt:0, expected:0, nextDue:addMonths(new Date(),1), overdueCount:0, nextCovered:false};
+  if(!s.joinDate || fee<=0 || now < join){
+    return {fee, paid:0, oldDebt:0, debt:0, expected:0, currentCharge:0, oldCharges:0, nextDue:addMonths(new Date(),1), overdueCount:0, nextCovered:false};
   }
 
-  let paidTotal=data.payments
+  const paidTotal=data.payments
     .filter(p=>p.studentId===s.id)
     .reduce((a,p)=>a+Number(p.amount||0),0);
 
-  let overdueCount=0;
-  let due=addMonths(join,1);
-
-  while(cleanDate(due)<=now){
-    overdueCount++;
-    due=addMonths(join,overdueCount+1);
+  // Finished periods become old debt only after the end date has passed.
+  // On the exact end date it is still counted as current, next day it becomes old.
+  let finishedPeriods=0;
+  while(cleanDate(addMonths(join, finishedPeriods+1)) < now){
+    finishedPeriods++;
   }
 
-  const nextDue=due;
-  const overdueCharges=overdueCount*fee;
-  const expectedCharges=overdueCharges+fee;
+  const oldCharges=finishedPeriods * fee;
+  const currentCharge=fee;
+  const nextDue=addMonths(join, finishedPeriods+1);
 
-  const debt=Math.max(overdueCharges-paidTotal,0);
-  const expected=Math.max(expectedCharges-paidTotal,0);
-  const nextCovered=paidTotal>=expectedCharges;
+  const oldDebt=Math.max(oldCharges - paidTotal, 0);
+  const remainingAfterOld=Math.max(paidTotal - oldCharges, 0);
+  const expected=Math.max(currentCharge - remainingAfterOld, 0);
+  const nextCovered=remainingAfterOld >= currentCharge;
 
-  return {fee, paid:paidTotal, overdueCharges, expectedCharges, debt, expected, nextDue, overdueCount, nextCovered};
+  return {
+    fee,
+    paid:paidTotal,
+    oldDebt,
+    debt:oldDebt,
+    expected,
+    currentCharge,
+    oldCharges,
+    nextDue,
+    overdueCount:finishedPeriods,
+    nextCovered
+  };
 }
 
 function monthlyMaximum(gid='all'){
@@ -214,7 +226,7 @@ function paidThisMonth(method='all'){
 
 function studentStatusHtml(s){
   const f=studentFinance(s);
-  if(f.debt>0)return '<span class="badge late">Keçmiş borclu</span>';
+  if(f.debt>0)return '<span class="badge late">1+ ay ödənməyən</span>';
   if(f.expected>0)return '<span class="badge wait">Gözlənilir</span>';
   return '<span class="badge paid">Ödənib</span>';
 }
@@ -289,13 +301,12 @@ function fillSelects(){
   if ([...$('reportGroup').options].some(o=>o.value===currentReport)) $('reportGroup').value = currentReport;
   $('paymentStudent').innerHTML=active().map(s=>{
     const f=studentFinance(s);
-    return `<option value="${s.id}">${esc(s.name)} — ${esc(group(s.groupId)?.name||'Qrupsuz')} — Alınmalı: ${money(f.expected)}</option>`;
+    return `<option value="${s.id}">${esc(s.name)} — ${esc(group(s.groupId)?.name||'Qrupsuz')} — Bu ay: ${money(f.expected)}</option>`;
   }).join('')||'<option value="">Aktiv şagird yoxdur</option>';
 }
 
 function renderHome(){
   $('stActive').textContent=active().length;
-  $('stMonthlyMax').textContent=money(monthlyMaximum());
   $('stPaid').textContent=money(paidThisMonth());
   $('stExpected').textContent=money(totalExpected());
   $('stDebt').textContent=money(totalDebt());
@@ -346,8 +357,8 @@ function groupAccordions(onlyDebt=false){
       'gacc'+g.id+onlyDebt,
       esc(g.name),
       scheduleText(g),
-      [`Maksimum gəlir: ${money(monthlyMaximum(g.id))}`,`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay gecikmə: ${money(totalDebt(g.id))}`],
-      table(['Şagird','Növbəti ödəniş','Aylıq','Ödənilib','Alınmalı','Keçmiş borc','Status'],rows,'Bu qrupda məlumat yoxdur.'),
+      [`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay ödənməyən: ${money(totalDebt(g.id))}`],
+      table(['Şagird','Növbəti tarix','Aylıq','Ödənilib','Bu ay','1+ ay ödənməyən','Status'],rows,'Bu qrupda məlumat yoxdur.'),
       i===0
     )
   }).join('');
@@ -470,7 +481,7 @@ function renderStudents(){
         <td><button class="mini" onclick="editStudent('${s.id}')">Dəyiş</button> <button class="mini red" onclick="deleteStudent('${s.id}')">Sil</button></td>
       </tr>`;
     });
-    return acc('sg'+g.id,esc(g.name),ss.length+' şagird',[`Maksimum gəlir: ${money(monthlyMaximum(g.id))}`,`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay gecikmə: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','İlk ödəniş','Növbəti ödəniş','Alınmalı','Keçmiş borc','Status','Əməliyyat'],rows,'Bu qrupda şagird yoxdur.'),i===0)
+    return acc('sg'+g.id,esc(g.name),ss.length+' şagird',[`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay ödənməyən: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Başlama','Növbəti tarix','Bu ay','1+ ay ödənməyən','Status','Əməliyyat'],rows,'Bu qrupda şagird yoxdur.'),i===0)
   }).join('');
   $('studentList').innerHTML=html||'<div class="empty">Qrup yoxdur.</div>';
 }
@@ -522,14 +533,14 @@ function renderQuickPaymentGroups(){
             <div class="payHelperText">Hazır məbləğ seç:</div>
             <div class="presetBtns">
               <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','monthly')">${money(s.fee)} yaz</button>
-              <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Alınmalı məbləği yaz</button>
-              <button class="presetBtn debtPreset" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">Keçmiş borcu yaz</button>
+              <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Bu ayın məbləğini yaz</button>
+              <button class="presetBtn debtPreset" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">1+ ay ödənməyəni yaz</button>
             </div>
           </div>
         </td>
       </tr>`;
     });
-    return acc('quickpay'+g.id,esc(g.name),scheduleText(g),[`Maksimum gəlir: ${money(monthlyMaximum(g.id))}`,`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay gecikmə: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Ödənilib','Alınmalı','Keçmiş borc','Status','Ödəniş əlavə et'],rows,'Bu qrupda şagird yoxdur.'),i===0);
+    return acc('quickpay'+g.id,esc(g.name),scheduleText(g),[`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay ödənməyən: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Ödənilib','Bu ay','1+ ay ödənməyən','Status','Ödəniş əlavə et'],rows,'Bu qrupda şagird yoxdur.'),i===0);
   }).join('');
 }
 
@@ -540,7 +551,7 @@ function renderPayments(){
     return acc('pay'+g.id,esc(g.name),ps.length+' ödəniş',[`Toplam ödənilib: ${money(ps.reduce((a,p)=>a+Number(p.amount||0),0))}`,`Bu ay: ${money(totalExpected(g.id))}`],table(['Şagird','Məbləğ','Tarix','Forma',''],rows,'Ödəniş yoxdur.'),i===0)
   }).join('');
 }
-function renderDebtors(){$('debtorList').innerHTML=groupAccordions(true);}
+function renderDebtors(){if($('debtorList')) $('debtorList').innerHTML=groupAccordions(true);}
 function renderReport(){
   const gid = $('reportGroup') ? ($('reportGroup').value || 'all') : 'all';
   const selectedGroups = gid === 'all' ? data.groups : data.groups.filter(g => g.id === gid);
@@ -570,7 +581,7 @@ function renderReport(){
         <td>${studentStatusHtml(s)}</td>
       </tr>`;
     });
-    return acc('rep'+g.id,esc(g.name),'Ümumi hesabat',[`Maksimum gəlir: ${money(monthlyMaximum(g.id))}`,`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay gecikmə: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Növbəti ödəniş','Ödənilib','Alınmalı','Keçmiş borc','Status'], rows, 'Bu qrupda şagird yoxdur.'),i===0)
+    return acc('rep'+g.id,esc(g.name),'Ümumi hesabat',[`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay ödənməyən: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Növbəti tarix','Ödənilib','Bu ay','1+ ay ödənməyən','Status'], rows, 'Bu qrupda şagird yoxdur.'),i===0)
   }).join('');
 }
 
@@ -582,7 +593,6 @@ function renderAll(){
   renderStudents();
   renderQuickPaymentGroups();
   renderPayments();
-  renderDebtors();
   renderReport();
   refreshIcons();
 }
@@ -606,9 +616,7 @@ function pageMeta(p){
     schedule:['Cədvəl','Həftəlik dərs planını günlər üzrə aydın və rahat görün.'],
     students:['Şagirdlər','Şagirdləri qrup-qrupla izləyin və idarə edin.'],
     payments:['Ödənişlər','Ödənişləri qrup və şagird üzrə sürətli şəkildə əlavə edin.'],
-    debtors:['Keçmiş borclar','Vaxtı keçmiş ödənişləri ayrıca görün.'],
-    reports:['Hesabat','Seçilən qrupa görə əsas göstəricilər avtomatik yenilənir.'],
-    info:['Məlumat','Sistemin işləmə qaydası və faydalı seçimlər.']
+    reports:['Hesabat','Seçilən qrupa görə əsas göstəricilər avtomatik yenilənir.']
   }[p] || null;
 }
 

@@ -115,7 +115,7 @@ button,input,select,textarea{font:inherit}
 
 .heroPanel{
   display:grid;
-  grid-template-columns:minmax(0,1fr) 280px;
+  grid-template-columns:minmax(0,1fr);
   gap:18px;
   align-items:stretch;
   padding:28px;
