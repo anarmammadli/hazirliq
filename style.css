@@ -512,3 +512,64 @@ body.nav-open{overflow:hidden;touch-action:none}
   .bottomTab.moreTab{display:none}
   .bottomTab span{font-size:9.5px}
 }
+
+/* hazirliqanarv1: final mobile responsiveness and login focus */
+body.auth-mode{overflow:hidden;background:#f7fbff}
+body.auth-mode .ambient,body.auth-mode .appShell{display:none!important}
+.authScreen{position:fixed;inset:0;min-height:100dvh;z-index:10000;background:linear-gradient(135deg,#f8fbff 0%,#eef6ff 100%)}
+.authScreen.locked{display:none!important}
+.mobileOnly,.mobileCards{display:none}
+.mobileLogoutBtn{display:none}
+
+.mobileDataCard{background:linear-gradient(180deg,#fff,#f8fbff);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 14px 34px rgba(15,23,42,.08)}
+.mobileDataCard+.mobileDataCard{margin-top:12px}
+.mobileCardTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}
+.mobileCardTop h4{margin:0 0 5px;font-size:18px;line-height:1.15;font-weight:900;color:var(--text);letter-spacing:-.03em}
+.mobileCardTop p{margin:0;font-size:13px;line-height:1.35;color:var(--muted);font-weight:700}
+.mobileInfoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mobileInfoGrid div{padding:10px 11px;border-radius:16px;background:#f2f7ff;border:1px solid rgba(191,211,238,.82)}
+.mobileInfoGrid span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:900;margin-bottom:4px}
+.mobileInfoGrid b{display:block;font-size:14px;color:#0f172a;font-weight:900;line-height:1.2}
+.mobileCardActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.mobileCardActions .mini{width:100%;min-height:42px}
+.mobilePayBox{display:grid;gap:10px;margin-top:12px}
+.mobilePayBox input{width:100%}
+.mobilePayBox .savePayBtn{width:100%}
+.mobilePayBox .presetBtns{grid-template-columns:repeat(3,1fr)}
+
+@media (max-width:1080px){
+  .appShell{padding-bottom:174px!important}
+  .mobileLogoutBtn{display:inline-flex;position:absolute;right:12px;top:14px;width:48px;height:48px;border-radius:18px;border:1px solid var(--line-strong);background:#fff;color:#2563eb;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(15,23,42,.08);z-index:55}
+  .mobileLogoutBtn svg{width:21px;height:21px;stroke-width:2.4}
+  .topHeaderLeft{padding-right:60px}
+  .bottomTabBar{grid-template-columns:repeat(4,1fr)!important;grid-template-rows:repeat(2,1fr);gap:5px!important;padding:8px!important;border-radius:24px!important}
+  .bottomTab{min-height:48px!important;border-radius:17px!important;gap:3px!important;padding:4px 2px!important}
+  .bottomTab svg{width:18px!important;height:18px!important}
+  .bottomTab span{font-size:9.6px!important;letter-spacing:-.03em;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+}
+
+@media (max-width:760px){
+  .appShell{padding:10px 10px 174px!important}
+  .tableWrap{display:none!important}
+  .mobileCards{display:block}
+  .mobileOnly{display:block}
+  .accBody{padding:0 12px 16px!important}
+  .accHead{padding:16px!important}
+  .accHead b{font-size:18px!important}
+  .accHead span{font-size:12.5px!important}
+  .pills{margin-top:8px;width:100%}
+  .pill{font-size:10.5px!important;padding:7px 9px!important}
+  .searchInput{margin-bottom:14px}
+  .toolbarGrid{grid-template-columns:1fr!important}
+  .reportFilter label{width:100%}
+  .reportFilter select{width:100%}
+  .authScreen{display:flex;align-items:center;justify-content:center;padding:18px!important}
+  .authCard{width:100%;max-width:520px;max-height:calc(100dvh - 36px);overflow:auto}
+}
+
+@media (max-width:390px){
+  .bottomTabBar{grid-template-columns:repeat(4,1fr)!important}
+  .bottomTab.moreTab{display:flex!important}
+  .bottomTab span{font-size:9px!important}
+  .mobileInfoGrid{grid-template-columns:1fr}
+}

@@ -13,7 +13,7 @@
   <script defer src="supabase-config.js"></script>
   <script defer src="app.js"></script>
 </head>
-<body>
+<body class="auth-mode">
   <div class="authScreen" id="authScreen">
     <div class="authCard">
       <div class="brandMark authMark"><i data-lucide="graduation-cap"></i></div>
@@ -87,12 +87,13 @@
           </div>
           <button class="secondary logoutBtn" id="logoutBtn" type="button"><i data-lucide="log-out"></i><span>Çıxış</span></button>
         </div>
+        <button class="mobileLogoutBtn" id="mobileLogoutBtn" type="button" aria-label="Çıxış"><i data-lucide="log-out"></i></button>
       </header>
 
       <section id="home" class="page active">
         <div class="heroPanel">
           <div>
-            <span class="panelLabel"><i data-lucide="sparkle"></i> Maliyyə baxışı</span>
+            <span class="panelLabel"><i data-lucide="sparkle"></i> Ümumi baxış</span>
             <h3>Qruplar, cədvəl və ödənişlər indi daha aydın görünür.</h3>
             <p>Alınmalı məbləğ, keçmiş borc, bu ay ödənilən pul və həftəlik dərs planı bir yerdə izlənir.</p>
           </div>
@@ -370,12 +371,14 @@
     </main>
 
     <nav class="bottomTabBar" aria-label="Mobil menyu">
-      <button type="button" class="bottomTab active" data-page="home"><i data-lucide="layout-dashboard"></i><span>Ana səhifə</span></button>
+      <button type="button" class="bottomTab active" data-page="home"><i data-lucide="layout-dashboard"></i><span>Ana</span></button>
       <button type="button" class="bottomTab" data-page="groups"><i data-lucide="layers-3"></i><span>Qruplar</span></button>
       <button type="button" class="bottomTab" data-page="schedule"><i data-lucide="calendar-range"></i><span>Cədvəl</span></button>
-      <button type="button" class="bottomTab" data-page="students"><i data-lucide="users-round"></i><span>Şagirdlər</span></button>
+      <button type="button" class="bottomTab" data-page="students"><i data-lucide="users-round"></i><span>Şagird</span></button>
       <button type="button" class="bottomTab" data-page="payments"><i data-lucide="wallet-cards"></i><span>Ödəniş</span></button>
-      <button type="button" class="bottomTab moreTab" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
+      <button type="button" class="bottomTab" data-page="debtors"><i data-lucide="circle-alert"></i><span>Borclar</span></button>
+      <button type="button" class="bottomTab" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
+      <button type="button" class="bottomTab" data-page="info"><i data-lucide="settings-2"></i><span>Məlumat</span></button>
     </nav>
   </div>
 

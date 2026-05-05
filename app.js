@@ -67,6 +67,7 @@ async function loadCloudData(){
     toast('Supabase məlumatları yüklənmədi');
   }finally{
     isHydrating=false;
+    document.body.classList.remove('auth-mode');
     $('appShell')?.classList.remove('locked');
     $('authScreen')?.classList.add('locked');
     renderAll();
@@ -89,6 +90,7 @@ function supabaseErrorMessage(err){
 }
 async function initSupabase(){
   if(!isSupabaseConfigured()){
+    document.body.classList.add('auth-mode');
     $('appShell')?.classList.add('locked');
     $('authScreen')?.classList.remove('locked');
     setAuthMessage('Supabase config hələ yazılmayıb. supabase-config.js faylını doldurun.');
@@ -104,6 +106,7 @@ async function initSupabase(){
   }else{
     isHydrating=true;
     data={groups:[],students:[],payments:[]};
+    document.body.classList.add('auth-mode');
     $('appShell')?.classList.add('locked');
     $('authScreen')?.classList.remove('locked');
   }
@@ -116,6 +119,7 @@ async function initSupabase(){
     }else{
       isHydrating=true;
       data={groups:[],students:[],payments:[]};
+      document.body.classList.add('auth-mode');
       $('appShell')?.classList.add('locked');
       $('authScreen')?.classList.remove('locked');
     }
@@ -247,6 +251,18 @@ function table(head,rows,empty='Məlumat yoxdur'){
   if(!rows.length)return `<div class="empty">${empty}</div>`;
   return `<div class="tableWrap"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
 }
+
+function mobileInfoGrid(items){
+  return `<div class="mobileInfoGrid">${items.map(([label,value])=>`<div><span>${label}</span><b>${value}</b></div>`).join('')}</div>`;
+}
+function mobileCards(cards,empty='Məlumat yoxdur'){
+  if(!cards.length)return `<div class="empty mobileOnly">${empty}</div>`;
+  return `<div class="mobileCards">${cards.join('')}</div>`;
+}
+function responsiveList(head,rows,cards,empty='Məlumat yoxdur'){
+  if(!rows.length && !cards.length)return `<div class="empty">${empty}</div>`;
+  return table(head,rows,empty)+mobileCards(cards,empty);
+}
 function acc(id,title,sub,pills,body,open=false){
   return `<div class="accordion ${open?'open':''}" id="${id}"><button class="accHead" onclick="toggle('${id}')"><div><b>${title}</b><br><span>${sub}</span></div><div class="pills">${pills.map(p=>`<span class="pill">${p}</span>`).join('')}</div></button><div class="accBody">${body}</div></div>`
 }
@@ -314,7 +330,8 @@ function groupAccordions(onlyDebt=false){
   return data.groups.map((g,i)=>{
     let ss=active().filter(s=>s.groupId===g.id);
     if(onlyDebt)ss=ss.filter(s=>studentFinance(s).debt>0);
-    let rows=ss.sort((a,b)=>studentFinance(a).nextDue-studentFinance(b).nextDue).map(s=>{
+    ss=ss.sort((a,b)=>studentFinance(a).nextDue-studentFinance(b).nextDue);
+    let rows=ss.map(s=>{
       const f=studentFinance(s);
       return `<tr>
         <td><b>${esc(s.name)}</b><br>${esc(s.phone||'')}</td>
@@ -326,12 +343,19 @@ function groupAccordions(onlyDebt=false){
         <td>${studentStatusHtml(s)}</td>
       </tr>`;
     });
+    let cards=ss.map(s=>{
+      const f=studentFinance(s);
+      return `<article class="mobileDataCard">
+        <div class="mobileCardTop"><div><h4>${esc(s.name)}</h4><p>${esc(group(s.groupId)?.name||'Qrupsuz')} • ${esc(s.phone||'Telefon yoxdur')}</p></div>${studentStatusHtml(s)}</div>
+        ${mobileInfoGrid([['Növbəti',dateAz(f.nextDue)],['Aylıq',money(f.fee)],['Ödənilib',money(f.paid)],['Alınmalı',money(f.expected)],['Borc',money(f.debt)]])}
+      </article>`;
+    });
     return acc(
       'gacc'+g.id+onlyDebt,
       esc(g.name),
       scheduleText(g),
       [`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],
-      table(['Şagird','Növbəti ödəniş','Aylıq','Ödənilib','Alınmalı','Keçmiş borc','Status'],rows,'Bu qrupda məlumat yoxdur.'),
+      responsiveList(['Şagird','Növbəti ödəniş','Aylıq','Ödənilib','Alınmalı','Keçmiş borc','Status'],rows,cards,'Bu qrupda məlumat yoxdur.'),
       i===0
     )
   }).join('');
@@ -454,7 +478,18 @@ function renderStudents(){
         <td><button class="mini" onclick="editStudent('${s.id}')">Dəyiş</button> <button class="mini red" onclick="deleteStudent('${s.id}')">Sil</button></td>
       </tr>`;
     });
-    return acc('sg'+g.id,esc(g.name),ss.length+' şagird',[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','İlk ödəniş','Növbəti ödəniş','Alınmalı','Keçmiş borc','Status','Əməliyyat'],rows,'Bu qrupda şagird yoxdur.'),i===0)
+    let cards=ss.map(s=>{
+      const f=studentFinance(s);
+      return `<article class="mobileDataCard studentMobileCard">
+        <div class="mobileCardTop">
+          <div><h4>${esc(s.name)}</h4><p>${esc(g.name)} • ${esc(s.phone||'Telefon yoxdur')}</p></div>
+          <span class="badge ${s.status==='active'?'paid':'late'}">${s.status==='active'?'Aktiv':'Çıxıb'}</span>
+        </div>
+        ${mobileInfoGrid([['Aylıq',money(s.fee)],['İlk ödəniş',dateAz(addMonths(cleanDate(s.joinDate),1))],['Növbəti',dateAz(f.nextDue)],['Alınmalı',money(f.expected)],['Borc',money(f.debt)]])}
+        <div class="mobileCardActions"><button class="mini" onclick="editStudent('${s.id}')">Dəyiş</button><button class="mini red" onclick="deleteStudent('${s.id}')">Sil</button></div>
+      </article>`;
+    });
+    return acc('sg'+g.id,esc(g.name),ss.length+' şagird',[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq','İlk ödəniş','Növbəti ödəniş','Alınmalı','Keçmiş borc','Status','Əməliyyat'],rows,cards,'Bu qrupda şagird yoxdur.'),i===0)
   }).join('');
   $('studentList').innerHTML=html||'<div class="empty">Qrup yoxdur.</div>';
 }
@@ -513,17 +548,37 @@ function renderQuickPaymentGroups(){
         </td>
       </tr>`;
     });
-    return acc('quickpay'+g.id,esc(g.name),scheduleText(g),[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Ödənilib','Alınmalı','Keçmiş borc','Status','Ödəniş əlavə et'],rows,'Bu qrupda şagird yoxdur.'),i===0);
+    let cards = ss.map(s=>{
+      const f = studentFinance(s);
+      const inputId = 'mpayinp_' + s.id.replaceAll('-', '_');
+      return `<article class="mobileDataCard paymentMobileCard">
+        <div class="mobileCardTop"><div><h4>${esc(s.name)}</h4><p>${esc(g.name)} • ${esc(s.phone||'Telefon yoxdur')}</p></div>${studentStatusHtml(s)}</div>
+        ${mobileInfoGrid([['Aylıq',money(s.fee)],['Ödənilib',money(f.paid)],['Alınmalı',money(f.expected)],['Borc',money(f.debt)]])}
+        <div class="mobilePayBox">
+          <input id="${inputId}" type="number" min="0" placeholder="Məbləğ yaz">
+          <button class="savePayBtn" type="button" onclick="addQuickPayment('${s.id}','${inputId}')">Yadda saxla</button>
+          <div class="presetBtns">
+            <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','monthly')">Aylıq</button>
+            <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Alınmalı</button>
+            <button class="presetBtn debtPreset" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">Borc</button>
+          </div>
+        </div>
+      </article>`;
+    });
+    return acc('quickpay'+g.id,esc(g.name),scheduleText(g),[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq','Ödənilib','Alınmalı','Keçmiş borc','Status','Ödəniş əlavə et'],rows,cards,'Bu qrupda şagird yoxdur.'),i===0);
   }).join('');
 }
 
 function renderPayments(){
   $('paymentList').innerHTML=data.groups.map((g,i)=>{
     let ps=data.payments.filter(p=>student(p.studentId)?.groupId===g.id);
-    let rows=ps.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>`<tr><td>${esc(student(p.studentId)?.name||'Silinmiş')}</td><td>${money(p.amount)}</td><td>${dateAz(p.date)}</td><td>${methodHtml(p.method)}</td><td><button class="mini red" onclick="deletePayment('${p.id}')">Sil</button></td></tr>`);
-    return acc('pay'+g.id,esc(g.name),ps.length+' ödəniş',[`Toplam ödənilib: ${money(ps.reduce((a,p)=>a+Number(p.amount||0),0))}`,`Alınmalı: ${money(totalExpected(g.id))}`],table(['Şagird','Məbləğ','Tarix','Forma',''],rows,'Ödəniş yoxdur.'),i===0)
+    ps=ps.sort((a,b)=>b.date.localeCompare(a.date));
+    let rows=ps.map(p=>`<tr><td>${esc(student(p.studentId)?.name||'Silinmiş')}</td><td>${money(p.amount)}</td><td>${dateAz(p.date)}</td><td>${methodHtml(p.method)}</td><td><button class="mini red" onclick="deletePayment('${p.id}')">Sil</button></td></tr>`);
+    let cards=ps.map(p=>`<article class="mobileDataCard"><div class="mobileCardTop"><div><h4>${esc(student(p.studentId)?.name||'Silinmiş')}</h4><p>${dateAz(p.date)}</p></div>${methodHtml(p.method)}</div>${mobileInfoGrid([['Məbləğ',money(p.amount)]])}<div class="mobileCardActions"><button class="mini red" onclick="deletePayment('${p.id}')">Sil</button></div></article>`);
+    return acc('pay'+g.id,esc(g.name),ps.length+' ödəniş',[`Toplam ödənilib: ${money(ps.reduce((a,p)=>a+Number(p.amount||0),0))}`,`Alınmalı: ${money(totalExpected(g.id))}`],responsiveList(['Şagird','Məbləğ','Tarix','Forma',''],rows,cards,'Ödəniş yoxdur.'),i===0)
   }).join('');
 }
+
 function renderDebtors(){$('debtorList').innerHTML=groupAccordions(true);}
 function renderReport(){
   const gid = $('reportGroup') ? ($('reportGroup').value || 'all') : 'all';
@@ -554,9 +609,14 @@ function renderReport(){
         <td>${studentStatusHtml(s)}</td>
       </tr>`;
     });
-    return acc('rep'+g.id,esc(g.name),'Ümumi hesabat',[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Növbəti ödəniş','Ödənilib','Alınmalı','Keçmiş borc','Status'], rows, 'Bu qrupda şagird yoxdur.'),i===0)
+    const cards = ss.map(s=>{
+      const f=studentFinance(s);
+      return `<article class="mobileDataCard"><div class="mobileCardTop"><div><h4>${esc(s.name)}</h4><p>${esc(g.name)}</p></div>${studentStatusHtml(s)}</div>${mobileInfoGrid([['Aylıq',money(s.fee)],['Növbəti',dateAz(f.nextDue)],['Ödənilib',money(f.paid)],['Alınmalı',money(f.expected)],['Borc',money(f.debt)]])}</article>`;
+    });
+    return acc('rep'+g.id,esc(g.name),'Ümumi hesabat',[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq','Növbəti ödəniş','Ödənilib','Alınmalı','Keçmiş borc','Status'], rows, cards, 'Bu qrupda şagird yoxdur.'),i===0)
   }).join('');
 }
+
 
 function renderAll(){
   fillSelects();
@@ -652,6 +712,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     }catch(err){setAuthMessage(supabaseErrorMessage(err));}
   };
   $('logoutBtn').onclick=()=>auth?.signOut();
+  $('mobileLogoutBtn').onclick=()=>auth?.signOut();
   $('addSchedule').onclick=()=>addSchedule();
   $('paymentSearch').oninput=renderQuickPaymentGroups;
   $('reportGroup').onchange=()=>renderReport();
