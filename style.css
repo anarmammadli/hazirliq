@@ -959,3 +959,38 @@ body.nav-open{overflow:hidden;touch-action:none}
 .quickPayOptions.infoOnlyOptions{display:none !important}
 @media (max-width:1080px){.improvedPayRow{grid-template-columns:1fr}.actionAmountOptions{min-width:unset;width:100%}}
 @media (max-width:640px){.actionAmountOptions{grid-template-columns:1fr}.amountChoice.actionAmount{min-height:72px}}
+
+/* v29 debt color + table action layout fix */
+.metricPill.debt{
+  background:linear-gradient(135deg,#fff7f7 0%,#fee2e2 100%) !important;
+  border-color:#fca5a5 !important;
+  color:#dc2626 !important;
+}
+.metricPill.debt svg{color:#ef4444 !important}
+.metricPill.debt small{color:#64748b !important}
+.metricPill.debt b{color:#0f172a !important}
+.metricPill.clearDebt{
+  background:linear-gradient(135deg,#f6fdf9 0%,#ecfdf3 100%) !important;
+  border-color:#bbf7d0 !important;
+  color:#16a34a !important;
+}
+.metricPill.clearDebt svg{color:#16a34a !important}
+.metricPill.clearDebt small{color:#64748b !important}
+.metricPill.clearDebt b{color:#0f172a !important}
+.tableWrap td:last-child{
+  white-space:nowrap;
+  min-width:132px;
+}
+.tableWrap td:last-child .mini{
+  display:inline-flex;
+  margin:3px 4px 3px 0;
+  vertical-align:middle;
+}
+.tableWrap td:nth-child(7){
+  min-width:145px;
+}
+.badge.late{white-space:nowrap;font-size:12px;padding:8px 10px}
+@media (max-width:900px){
+  .tableWrap td:last-child{min-width:150px}
+  .tableWrap td:nth-child(7){min-width:165px}
+}

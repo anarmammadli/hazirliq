@@ -624,13 +624,14 @@ function table(head,rows,empty='Məlumat yoxdur'){
 }
 function pillHtml(p){
   const text=String(p||'');
-  let cls='info', icon='info';
-  if(text.toLowerCase().includes('bu ay')){cls='expected'; icon='calendar-check'}
-  if(text.includes('1+')){cls = text.includes('0 AZN') ? 'clearDebt' : 'debt'; icon = text.includes('0 AZN') ? 'check-circle-2' : 'circle-alert'}
-  if(text.toLowerCase().includes('aylıq')){cls='monthly'; icon='wallet'}
   const parts=text.split(':');
   const label=parts.length>1?parts[0].trim():text;
   const value=parts.length>1?parts.slice(1).join(':').trim():'';
+  const numericValue = Number(String(value).replace(/[^0-9.-]/g,'')) || 0;
+  let cls='info', icon='info';
+  if(text.toLowerCase().includes('bu ay')){cls='expected'; icon='calendar-check'}
+  if(text.includes('1+')){cls = numericValue > 0 ? 'debt' : 'clearDebt'; icon = numericValue > 0 ? 'circle-alert' : 'check-circle-2'}
+  if(text.toLowerCase().includes('aylıq')){cls='monthly'; icon='wallet'}
   return `<span class="pill metricPill ${cls}"><i data-lucide="${icon}"></i><span><small>${esc(label)}</small>${value?`<b>${esc(value)}</b>`:''}</span></span>`;
 }
 function acc(id,title,sub,pills,body,open=false){
