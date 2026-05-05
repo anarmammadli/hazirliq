@@ -693,3 +693,36 @@ body.nav-open{overflow:hidden;touch-action:none}
 .quickPayOptions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:420px}.amountChoice{border-radius:22px;border:1px solid var(--line);padding:13px 14px;text-align:left;min-height:86px}.amountChoice small{display:block;font-weight:900;font-size:11px;letter-spacing:.04em;text-transform:uppercase}.amountChoice strong{display:block;font-size:21px;margin-top:7px}.amountChoice.monthly{background:linear-gradient(135deg,#f5f9ff,#e0f2fe);border-color:#bae6fd}.amountChoice.expected{background:linear-gradient(135deg,#eef6ff,#dbeafe);border-color:#bfdbfe}.amountChoice.debt{background:linear-gradient(135deg,#fff5f5,#fee2e2);border-color:#fecaca;color:#b91c1c}
 .compactSmartDateField{display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:10px;min-width:330px}.compactSmartDateField input{min-width:150px}.toolbarGrid{grid-template-columns:minmax(260px,2fr) minmax(200px,230px) minmax(330px,360px)}
 @media (max-width:900px){.compactDayChips{grid-template-columns:repeat(2,minmax(0,1fr))}.wheelPickerRow{grid-template-columns:1fr}.quickPayOptions{min-width:0;grid-template-columns:1fr}.metricPill{min-width:160px}.toolbarGrid{grid-template-columns:1fr}.compactSmartDateField{min-width:0}}
+
+/* v25 tone + schedule ux refinements */
+.metricPill,.amountChoice{box-shadow:none}
+.metricPill svg,.amountChoice svg{color:inherit}
+.metricPill.expected,.amountChoice.expected{background:#eaf3ff;border-color:#c9ddff;color:#2563eb}
+.metricPill.debt,.amountChoice.debt{background:#fff1f2;border-color:#fecdd3;color:#ef4444}
+.metricPill.monthly,.amountChoice.monthly{background:#f3f7ff;border-color:#dbe7ff;color:#3b82f6}
+.metricPill.expected small,.metricPill.debt small,.metricPill.monthly small,.amountChoice.expected small,.amountChoice.debt small,.amountChoice.monthly small{color:#64748b}
+.metricPill.expected b,.metricPill.debt b,.metricPill.monthly b,.amountChoice.expected strong,.amountChoice.debt strong,.amountChoice.monthly strong{color:#0f172a}
+.metricPill{min-width:200px;border-radius:24px;padding:12px 16px}
+.amountChoice{border-radius:24px;padding:14px 15px}
+.amountChoice small{font-size:10.5px}
+.amountChoice strong{font-size:20px}
+.scheduleHelpText{margin:10px 2px 0;color:#64748b;font-size:13px;line-height:1.45;font-weight:700}
+.scheduleHelpText b{color:#0f172a}
+.scheduleAdderBar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.scheduleAdderBar::after{content:'Başqa gün əlavə etmək olar';font-size:13px;font-weight:800;color:#64748b}
+.timeWheelPanel{padding:16px}
+.timeWheelTitle span{font-size:12px;letter-spacing:.03em;text-transform:uppercase}
+.timeWheelTitle b{font-size:18px}
+.timeWheel{height:210px;padding:72px 8px}
+.timeWheel:before{top:76px}.timeWheel:after{bottom:76px}
+.wheelTime{font-size:20px;padding:14px 10px;border-radius:16px}
+.compactDayChips .chipOption{padding:14px 10px;border-radius:20px;background:#fff}
+.compactDayChips .chipOption.active{box-shadow:0 10px 24px rgba(37,99,235,.16)}
+.modalScheduleList{margin-top:12px}
+.modalScheduleItem{border-radius:20px}
+.modernScheduleModal .formActions{justify-content:flex-start}
+@media (max-width:760px){
+  .metricPill{min-width:unset;width:100%}
+  .scheduleAdderBar{flex-direction:column;align-items:flex-start}
+  .scheduleAdderBar::after{content:'Yeni gün üçün yenidən gün və saat seçin'}
+}
