@@ -626,7 +626,7 @@ function pillHtml(p){
   const text=String(p||'');
   let cls='info', icon='info';
   if(text.toLowerCase().includes('bu ay')){cls='expected'; icon='calendar-check'}
-  if(text.includes('1+')){cls='debt'; icon='circle-alert'}
+  if(text.includes('1+')){cls = text.includes('0 AZN') ? 'clearDebt' : 'debt'; icon = text.includes('0 AZN') ? 'check-circle-2' : 'circle-alert'}
   if(text.toLowerCase().includes('aylıq')){cls='monthly'; icon='wallet'}
   const parts=text.split(':');
   const label=parts.length>1?parts[0].trim():text;
@@ -873,15 +873,15 @@ function renderQuickPaymentGroups(){
     const rows=students.map(s=>{
       const f=studentFinance(s);
       const inputId='qp_'+s.id;
-      return `<div class="quickPayRow">
+      const debtClear = Number(f.debt||0) <= 0;
+      return `<div class="quickPayRow improvedPayRow">
         <div class="quickPayStudent">
           <b>${esc(s.name)}</b>
-          <span>${esc(s.phone||'Telefon yoxdur')}</span>
+          <span class="monthlyInline">Aylıq ödəniş: <strong>${money(s.fee)}</strong></span>
         </div>
-        <div class="quickPayOptions infoOnlyOptions" aria-label="Şagird ödəniş məlumatı">
-          <div class="amountChoice infoCard monthly"><small>Aylıq ödəniş</small><strong>${money(s.fee)}</strong></div>
-          <div class="amountChoice infoCard expected"><small>Bu ay alınacaq</small><strong>${money(f.expected)}</strong></div>
-          <div class="amountChoice infoCard debt"><small>1+ ay borc</small><strong>${money(f.debt)}</strong></div>
+        <div class="quickPayOptions actionAmountOptions" aria-label="Şagird ödəniş seçimləri">
+          <button type="button" class="amountChoice actionAmount expected" onclick="setQuickPaymentAmount('${inputId}', ${Number(f.expected||0)})"><small>Bu ay alınacaq</small><strong>${money(f.expected)}</strong></button>
+          <button type="button" class="amountChoice actionAmount ${debtClear?'clearDebt':'debt'}" onclick="setQuickPaymentAmount('${inputId}', ${Number(f.debt||0)})"><small>${debtClear?'Keçən aydan qalan borcu yoxdur':'1+ ay borc'}</small><strong>${money(f.debt)}</strong></button>
         </div>
         <div class="quickPayActions">
           <input id="${inputId}" type="number" min="0" placeholder="Məbləği daxil edin">
@@ -948,6 +948,14 @@ function renderAll(){
   renderReport();
   refreshIcons();
 }
+
+function setQuickPaymentAmount(inputId, amount){
+  const input=$(inputId);
+  if(!input) return;
+  input.value = Number(amount||0) > 0 ? Number(amount||0) : '';
+  input.focus();
+}
+window.setQuickPaymentAmount=setQuickPaymentAmount;
 
 function addQuickPayment(studentId, amountInputId){
   const s = student(studentId);

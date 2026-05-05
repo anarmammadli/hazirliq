@@ -939,3 +939,23 @@ body.nav-open{overflow:hidden;touch-action:none}
   transform:translateY(-1px);
   box-shadow:0 18px 34px rgba(37,99,235,.18);
 }
+
+/* v28 payment row semantics: info vs real actions */
+.quickPayStudent .monthlyInline{display:block;margin-top:7px;color:#64748b;font-weight:850;font-size:14px}
+.quickPayStudent .monthlyInline strong{color:#0f172a;font-weight:950}
+.actionAmountOptions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:420px}
+.amountChoice.actionAmount{cursor:pointer !important;user-select:none;border-radius:24px;min-height:78px;text-align:left;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;background:#fff}
+.amountChoice.actionAmount small{font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:950;color:#64748b;line-height:1.25}
+.amountChoice.actionAmount strong{font-size:21px;margin-top:8px;color:#0f172a !important;line-height:1.05}
+.amountChoice.actionAmount.expected{background:linear-gradient(135deg,#f7fbff 0%,#eaf4ff 100%) !important;border-color:#cfe2ff !important;color:#2563eb !important}
+.amountChoice.actionAmount.debt{background:linear-gradient(135deg,#fff7f7 0%,#fff0f0 100%) !important;border-color:#ffd6d6 !important;color:#dc2626 !important}
+.amountChoice.actionAmount.clearDebt{background:linear-gradient(135deg,#f6fdf9 0%,#ecfdf3 100%) !important;border-color:#bbf7d0 !important;color:#16a34a !important}
+.amountChoice.actionAmount.clearDebt small{color:#15803d !important;text-transform:none;font-size:12px;letter-spacing:0}
+.amountChoice.actionAmount:hover{transform:translateY(-2px) !important;box-shadow:0 18px 34px rgba(15,23,42,.10) !important}
+.amountChoice.actionAmount:active{transform:translateY(0) scale(.99) !important}
+.metricPill.clearDebt{background:linear-gradient(135deg,#f6fdf9 0%,#ecfdf3 100%) !important;border-color:#bbf7d0 !important;color:#16a34a !important}
+.metricPill.clearDebt:hover{background:linear-gradient(135deg,#f6fdf9 0%,#ecfdf3 100%) !important;border-color:#bbf7d0 !important;transform:none !important;box-shadow:none !important}
+.metricPill.clearDebt small{color:#64748b !important}.metricPill.clearDebt b{color:#0f172a !important}
+.quickPayOptions.infoOnlyOptions{display:none !important}
+@media (max-width:1080px){.improvedPayRow{grid-template-columns:1fr}.actionAmountOptions{min-width:unset;width:100%}}
+@media (max-width:640px){.actionAmountOptions{grid-template-columns:1fr}.amountChoice.actionAmount{min-height:72px}}
