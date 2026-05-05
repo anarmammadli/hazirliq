@@ -1,26 +1,26 @@
-:root{
-  --bg:#f4f7fb;
-  --bg-2:#eef4ff;
-  --surface:#ffffff;
-  --surface-2:#f8fbff;
-  --surface-3:#eff6ff;
-  --text:#0f172a;
-  --muted:#64748b;
-  --line:#dbe7f5;
-  --line-strong:#bfd3ee;
-  --accent:#2563eb;
-  --accent-2:#0ea5e9;
-  --accent-soft:#eaf2ff;
-  --ok:#0f766e;
-  --ok-soft:#e8faf7;
-  --warn:#b45309;
-  --warn-soft:#fff7ed;
-  --danger:#dc2626;
-  --danger-soft:#fef2f2;
-  --navy:#0f172a;
-  --navy-2:#1e293b;
-  --shadow:0 26px 80px rgba(37,99,235,.12);
-  --shadow-soft:0 14px 38px rgba(15,23,42,.08);
+ :root{
+  --bg:#06111f;
+  --bg-2:#08182b;
+  --surface:#0b1728;
+  --surface-2:#101f34;
+  --surface-3:#132a47;
+  --text:#f8fbff;
+  --muted:#a9bad4;
+  --line:rgba(148,163,184,.22);
+  --line-strong:rgba(148,163,184,.34);
+  --accent:#60a5fa;
+  --accent-2:#22d3ee;
+  --accent-soft:rgba(96,165,250,.16);
+  --ok:#34d399;
+  --ok-soft:rgba(6,95,70,.24);
+  --warn:#f59e0b;
+  --warn-soft:rgba(146,64,14,.22);
+  --danger:#fb7185;
+  --danger-soft:rgba(127,29,29,.28);
+  --navy:#f8fbff;
+  --navy-2:#e5eefc;
+  --shadow:0 28px 90px rgba(0,0,0,.42);
+  --shadow-soft:0 18px 44px rgba(0,0,0,.28);
   --radius-xl:28px;
   --radius-lg:22px;
   --radius-md:18px;
@@ -1679,3 +1679,430 @@ body.authMode .authScreen{display:flex !important;}
   .topHeaderActions .logoutBtn span{display:none !important;}
   .topHeaderActions #logoutBtn,.topHeaderActions .logoutBtn{width:42px !important;padding:0 !important;justify-content:center !important;}
 }
+
+
+/* Dark-only corrections */
+/* v33 dark mode */
+.authTopLine{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.themeToggle{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.86);
+  color:var(--text);
+  border-radius:999px;
+  min-height:42px;
+  padding:0 14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:var(--shadow-soft);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+.themeToggle:hover{transform:translateY(-2px);box-shadow:0 18px 38px rgba(15,23,42,.13);border-color:var(--line-strong)}
+.themeToggle svg{width:17px;height:17px;color:var(--accent)}
+
+html{
+  --bg:#07111f;
+  --bg-2:#0b1728;
+  --surface:#0f1b2d;
+  --surface-2:#142238;
+  --surface-3:#182b48;
+  --text:#eaf2ff;
+  --muted:#9fb4d6;
+  --line:#263a58;
+  --line-strong:#385377;
+  --accent:#60a5fa;
+  --accent-2:#22d3ee;
+  --accent-soft:#102a4d;
+  --ok:#34d399;
+  --ok-soft:#0c332d;
+  --warn:#f59e0b;
+  --warn-soft:#33240b;
+  --danger:#fb7185;
+  --danger-soft:#3a111c;
+  --navy:#eaf2ff;
+  --navy-2:#dbeafe;
+  --shadow:0 28px 80px rgba(0,0,0,.34);
+  --shadow-soft:0 16px 42px rgba(0,0,0,.26);
+}
+body{
+  background:
+    radial-gradient(circle at top left, rgba(96,165,250,.14), transparent 34%),
+    radial-gradient(circle at top right, rgba(34,211,238,.10), transparent 30%),
+    linear-gradient(180deg,#07111f 0%, #0b1524 100%);
+}
+.authScreen{background:linear-gradient(180deg,#07111f,#0b1524)}
+.authCard,
+.surfaceCard,
+.heroPanel,
+.heroMiniCard,
+.statCard,
+.filterBar,
+.tableWrap,
+.modalCard,
+.calendarShell,
+.scheduleCardItem,
+.modalScheduleItem,
+.quickPayRow,
+.teacherAdminItem,
+.teacherAdminList,
+.adminPanel,
+.topBadge,
+.themeToggle{
+  background:rgba(15,27,45,.92) !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+.heroPanel,
+.heroMiniCard{background:linear-gradient(135deg,rgba(15,27,45,.96),rgba(20,34,56,.94)) !important}
+input,
+select,
+textarea{
+  background:#0b1728 !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+input::placeholder,
+textarea::placeholder{color:#7388aa !important}
+table{color:var(--text)}
+th{background:#101f35 !important;color:#b8c9e8 !important;border-bottom-color:var(--line) !important}
+td{border-top-color:var(--line) !important}
+.side{background:linear-gradient(180deg,#091323 0%,#0d1b2e 100%);border-color:var(--line)}
+.bottomTabBar{background:rgba(9,19,35,.92);border-color:var(--line)}
+.bottomTab{color:#9fb4d6}
+.bottomTab.active{color:#fff;background:rgba(96,165,250,.16)}
+.panelLabel{background:#102a4d;border-color:#1e4775;color:#93c5fd}
+.secondary{background:#102037 !important;border-color:var(--line) !important;color:var(--text) !important}
+.primary{box-shadow:0 16px 36px rgba(37,99,235,.30)}
+.metricPill.expected,
+.amountChoice.expected{background:#102a4d !important;border-color:#1e4775 !important;color:#93c5fd !important}
+.metricPill.debt,
+.amountChoice.debt{background:#351622 !important;border-color:#7f1d1d !important;color:#fda4af !important}
+.metricPill.good,
+.amountChoice.good{background:#0c332d !important;border-color:#146c5d !important;color:#6ee7b7 !important}
+.calendarDay,
+.chipOption,
+.wheelTime,
+.pickerValueBtn,
+.dateTriggerBtn{background:#0b1728;color:var(--text);border-color:var(--line)}
+.calendarDay.selected,
+.chipOption.active,
+.wheelTime.active{background:linear-gradient(135deg,#2563eb,#0891b2) !important;color:#fff !important;border-color:transparent !important}
+.modalOverlay{background:rgba(2,6,23,.72)}
+.ambientOne{background:rgba(96,165,250,.10)}
+.ambientTwo{background:rgba(34,211,238,.09)}
+.mobileBrandPill{background:#102037;border-color:var(--line)}
+.authMessage{color:#c6d8f6}
+@media (max-width:760px){
+  .topThemeToggle span{display:none}
+  .topThemeToggle{width:42px;padding:0}
+  .authTopLine{align-items:flex-start}
+}
+
+/* v34 — polished dark mode contrast fix */
+body,
+.appShell{
+  background:
+    radial-gradient(circle at 20% 0%, rgba(37,99,235,.18), transparent 35%),
+    radial-gradient(circle at 88% 10%, rgba(14,165,233,.16), transparent 34%),
+    linear-gradient(135deg,#07111f 0%,#0b1728 42%,#081525 100%) !important;
+  color:#eaf2ff !important;
+}
+html{
+  --bg:#081525;
+  --panel:#0f1d31;
+  --panel-2:#13243a;
+  --card:#101f34;
+  --text:#eef6ff;
+  --ink:#f5f9ff;
+  --muted:#9db0ca;
+  --line:rgba(148,163,184,.24);
+  --line-strong:rgba(96,165,250,.48);
+  --accent:#60a5fa;
+  --accent-2:#22d3ee;
+  --danger:#fb7185;
+  --danger-soft:rgba(127,29,29,.24);
+  --success:#34d399;
+  --success-soft:rgba(6,95,70,.22);
+  --shadow:0 24px 70px rgba(0,0,0,.34);
+  --soft-shadow:0 12px 30px rgba(0,0,0,.18);
+}
+.sidebar,
+.card,
+.hero,
+.modalCard,
+.modal,
+.loginCard,
+.schedule-shell,
+.calendarShell,
+.tableWrap,
+.accordion,
+.quickPayRow,
+.studentCard,
+.paymentCard,
+.reportCard{
+  background:linear-gradient(180deg, rgba(18,33,54,.96), rgba(12,25,42,.96)) !important;
+  border-color:rgba(148,163,184,.22) !important;
+  color:#eef6ff !important;
+  box-shadow:0 20px 60px rgba(0,0,0,.25) !important;
+}
+.sidebar{
+  background:linear-gradient(180deg,#0e1c31,#081426) !important;
+  border-color:rgba(96,165,250,.22) !important;
+}
+.card h2,
+.hero h2,
+h1,
+h2,
+h3,
+h4,
+b,
+strong,
+label,
+th,
+td{
+  color:#f8fbff !important;
+}
+p,
+.muted,
+.accSub,
+.smallNote,
+.card p,
+.hero p,
+.monthlyInline,
+.summaryLabel{
+  color:#a9bad4 !important;
+}
+input,
+select,
+textarea{
+  background:#0b1728 !important;
+  color:#f8fbff !important;
+  border-color:rgba(148,163,184,.28) !important;
+  box-shadow:none !important;
+}
+input::placeholder,
+textarea::placeholder{color:#6f83a0 !important;}
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:#60a5fa !important;
+  box-shadow:0 0 0 4px rgba(96,165,250,.15) !important;
+}
+.navBtn,
+.bottomTab,
+.themeToggle,
+.secondary,
+.mini,
+.presetBtn,
+.dateTriggerBtn,
+.iconOnlyBtn,
+.accIndicator{
+  background:rgba(15,30,50,.85) !important;
+  color:#dbeafe !important;
+  border-color:rgba(96,165,250,.28) !important;
+}
+.navBtn:hover,
+.bottomTab:hover,
+.themeToggle:hover,
+.secondary:hover,
+.mini:hover,
+.dateTriggerBtn:hover{
+  background:rgba(29,78,216,.22) !important;
+  border-color:rgba(96,165,250,.58) !important;
+  color:#fff !important;
+}
+.navBtn.active,
+.bottomTab.active{
+  background:linear-gradient(135deg,rgba(37,99,235,.42),rgba(14,165,233,.28)) !important;
+  border-color:rgba(96,165,250,.62) !important;
+  color:#fff !important;
+}
+.primary,
+.miniPrimary{
+  background:linear-gradient(135deg,#2563eb,#0ea5e9) !important;
+  color:white !important;
+  border-color:transparent !important;
+}
+.danger,
+.mini.red,
+.debtPreset{
+  background:rgba(127,29,29,.34) !important;
+  color:#fecdd3 !important;
+  border-color:rgba(251,113,133,.44) !important;
+}
+.accordion{
+  background:linear-gradient(180deg,#102039,#0c192d) !important;
+  border-color:rgba(96,165,250,.22) !important;
+}
+.accHead,
+.collapsibleHead{
+  background:linear-gradient(180deg,rgba(15,31,52,.96),rgba(12,25,42,.96)) !important;
+  color:#f8fbff !important;
+}
+.accHead:hover,
+.collapsibleHead:hover{
+  background:linear-gradient(180deg,rgba(22,47,78,.98),rgba(14,32,55,.98)) !important;
+}
+.accBody{
+  background:#0c192d !important;
+}
+.pill,
+.infoStat,
+.metricPill{
+  background:#0e1d32 !important;
+  color:#eaf2ff !important;
+  border-color:rgba(148,163,184,.24) !important;
+}
+.pill.expected,
+.infoStat.expected,
+.amountChoice.expected{
+  background:linear-gradient(135deg,rgba(37,99,235,.20),rgba(14,165,233,.16)) !important;
+  border-color:rgba(96,165,250,.48) !important;
+  color:#eaf2ff !important;
+}
+.pill.debt,
+.infoStat.debt,
+.amountChoice.debt{
+  background:rgba(127,29,29,.30) !important;
+  border-color:rgba(251,113,133,.45) !important;
+  color:#ffe4e6 !important;
+}
+.pill.clearDebt,
+.infoStat.clearDebt,
+.amountChoice.clearDebt{
+  background:rgba(6,95,70,.24) !important;
+  border-color:rgba(52,211,153,.42) !important;
+  color:#dcfce7 !important;
+}
+.amountChoice,
+.quickPayOptions .amountChoice{
+  background:#0f2036 !important;
+  color:#f8fbff !important;
+  border-color:rgba(148,163,184,.24) !important;
+}
+.amountChoice small{color:#a9bad4 !important;}
+.amountChoice:hover{
+  transform:translateY(-1px);
+  border-color:rgba(96,165,250,.58) !important;
+}
+table,
+.tableWrap{background:#0b1728 !important;}
+th{background:#0f2036 !important;color:#a9bad4 !important;border-color:rgba(148,163,184,.18) !important;}
+td{background:#0b1728 !important;border-color:rgba(148,163,184,.15) !important;}
+tbody tr:hover td{background:#102039 !important;}
+.empty{
+  background:rgba(15,31,52,.82) !important;
+  color:#a9bad4 !important;
+  border-color:rgba(148,163,184,.22) !important;
+}
+.badge,
+.eyebrow{
+  background:rgba(37,99,235,.22) !important;
+  color:#bfdbfe !important;
+  border-color:rgba(96,165,250,.36) !important;
+}
+.statusGood,
+.statusPaid{
+  background:rgba(6,95,70,.24) !important;
+  border-color:rgba(52,211,153,.42) !important;
+  color:#bbf7d0 !important;
+}
+.statusWarn{
+  background:rgba(146,64,14,.22) !important;
+  border-color:rgba(251,146,60,.4) !important;
+  color:#fed7aa !important;
+}
+.statusDebt{
+  background:rgba(127,29,29,.28) !important;
+  border-color:rgba(251,113,133,.44) !important;
+  color:#fecdd3 !important;
+}
+.calendarDay,
+.chipOption,
+.scheduleDayBtn,
+.timeWheel,
+.wheelOption{
+  background:#0d1b2f !important;
+  color:#eaf2ff !important;
+  border-color:rgba(148,163,184,.23) !important;
+}
+.chipOption.active,
+.calendarDay.selected,
+.scheduleDayBtn.active,
+.wheelOption.active{
+  background:linear-gradient(135deg,#2563eb,#0ea5e9) !important;
+  color:#fff !important;
+  border-color:transparent !important;
+}
+.scheduleGrid,
+.scheduleTable,
+.scheduleCell,
+.scheduleHeadCell,
+.timeCell{
+  background:#0b1728 !important;
+  color:#eaf2ff !important;
+  border-color:rgba(148,163,184,.16) !important;
+}
+.scheduleItem{
+  background:linear-gradient(135deg,rgba(37,99,235,.22),rgba(14,165,233,.16)) !important;
+  border-color:rgba(96,165,250,.36) !important;
+  color:#f8fbff !important;
+}
+.topActions{
+  background:transparent !important;
+}
+.modalBackdrop{
+  background:rgba(2,6,23,.72) !important;
+  backdrop-filter:blur(10px) !important;
+}
+a,
+.linkLike{color:#93c5fd !important;}
+
+/* v35 separate dark stylesheet: forced dark surfaces */
+html,body{background:#06111f !important;color:#f8fbff !important;}
+body{
+  background:
+    radial-gradient(circle at top left, rgba(37,99,235,.18), transparent 34%),
+    radial-gradient(circle at top right, rgba(14,165,233,.16), transparent 30%),
+    linear-gradient(180deg,#06111f 0%,#08182b 100%) !important;
+}
+.card,.panel,.authCard,.modal,.modalCard,.glass,.contentCard,.listCard,.formCard,.schedulePickerCard,.datePickerCard,
+.groupItem,.studentRow,.paymentGroup,.paymentRow,.reportCard,.tableWrap,.scheduleWrap,.quickPayRow,.accHead,.collapsibleHead{
+  background:linear-gradient(180deg,rgba(15,31,52,.96),rgba(10,23,40,.96)) !important;
+  border-color:rgba(148,163,184,.24) !important;
+  color:#f8fbff !important;
+  box-shadow:0 24px 70px rgba(0,0,0,.28) !important;
+}
+.groupList .groupCard,.groupListItem,.teacherRow{
+  background:#0f2036 !important;
+  color:#f8fbff !important;
+  border-color:rgba(148,163,184,.24) !important;
+}
+input,select,textarea,.fakeInput,.dateDisplay{
+  background:#0b1728 !important;
+  color:#f8fbff !important;
+  border-color:rgba(148,163,184,.28) !important;
+}
+input::placeholder,textarea::placeholder{color:#7185a5 !important;}
+.muted,.subtle,.helpText,p{color:#a9bad4;}
+.primaryText,h1,h2,h3,h4,strong,label{color:#f8fbff;}
+button.secondary,.btn.secondary,.ghostBtn,.topBtn,.pillBtn{
+  background:#102039 !important;
+  color:#f8fbff !important;
+  border-color:rgba(148,163,184,.28) !important;
+}
+button.secondary:hover,.btn.secondary:hover,.ghostBtn:hover,.topBtn:hover,.pillBtn:hover{
+  background:#16304f !important;
+  border-color:rgba(96,165,250,.44) !important;
+}
+.side{background:linear-gradient(180deg,#071426 0%,#0b1b31 100%) !important;border-color:rgba(148,163,184,.2) !important;}
+.authScreen{background:linear-gradient(180deg,#06111f 0%,#08182b 100%) !important;}
+.topBar,.mobileHeader{background:transparent !important;}
+.bottomNav{background:rgba(8,24,43,.96) !important;border-color:rgba(148,163,184,.24) !important;}
+.amountInfo,.infoBox,.paymentInfoBox{background:#0e1d32 !important;color:#f8fbff !important;border-color:rgba(148,163,184,.24) !important;}
+.amountInfo.expected,.paymentInfoBox.expected{background:linear-gradient(135deg,rgba(37,99,235,.22),rgba(14,165,233,.16)) !important;border-color:rgba(96,165,250,.40) !important;}
+.amountInfo.debt,.paymentInfoBox.debt{background:rgba(127,29,29,.26) !important;border-color:rgba(251,113,133,.42) !important;color:#ffe4e6 !important;}
+.amountInfo.clearDebt,.paymentInfoBox.clearDebt{background:rgba(6,95,70,.24) !important;border-color:rgba(52,211,153,.42) !important;color:#dcfce7 !important;}

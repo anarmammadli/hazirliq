@@ -7,8 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>try{document.documentElement.dataset.theme=localStorage.getItem("hazirliqTheme")||"light";}catch(e){}</script>
-  <link rel="stylesheet" href="style.css">
+  <script>
+    try{
+      const savedTheme = localStorage.getItem("hazirliqTheme") || "light";
+      document.documentElement.dataset.theme = savedTheme;
+      document.write('<link id="themeStylesheet" rel="stylesheet" href="' + (savedTheme === "dark" ? "dark.css" : "style.css") + '">');
+    }catch(e){document.write('<link id="themeStylesheet" rel="stylesheet" href="style.css">');}
+  </script>
   <script defer src="https://unpkg.com/lucide@latest"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="supabase-config.js"></script>
