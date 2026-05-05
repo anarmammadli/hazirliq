@@ -15,21 +15,58 @@
 </head>
 <body>
   <div class="authScreen" id="authScreen">
-    <div class="authCard">
+    <div class="authCard multiAuthCard">
       <div class="brandMark authMark"><i data-lucide="graduation-cap"></i></div>
-      <span class="panelLabel"><i data-lucide="database"></i> Tək admin yaddaşı</span>
+      <span class="panelLabel"><i data-lucide="users-round"></i> Müəllim girişi</span>
       <h2>Hazırlıq sisteminə giriş</h2>
-      <p>Bu versiya Supabase Auth istifadə etmir. Bütün məlumatlar Supabase-də tək <b>main</b> row-da saxlanır.</p>
-      <form id="authForm" class="authForm">
-        <label>Admin şifrəsi</label>
-        <input id="authPassword" type="password" required placeholder="Admin şifrəsi" autocomplete="current-password">
+      <p>Hər müəllim yalnız öz username və kodu ilə daxil olur. Hər müəllimin məlumatı Supabase-də ayrıca saxlanılır.</p>
+
+      <div class="authTabs">
+        <button type="button" class="authTab active" data-auth-tab="teacher"><i data-lucide="user"></i> Müəllim</button>
+        <button type="button" class="authTab" data-auth-tab="admin"><i data-lucide="shield-check"></i> Admin</button>
+      </div>
+
+      <form id="authForm" class="authForm authPane active" data-auth-pane="teacher">
+        <label>Username</label>
+        <input id="teacherUsername" type="text" required placeholder="məsələn: ayten" autocomplete="username">
+        <label>Kod</label>
+        <input id="teacherCode" type="password" required placeholder="Müəllim kodu" autocomplete="current-password">
         <div class="authActions singleAuthAction">
           <button class="primary" id="loginBtn" type="submit"><i data-lucide="log-in"></i><span>Daxil ol</span></button>
-          <button class="secondary" id="registerBtn" type="button"><i data-lucide="info"></i><span>Məlumat</span></button>
         </div>
       </form>
+
+      <div class="authPane adminPane" data-auth-pane="admin">
+        <form id="adminUnlockForm" class="authForm">
+          <label>Admin şifrəsi</label>
+          <input id="adminPassword" type="password" placeholder="Admin şifrəsi" autocomplete="current-password">
+          <div class="authActions singleAuthAction">
+            <button class="secondary" type="submit"><i data-lucide="lock-keyhole"></i><span>Admin paneli aç</span></button>
+          </div>
+        </form>
+
+        <div id="adminPanel" class="adminPanel locked">
+          <div class="adminPanelHead">
+            <div>
+              <b>Müəllim yarat</b>
+              <span>Buradan müəllimə username və kod verirsən.</span>
+            </div>
+          </div>
+          <form id="teacherCreateForm" class="authForm compactAuthForm">
+            <label>Müəllim adı</label>
+            <input id="newTeacherName" type="text" placeholder="Məsələn: Aytən müəllimə">
+            <label>Username</label>
+            <input id="newTeacherUsername" type="text" placeholder="məsələn: ayten">
+            <label>Kod</label>
+            <input id="newTeacherCode" type="text" placeholder="məsələn: 123456">
+            <button class="primary" type="submit"><i data-lucide="user-plus"></i><span>Müəllim yarat / yenilə</span></button>
+          </form>
+          <div id="teacherAdminList" class="teacherAdminList"></div>
+        </div>
+      </div>
+
       <div id="authMessage" class="authMessage"></div>
-      <div class="authHelp">Standart şifrə: <b>123456</b>. İstəsəniz <b>supabase-config.js</b> içində dəyişə bilərsiniz.</div>
+      <div class="authHelp">Admin şifrəsi standart olaraq <b>123456</b>-dır. Onu <b>supabase-config.js</b> içində dəyişə bilərsən.</div>
     </div>
   </div>
 
@@ -59,7 +96,7 @@
         <i data-lucide="shield-check"></i>
         <div>
           <b>Cloud yaddaş</b>
-          <span>Məlumatlar tək Supabase row-da saxlanılır. Session problemi yoxdur.</span>
+          <span>Hər müəllim üçün ayrıca cloud yaddaş. Başqa müəllimin məlumatı görünmür.</span>
         </div>
       </div>
     </aside>

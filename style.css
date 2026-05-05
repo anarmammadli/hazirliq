@@ -358,6 +358,25 @@ td b{font-weight:900;letter-spacing:-.02em}
 .authCard p{margin:0 0 22px;color:var(--muted);line-height:1.65;font-weight:600}
 .authForm{display:grid;gap:11px}
 .authForm input{width:100%}
+
+.multiAuthCard{width:min(620px,100%)}
+.authTabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 18px;padding:6px;border:1px solid var(--line);border-radius:18px;background:#f8fbff}
+.authTab{border:0;border-radius:14px;padding:12px 14px;background:transparent;color:var(--muted);font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.authTab.active{background:#fff;color:var(--accent);box-shadow:0 10px 24px rgba(15,23,42,.08)}
+.authPane{display:none}
+.authPane.active{display:grid}
+.adminPane{gap:14px}
+.adminPanel.locked{display:none}
+.adminPanel{display:grid;gap:14px;margin-top:4px;padding:16px;border:1px solid var(--line);border-radius:22px;background:#fbfdff}
+.adminPanelHead b{display:block;font-size:17px;font-weight:900;letter-spacing:-.03em}
+.adminPanelHead span{display:block;color:var(--muted);font-size:13px;margin-top:4px;font-weight:700}
+.compactAuthForm{gap:9px}
+.teacherAdminList{display:grid;gap:10px;max-height:230px;overflow:auto;padding-right:4px}
+.teacherAdminRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff}
+.teacherAdminRow b{display:block;font-size:14px;font-weight:900}
+.teacherAdminRow span{display:block;color:var(--muted);font-size:12px;margin-top:3px;font-weight:700}
+.smallEmpty{padding:14px;font-size:13px}
+
 .authActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
 .authMessage{margin-top:16px;font-size:13px;font-weight:800;color:#b91c1c;min-height:18px}
 .authMessage.ok{color:#047857}
@@ -368,6 +387,8 @@ td b{font-weight:900;letter-spacing:-.02em}
   .authCard{padding:24px;border-radius:26px}
   .authCard h2{font-size:28px}
   .authActions{grid-template-columns:1fr}
+  .authTabs{grid-template-columns:1fr}
+  .teacherAdminRow{align-items:flex-start;flex-direction:column}
   .topHeaderActions{justify-content:flex-start;width:100%}
 }
 
@@ -458,6 +479,8 @@ body.nav-open{overflow:hidden;touch-action:none}
   .statCard b{font-size:28px}
   .formActions{gap:10px}
   .authActions{grid-template-columns:1fr}
+  .authTabs{grid-template-columns:1fr}
+  .teacherAdminRow{align-items:flex-start;flex-direction:column}
 }
 
 /* v9 iPhone navigation reliability fixes */

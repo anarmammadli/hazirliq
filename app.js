@@ -1,14 +1,12 @@
 let data={groups:[],students:[],payments:[]};
 let db=null;
+let currentTeacher=null;
 let isHydrating=true;
 let saveTimer=null;
 let cloudSyncInProgress=false;
 let cloudSyncQueued=false;
 
-const APP_STATE_ID='main';
-const LOCAL_DATA_KEY='hazirliq_single_admin_data_v1';
-const LOCAL_PENDING_KEY='hazirliq_single_admin_pending_v1';
-const ADMIN_OK_KEY='hazirliq_admin_unlocked_v1';
+const TEACHER_SESSION_KEY='hazirliq_teacher_session_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
 const months=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
@@ -40,9 +38,26 @@ function normalizeData(cloudData){
 function dataUpdatedAt(d=data){return d?.__updatedAt || d?.updatedAt || '1970-01-01T00:00:00.000Z'}
 function newerOrEqual(a,b){return new Date(a||0).getTime() >= new Date(b||0).getTime()}
 function touchData(){data.__updatedAt=nowIso(); return data.__updatedAt;}
-function readLocalState(){
+function safeTeacherKey(username=currentTeacher?.username){
+  return String(username||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'_') || 'unknown';
+}
+function localDataKey(username=currentTeacher?.username){return 'hazirliq_teacher_data_v1_' + safeTeacherKey(username)}
+function localPendingKey(username=currentTeacher?.username){return 'hazirliq_teacher_pending_v1_' + safeTeacherKey(username)}
+function normalizeUsername(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,'')}
+function readTeacherSession(){
+  try{return JSON.parse(localStorage.getItem(TEACHER_SESSION_KEY)||'null')}catch(e){return null}
+}
+function writeTeacherSession(t){
+  currentTeacher={username:normalizeUsername(t.username),name:t.name||t.username};
+  localStorage.setItem(TEACHER_SESSION_KEY, JSON.stringify(currentTeacher));
+}
+function clearTeacherSession(){
+  currentTeacher=null;
+  localStorage.removeItem(TEACHER_SESSION_KEY);
+}
+function readLocalState(username=currentTeacher?.username){
   try{
-    const raw=localStorage.getItem(LOCAL_DATA_KEY);
+    const raw=localStorage.getItem(localDataKey(username));
     if(!raw) return null;
     const parsed=JSON.parse(raw);
     return {data:normalizeData(parsed?.data), updatedAt:parsed?.updatedAt||dataUpdatedAt(parsed?.data)};
@@ -52,11 +67,12 @@ function readLocalState(){
   }
 }
 function writeLocalState(){
+  if(!currentTeacher?.username) return false;
   try{
     const ts=touchData();
     const payload={data:normalizeData(data), updatedAt:ts};
-    localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(payload));
-    localStorage.setItem(LOCAL_PENDING_KEY,'1');
+    localStorage.setItem(localDataKey(), JSON.stringify(payload));
+    localStorage.setItem(localPendingKey(),'1');
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     return true;
   }catch(e){
@@ -66,15 +82,15 @@ function writeLocalState(){
   }
 }
 function markCloudSynced(){
-  try{localStorage.removeItem(LOCAL_PENDING_KEY);}catch(e){}
+  try{localStorage.removeItem(localPendingKey());}catch(e){}
 }
 function hasPendingLocalSync(){
-  try{return localStorage.getItem(LOCAL_PENDING_KEY)==='1'}catch(e){return false}
+  try{return localStorage.getItem(localPendingKey())==='1'}catch(e){return false}
 }
 async function syncToCloud(){
-  // Single-admin row: no Supabase Auth, no session, no user_id.
-  // UI actions are already saved locally, so cloud sync must never block the app.
-  if(isHydrating || !db) return false;
+  // Option A: no Supabase Auth/session. Each teacher writes only to their own username row.
+  // UI actions are saved locally first; cloud sync must never block the app.
+  if(isHydrating || !db || !currentTeacher?.username) return false;
   if(!navigator.onLine){
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     return false;
@@ -92,11 +108,9 @@ async function syncToCloud(){
     snapshot.__updatedAt=snapshotTime;
 
     const {error}=await withTimeout(
-      db.from('app_states').upsert({
-        id:APP_STATE_ID,
-        data:snapshot,
-        updated_at:snapshotTime
-      },{onConflict:'id'}),
+      db.from('teacher_states')
+        .update({data:snapshot, updated_at:snapshotTime})
+        .eq('username', currentTeacher.username),
       9000,
       'Cloud save timeout'
     );
@@ -108,14 +122,14 @@ async function syncToCloud(){
       markCloudSynced();
       if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
     }else{
-      localStorage.setItem(LOCAL_PENDING_KEY,'1');
+      localStorage.setItem(localPendingKey(),'1');
       cloudSyncQueued=true;
       if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     }
     return true;
   }catch(err){
     console.error('Cloud sync failed:', err);
-    try{localStorage.setItem(LOCAL_PENDING_KEY,'1')}catch(e){}
+    try{localStorage.setItem(localPendingKey(),'1')}catch(e){}
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     return false;
   }finally{
@@ -145,6 +159,8 @@ async function resumeSupabaseConnection(reason='resume'){
 function showApp(){
   $('appShell')?.classList.remove('locked');
   $('authScreen')?.classList.add('locked');
+  const who=currentTeacher?.name||currentTeacher?.username;
+  if(who && $('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
 }
 function showLogin(msg=''){
   $('appShell')?.classList.add('locked');
@@ -152,6 +168,7 @@ function showLogin(msg=''){
   setAuthMessage(msg);
 }
 async function loadCloudData(){
+  if(!currentTeacher?.username){showLogin('Əvvəl müəllim girişi edin.'); return;}
   isHydrating=true;
   const local=readLocalState();
   const localTime=local?.updatedAt || dataUpdatedAt(local?.data);
@@ -166,7 +183,7 @@ async function loadCloudData(){
   try{
     if($('cloudStatus')) $('cloudStatus').textContent='Cloud yoxlanılır';
     const {data:row,error}=await withTimeout(
-      db.from('app_states').select('data, updated_at').eq('id',APP_STATE_ID).maybeSingle(),
+      db.from('teacher_states').select('data, updated_at, name').eq('username', currentTeacher.username).maybeSingle(),
       9000,
       'Cloud load timeout'
     );
@@ -221,16 +238,105 @@ async function initSupabase(){
     {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}
   );
 
-  const unlocked=localStorage.getItem(ADMIN_OK_KEY)==='1';
-  if(!unlocked){
+  const saved=readTeacherSession();
+  if(saved?.username){
+    currentTeacher={username:normalizeUsername(saved.username),name:saved.name||saved.username};
+    await loadCloudData();
+  }else{
     isHydrating=true;
-    showLogin('Admin şifrəsini yazın.');
-    refreshIcons();
-    return;
+    showLogin('Username və kod ilə daxil olun. Müəllim hesabını admin yaradır.');
   }
-  await loadCloudData();
   refreshIcons();
 }
+
+async function loginTeacher(username, code){
+  username=normalizeUsername(username);
+  code=String(code||'').trim();
+  if(!username || !code) return setAuthMessage('Username və kod yazın.');
+  if(!db) return setAuthMessage('Supabase hazır deyil.');
+  try{
+    setAuthMessage('Giriş yoxlanılır...');
+    const {data:teacher,error}=await withTimeout(
+      db.from('teacher_states').select('username,name,code').eq('username', username).maybeSingle(),
+      9000,
+      'Login timeout'
+    );
+    if(error) throw error;
+    if(!teacher || String(teacher.code)!==code) return setAuthMessage('Username və ya kod yanlışdır.');
+    writeTeacherSession({username:teacher.username,name:teacher.name||teacher.username});
+    setAuthMessage('Giriş uğurludur.',true);
+    await loadCloudData();
+  }catch(err){
+    console.error('Teacher login failed:', err);
+    setAuthMessage('Giriş alınmadı. Console və Supabase table-ı yoxlayın.');
+  }
+}
+
+async function unlockAdmin(){
+  const pass=$('adminPassword')?.value || '';
+  if(pass!==adminPassword()) return setAuthMessage('Admin şifrəsi yanlışdır.');
+  $('adminPanel')?.classList.remove('locked');
+  setAuthMessage('Admin panel açıldı.',true);
+  await renderTeacherAdminList();
+  refreshIcons();
+}
+
+async function renderTeacherAdminList(){
+  const box=$('teacherAdminList');
+  if(!box || !db) return;
+  try{
+    const {data:rows,error}=await db.from('teacher_states').select('username,name,updated_at').order('username');
+    if(error) throw error;
+    box.innerHTML=(rows||[]).map(t=>`<div class="teacherAdminRow"><div><b>${esc(t.name||t.username)}</b><span>${esc(t.username)} • ${t.updated_at?new Date(t.updated_at).toLocaleString('az-AZ'):'-'}</span></div><button type="button" class="mini red" onclick="deleteTeacherAccount('${esc(t.username)}')">Sil</button></div>`).join('') || '<div class="empty smallEmpty">Müəllim yoxdur.</div>';
+  }catch(err){
+    console.error('Teacher list failed:', err);
+    box.innerHTML='<div class="empty smallEmpty">Müəllim siyahısı yüklənmədi.</div>';
+  }
+}
+
+async function createTeacherAccount(){
+  const name=($('newTeacherName')?.value||'').trim();
+  const username=normalizeUsername($('newTeacherUsername')?.value||'');
+  const code=($('newTeacherCode')?.value||'').trim();
+  if(!username || !code) return setAuthMessage('Username və kod yazın.');
+  try{
+    const {data:oldTeacher,error:findError}=await db.from('teacher_states').select('username').eq('username',username).maybeSingle();
+    if(findError) throw findError;
+    let result;
+    if(oldTeacher){
+      result=await db.from('teacher_states').update({name:name || username, code, updated_at:nowIso()}).eq('username',username);
+    }else{
+      result=await db.from('teacher_states').insert({
+        username,
+        name:name || username,
+        code,
+        data:{groups:[],students:[],payments:[],__updatedAt:'1970-01-01T00:00:00.000Z'},
+        updated_at:nowIso()
+      });
+    }
+    if(result.error) throw result.error;
+    $('teacherCreateForm')?.reset();
+    setAuthMessage('Müəllim yaradıldı / yeniləndi.',true);
+    await renderTeacherAdminList();
+  }catch(err){
+    console.error('Create teacher failed:', err);
+    setAuthMessage('Müəllim yaratmaq alınmadı. SQL setup-u yoxlayın.');
+  }
+}
+
+window.deleteTeacherAccount=async(username)=>{
+  if(!confirm(username+' müəllimi silinsin? Bu müəllimin datası da silinəcək.')) return;
+  try{
+    const {error}=await db.from('teacher_states').delete().eq('username', username);
+    if(error) throw error;
+    await renderTeacherAdminList();
+    setAuthMessage('Müəllim silindi.',true);
+  }catch(err){
+    console.error('Delete teacher failed:', err);
+    setAuthMessage('Müəllimi silmək alınmadı.');
+  }
+}
+
 function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function money(n){return Number(n||0).toFixed(0)+' AZN'}
 function today(){return new Date().toISOString().slice(0,10)}
@@ -766,20 +872,22 @@ document.addEventListener('DOMContentLoaded',()=>{
     openPage(btn.dataset.page);
   });
 
+  document.querySelectorAll('.authTab').forEach(tab=>tab.onclick=()=>{
+    document.querySelectorAll('.authTab').forEach(x=>x.classList.toggle('active',x===tab));
+    document.querySelectorAll('.authPane').forEach(x=>x.classList.toggle('active',x.dataset.authPane===tab.dataset.authTab));
+    setAuthMessage('');
+    refreshIcons();
+  });
   $('authForm').onsubmit=async(e)=>{
     e.preventDefault();
-    const pass=$('authPassword')?.value || '';
-    if(pass!==adminPassword()) return setAuthMessage('Admin şifrəsi yanlışdır.');
-    localStorage.setItem(ADMIN_OK_KEY,'1');
-    setAuthMessage('Giriş uğurludur.',true);
-    await loadCloudData();
+    await loginTeacher($('teacherUsername')?.value, $('teacherCode')?.value);
   };
-  if($('registerBtn')) $('registerBtn').onclick=()=>{
-    setAuthMessage('Bu versiyada hesab yaratmaq yoxdur. Tək admin şifrəsi istifadə olunur.');
-  };
+  if($('adminUnlockForm')) $('adminUnlockForm').onsubmit=async(e)=>{e.preventDefault();await unlockAdmin();};
+  if($('teacherCreateForm')) $('teacherCreateForm').onsubmit=async(e)=>{e.preventDefault();await createTeacherAccount();};
   $('logoutBtn').onclick=()=>{
-    localStorage.removeItem(ADMIN_OK_KEY);
-    showLogin('Çıxış edildi. Admin şifrəsini yazın.');
+    clearTeacherSession();
+    data={groups:[],students:[],payments:[]};
+    showLogin('Çıxış edildi. Username və kod ilə daxil olun.');
     refreshIcons();
   };
   $('addSchedule').onclick=()=>addSchedule();

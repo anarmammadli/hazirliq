@@ -1,37 +1,71 @@
-# Hazırlıq Ödəniş Sistemi
+# Hazırlıq sistemi — Option A multi-teacher
 
-Bu versiyada local-first + Supabase timestamp merge fix əlavə edildi.
+Bu versiyada Supabase Auth istifadə olunmur. Hər müəllim üçün ayrıca `teacher_states` row yaradılır.
 
-## Əsas fix
+## Necə işləyir
 
-- Data əvvəl cihazda saxlanır.
-- Supabase arxada sync edir.
-- Refresh zamanı köhnə cloud data yeni local datanı silmir.
-- Hər dəyişiklik `__updatedAt` timestamp ilə saxlanılır.
-- App açılarkən local və cloud timestamp müqayisə olunur.
-- Daha yeni olan data qalır.
-- Local daha yenidirsə, cloud avtomatik yenilənir.
+- Admin müəllim yaradır.
+- Müəllimə `username` və `kod` verilir.
+- Müəllim həmin məlumatlarla login olur.
+- Hər müəllim yalnız öz row-dakı datası ilə işləyir.
+- Session problemi yoxdur, çünki Supabase Auth yoxdur.
 
-## Fayllar
+## Supabase setup
 
-- `index.html`
-- `style.css`
-- `app.js`
-- `supabase-config.js`
-- `README.md`
+1. Supabase → SQL Editor aç.
+2. `supabase_option_a_setup.sql` faylındakı kodu paste et.
+3. `Run without RLS` seç və run et.
 
-## Deploy
+Bu table yaradacaq:
 
-Bu faylları GitHub repo-da köhnə faylların üstünə upload edin. Vercel avtomatik redeploy edəcək.
+```text
+teacher_states
+- username
+- name
+- code
+- data
+- created_at
+- updated_at
+```
 
+## Admin panel
 
-## v13 Single Admin Supabase Setup
+Sayta girəndə login ekranında `Admin` tabına keç.
 
-Bu versiyada Supabase Auth istifadə olunmur. Data tək row-da saxlanır: `public.app_states`, `id = main`.
+Standart admin şifrəsi:
 
-1. Supabase → SQL Editor açın.
-2. `supabase_single_admin_setup.sql` faylındakı kodu run edin.
-3. GitHub/Vercel-ə bu faylları yükləyin: `index.html`, `style.css`, `app.js`, `supabase-config.js`, `supabase_single_admin_setup.sql`, `README.md`.
-4. Login üçün standart admin şifrəsi: `123456`. Dəyişmək üçün `supabase-config.js` içində `adminPassword` dəyərini dəyişin.
+```text
+123456
+```
 
-Qeyd: Bu static app üçün `app_states` table public read/write olacaq. Bu, session problemlərini tam aradan qaldırır, amma bank-səviyyəli təhlükəsizlik deyil.
+Şifrəni dəyişmək üçün `supabase-config.js` içində bunu dəyiş:
+
+```js
+adminPassword: "123456"
+```
+
+Admin paneldən müəllim yarat:
+
+```text
+Müəllim adı: Aytən müəllimə
+Username: ayten
+Kod: 123456
+```
+
+Sonra müəllim `Müəllim` tabından bu məlumatlarla daxil olur.
+
+## GitHub/Vercel üçün upload ediləcək fayllar
+
+```text
+index.html
+style.css
+app.js
+supabase-config.js
+README.md
+```
+
+SQL faylını GitHub-a yükləməyə məcbur deyilsən; yalnız Supabase-də run etmək üçündür.
+
+## Vacib qeyd
+
+Option A çox stabil və sadədir, amma bank səviyyəli security deyil. Bu sistem tanıdığın 10-15 müəllim üçün praktikdir. Daha ciddi security üçün Supabase Auth + server/Edge Function lazımdır.
