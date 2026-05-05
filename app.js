@@ -11,6 +11,15 @@ const TEACHER_SESSION_KEY='hazirliq_teacher_session_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
 const monthNames=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+function timeList(){
+  const list=[];
+  for(let h=7; h<=22; h++){
+    for(const m of [0,30]){
+      list.push(String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0'));
+    }
+  }
+  return list;
+}
 const months=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 
 function id(){return crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random().toString(16)}
