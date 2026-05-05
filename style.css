@@ -1456,3 +1456,155 @@ button:not(.amountChoice):not(.metricPill):hover,
     font-size:12px !important;
   }
 }
+
+
+/* v31 final mobile fixes */
+body.authMode .appShell,
+body.authMode #appShell,
+.authScreen:not(.locked) ~ .appShell{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+  height:0 !important;
+  overflow:hidden !important;
+}
+body.authMode .bottomTabBar{display:none !important;}
+body.authMode{overflow:hidden !important;}
+body.authMode .authScreen{display:flex !important;}
+
+/* keep logout visible on phones */
+@media (max-width:1080px){
+  .topHeader{position:relative !important; padding-right:0 !important; gap:16px !important;}
+  .topHeaderActions{
+    display:flex !important;
+    position:static !important;
+    width:100% !important;
+    justify-content:flex-end !important;
+    gap:10px !important;
+    margin-top:8px !important;
+  }
+  .topHeaderActions .topBadge{display:none !important;}
+  .topHeaderActions #logoutBtn,
+  .topHeaderActions .logoutBtn{
+    display:inline-flex !important;
+    min-height:46px !important;
+    padding:0 16px !important;
+    border-radius:16px !important;
+    white-space:nowrap !important;
+  }
+}
+
+/* better phone layout for forms and student section */
+@media (max-width:760px){
+  .pageContent,
+  .content{
+    width:100% !important;
+    max-width:100% !important;
+    overflow-x:hidden !important;
+  }
+  .twoColumn,
+  .twoColumn.wide{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:16px !important;
+    width:100% !important;
+  }
+  .surfaceCard,
+  .formCard{
+    width:100% !important;
+    max-width:100% !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    padding:18px !important;
+    border-radius:24px !important;
+  }
+  .formCard input,
+  .formCard select,
+  .formCard textarea,
+  .surfaceCard input,
+  .surfaceCard select,
+  .surfaceCard textarea{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  .smartDateField{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+  }
+  .dateTriggerBtn{
+    width:100% !important;
+    justify-content:center !important;
+    min-height:50px !important;
+  }
+  .formActions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+  .formActions button{
+    width:100% !important;
+    justify-content:center !important;
+    min-height:50px !important;
+  }
+  .searchInput{width:100% !important;}
+
+  /* student database cards: no horizontal breakage */
+  #studentList .accordion,
+  #paymentGroups .accordion{
+    width:100% !important;
+    max-width:100% !important;
+    overflow:hidden !important;
+  }
+  #studentList .collapsibleHead,
+  #paymentGroups .collapsibleHead{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+  }
+  #studentList .groupPills,
+  #paymentGroups .groupPills{
+    grid-template-columns:1fr !important;
+  }
+  #studentList .tableWrap,
+  #studentList table{
+    width:100% !important;
+    min-width:0 !important;
+    display:block !important;
+  }
+  #studentList thead{display:none !important;}
+  #studentList tbody,
+  #studentList tr,
+  #studentList td{display:block !important; width:100% !important;}
+  #studentList tr{
+    background:#fff !important;
+    border:1px solid var(--line) !important;
+    border-radius:20px !important;
+    margin:10px 0 !important;
+    padding:12px !important;
+  }
+  #studentList td{
+    border:0 !important;
+    padding:7px 4px !important;
+    min-width:0 !important;
+  }
+  #studentList td:nth-child(1)::before{content:'Şagird: ';font-weight:900;color:var(--muted)}
+  #studentList td:nth-child(2)::before{content:'Aylıq: ';font-weight:900;color:var(--muted)}
+  #studentList td:nth-child(3)::before{content:'Başlama: ';font-weight:900;color:var(--muted)}
+  #studentList td:nth-child(4)::before{content:'Növbəti tarix: ';font-weight:900;color:var(--muted)}
+  #studentList td:nth-child(5)::before{content:'Bu ay alınacaq: ';font-weight:900;color:var(--muted)}
+  #studentList td:nth-child(6)::before{content:'1+ ay ödənməyən: ';font-weight:900;color:var(--muted)}
+  #studentList td:nth-child(7)::before{content:'Status: ';font-weight:900;color:var(--muted)}
+  #studentList td:nth-child(8){display:flex !important; gap:8px !important; flex-wrap:nowrap !important; padding-top:12px !important;}
+  #studentList td:nth-child(8) .mini{flex:1 1 0 !important; justify-content:center !important; margin:0 !important;}
+}
+
+@media (max-width:420px){
+  .bottomTabBar{left:8px !important;right:8px !important;bottom:8px !important;}
+  .bottomTab{min-width:58px !important;padding:7px 5px !important;}
+  .bottomTab span{font-size:10px !important;}
+  .pageHeader h1{font-size:30px !important;}
+  .sectionHeader h3{font-size:24px !important;}
+}
