@@ -13,7 +13,7 @@
   <script defer src="supabase-config.js"></script>
   <script defer src="app.js"></script>
 </head>
-<body class="auth-mode">
+<body>
   <div class="authScreen" id="authScreen">
     <div class="authCard">
       <div class="brandMark authMark"><i data-lucide="graduation-cap"></i></div>
@@ -54,7 +54,9 @@
         <button type="button" class="nav" data-page="schedule"><i data-lucide="calendar-range"></i><span>Cədvəl</span></button>
         <button type="button" class="nav" data-page="students"><i data-lucide="users-round"></i><span>Şagirdlər</span></button>
         <button type="button" class="nav" data-page="payments"><i data-lucide="wallet-cards"></i><span>Ödənişlər</span></button>
+        <button type="button" class="nav" data-page="debtors"><i data-lucide="circle-alert"></i><span>1+ ay gecikməlar</span></button>
         <button type="button" class="nav" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
+        <button type="button" class="nav" data-page="info"><i data-lucide="settings-2"></i><span>Məlumat</span></button>
       </nav>
 
       <div class="sideNote">
@@ -85,7 +87,6 @@
           </div>
           <button class="secondary logoutBtn" id="logoutBtn" type="button"><i data-lucide="log-out"></i><span>Çıxış</span></button>
         </div>
-        <button class="mobileLogoutBtn" id="mobileLogoutBtn" type="button" aria-label="Çıxış"><i data-lucide="log-out"></i></button>
       </header>
 
       <section id="home" class="page active">
@@ -93,7 +94,7 @@
           <div>
             <span class="panelLabel"><i data-lucide="sparkle"></i> Ümumi baxış</span>
             <h3>Qruplar, cədvəl və ödənişlər indi daha aydın görünür.</h3>
-            <p>Bu ay alınacaq məbləğ, gecikmiş ödənişlər, bu ay ödənilən pul və həftəlik dərs planı bir yerdə izlənir.</p>
+            <p>Alınmalı məbləğ, keçmiş borc, bu ay ödənilən pul və həftəlik dərs planı bir yerdə izlənir.</p>
           </div>
           <div class="heroMiniCard">
             <i data-lucide="badge-dollar-sign"></i>
@@ -116,7 +117,7 @@
             <b id="stExpected">0 AZN</b>
           </div>
           <div class="statCard softDanger">
-            <div class="statMeta"><span class="statIcon"><i data-lucide="circle-alert"></i></span><span>1 aydan artıq ödənməyən pul</span></div>
+            <div class="statMeta"><span class="statIcon"><i data-lucide="circle-alert"></i></span><span>1 aydan artıq ödənməyən</span></div>
             <b id="stDebt">0 AZN</b>
           </div>
           <div class="statCard compactStat">
@@ -292,6 +293,19 @@
         </form>
       </section>
 
+      <section id="debtors" class="page">
+        <div class="surfaceCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="triangle-alert"></i> Borclular</span>
+              <h3>1+ ay gecikməlar</h3>
+              <p>Ödəniş vaxtı keçmiş və hələ ödənilməmiş şagirdləri ayrıca görün.</p>
+            </div>
+          </div>
+          <div id="debtorList"></div>
+        </div>
+      </section>
+
       <section id="reports" class="page">
         <div class="surfaceCard">
           <div class="sectionHeader">
@@ -318,7 +332,7 @@
               <b id="rpPaid">0 AZN</b>
             </div>
             <div class="statCard softDanger">
-              <div class="statMeta"><span class="statIcon"><i data-lucide="circle-alert"></i></span><span>1 aydan artıq ödənməyən pul</span></div>
+              <div class="statMeta"><span class="statIcon"><i data-lucide="circle-alert"></i></span><span>1 aydan artıq ödənməyən</span></div>
               <b id="rpDebt">0 AZN</b>
             </div>
             <div class="statCard">
@@ -331,15 +345,37 @@
         </div>
       </section>
 
+      <section id="info" class="page">
+        <div class="surfaceCard infoCard">
+          <div class="sectionHeader">
+            <div>
+              <span class="panelLabel"><i data-lucide="settings-2"></i> Sistem qaydası</span>
+              <h3>Məlumat</h3>
+              <p>Sistemin əsas işləmə prinsipi qısa formada.</p>
+            </div>
+          </div>
+          <ol class="infoList">
+            <li>Əvvəl qrup yaradın və dərs günlərini daxil edin.</li>
+            <li>Qrupların həftəlik görünüşünü Cədvəl bölməsində dərhal izləyin.</li>
+            <li>Şagird qoşulduqdan bir ay sonra ilk ödəniş yaranır.</li>
+            <li>Hər ay ödənişi əlavə etdikcə borc və alınmalı məbləğ yenilənir.</li>
+            <li>Qismən ödəniş olduqda qalan məbləğ sistemdə saxlanılır.</li>
+          </ol>
+          <div class="formActions">
+            <button class="secondary iconButton" id="exportData" type="button"><i data-lucide="download"></i><span>Məlumatları yüklə</span></button>
+            <button class="danger iconButton" id="clearAll" type="button"><i data-lucide="trash-2"></i><span>Bütün məlumatları sil</span></button>
+          </div>
+        </div>
+      </section>
     </main>
 
     <nav class="bottomTabBar" aria-label="Mobil menyu">
-      <button type="button" class="bottomTab active" data-page="home"><i data-lucide="layout-dashboard"></i><span>Ana</span></button>
+      <button type="button" class="bottomTab active" data-page="home"><i data-lucide="layout-dashboard"></i><span>Ana səhifə</span></button>
       <button type="button" class="bottomTab" data-page="groups"><i data-lucide="layers-3"></i><span>Qruplar</span></button>
       <button type="button" class="bottomTab" data-page="schedule"><i data-lucide="calendar-range"></i><span>Cədvəl</span></button>
-      <button type="button" class="bottomTab" data-page="students"><i data-lucide="users-round"></i><span>Şagird</span></button>
+      <button type="button" class="bottomTab" data-page="students"><i data-lucide="users-round"></i><span>Şagirdlər</span></button>
       <button type="button" class="bottomTab" data-page="payments"><i data-lucide="wallet-cards"></i><span>Ödəniş</span></button>
-      <button type="button" class="bottomTab" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
+      <button type="button" class="bottomTab moreTab" data-page="reports"><i data-lucide="chart-no-axes-combined"></i><span>Hesabat</span></button>
     </nav>
   </div>
 
