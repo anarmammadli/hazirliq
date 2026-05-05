@@ -187,8 +187,8 @@
             <input id="groupName" required placeholder="Qrup adını qeyd edin">
             <label>Dərs günləri və saatları</label>
             <div class="schedulePickerBox">
-              <button type="button" class="secondary iconButton" id="openSchedulePicker"><i data-lucide="calendar-plus"></i><span>Dərs panelini aç</span></button>
-              <p class="smallNote inlineNote">Gün və saatları paneldən seçin. Heç nə avtomatik seçilmir.</p>
+              <button type="button" class="secondary iconButton" id="openSchedulePicker"><i data-lucide="calendar-plus"></i><span>Dərs günü və saatı seç</span></button>
+              <p class="smallNote inlineNote">Gün və saatları rahat seçim pəncərəsindən əlavə edin.</p>
             </div>
             <div id="scheduleRows" class="scheduleCards"></div>
             <label>Qeyd</label>
@@ -245,9 +245,9 @@
             <label>Qrup</label>
             <select id="studentGroup" required></select>
             <label>Qoşulduğu tarix <span class="dateHint">Gün/Ay/İl</span></label>
-            <div class="dateInputWrap">
-              <input id="joinDate" type="text" required placeholder="GG/AA/İİİİ" inputmode="numeric">
-              <input id="joinDatePicker" class="nativeDatePicker" type="date" aria-label="Qoşulduğu tarixi seç">
+            <div class="smartDateField">
+              <input id="joinDate" class="smartDateInput" type="text" required placeholder="GG/AA/İİİİ" inputmode="numeric">
+              <button type="button" class="dateTriggerBtn" data-date-target="joinDate"><i data-lucide="calendar-days"></i><span>Tarix seç</span></button>
             </div>
             <label>Aylıq ödəniş</label>
             <input id="monthlyFee" type="number" min="0" required placeholder="AZN">
@@ -294,9 +294,9 @@
               <option value="cash">Nəğd</option>
               <option value="card">Kart</option>
             </select>
-            <div class="dateInputWrap compactDateWrap">
-              <input id="quickPaymentDate" type="text" placeholder="GG/AA/İİİİ" inputmode="numeric">
-              <input id="quickPaymentDatePicker" class="nativeDatePicker" type="date" aria-label="Ödəniş tarixini seç">
+            <div class="smartDateField compactSmartDateField">
+              <input id="quickPaymentDate" class="smartDateInput" type="text" placeholder="GG/AA/İİİİ" inputmode="numeric">
+              <button type="button" class="dateTriggerBtn compactDateTrigger" data-date-target="quickPaymentDate"><i data-lucide="calendar-days"></i><span>Tarix seç</span></button>
             </div>
           </div>
 
@@ -317,9 +317,9 @@
         <form id="paymentForm" class="hiddenPaymentForm">
           <select id="paymentStudent" required></select>
           <input id="paymentAmount" type="number" min="0" required>
-          <div class="dateInputWrap">
-            <input id="paymentDate" type="text" required placeholder="GG/AA/İİİİ" inputmode="numeric">
-            <input id="paymentDatePicker" class="nativeDatePicker" type="date" aria-label="Ödəniş tarixini seç">
+          <div class="smartDateField">
+            <input id="paymentDate" class="smartDateInput" type="text" required placeholder="GG/AA/İİİİ" inputmode="numeric">
+            <button type="button" class="dateTriggerBtn" data-date-target="paymentDate"><i data-lucide="calendar-days"></i><span>Tarix seç</span></button>
           </div>
           <select id="paymentMethod" required><option value="">Ödəniş üsulunu seç</option><option value="cash">Nəğd</option><option value="card">Kart</option></select>
           <textarea id="paymentNote"></textarea>
@@ -366,35 +366,59 @@
       </section>
 </main>
 
+  
+  <div class="modalOverlay hidden" id="datePickerModal">
+    <div class="modalCard datePickerCard">
+      <div class="modalHeader compactModalHeader">
+        <div>
+          <span class="panelLabel"><i data-lucide="calendar-days"></i> Tarix seçimi</span>
+          <h3 id="datePickerTitle">Tarix seç</h3>
+          <p>Gün/Ay/İl formatında tarixi seçin və ya yazın.</p>
+        </div>
+        <button type="button" class="secondary iconOnlyBtn" id="closeDatePickerModal" aria-label="Bağla"><i data-lucide="x"></i></button>
+      </div>
+      <div class="calendarShell">
+        <div class="calendarTopBar">
+          <button type="button" class="secondary iconOnlyBtn" id="prevCalendarMonth"><i data-lucide="chevron-left"></i></button>
+          <div class="calendarMonthLabel" id="calendarMonthLabel"></div>
+          <button type="button" class="secondary iconOnlyBtn" id="nextCalendarMonth"><i data-lucide="chevron-right"></i></button>
+        </div>
+        <div class="calendarWeekdays">
+          <span>B.e</span><span>Ç.a</span><span>Ç</span><span>C.a</span><span>C</span><span>Ş</span><span>B</span>
+        </div>
+        <div class="calendarDays" id="calendarDays"></div>
+      </div>
+      <div class="calendarFooterActions">
+        <button type="button" class="secondary" id="clearSelectedDate">Təmizlə</button>
+        <button type="button" class="secondary" id="pickTodayDate">Bugün</button>
+        <button type="button" class="primary" id="applyDateSelection">Tətbiq et</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modalOverlay hidden" id="scheduleModal">
     <div class="modalCard scheduleModalCard">
       <div class="modalHeader">
         <div>
-          <span class="panelLabel"><i data-lucide="calendar-clock"></i> Dərs paneli</span>
+          <span class="panelLabel"><i data-lucide="calendar-clock"></i> Dərs günü və saatı</span>
           <h3>Dərs günü və saat seç</h3>
           <p>Əvvəl günü, sonra başlama və bitmə saatını seçin.</p>
         </div>
         <button type="button" class="secondary iconOnlyBtn" id="closeScheduleModal" aria-label="Bağla"><i data-lucide="x"></i></button>
       </div>
-      <div class="scheduleModalGrid">
-        <label>Gün
-          <select id="modalScheduleDay">
-            <option value="">Gün seç</option>
-            <option value="Bazar ertəsi">Bazar ertəsi</option>
-            <option value="Çərşənbə axşamı">Çərşənbə axşamı</option>
-            <option value="Çərşənbə">Çərşənbə</option>
-            <option value="Cümə axşamı">Cümə axşamı</option>
-            <option value="Cümə">Cümə</option>
-            <option value="Şənbə">Şənbə</option>
-            <option value="Bazar">Bazar</option>
-          </select>
-        </label>
-        <label>Başlama saatı
-          <select id="modalScheduleStart"></select>
-        </label>
-        <label>Bitmə saatı
-          <select id="modalScheduleEnd"></select>
-        </label>
+      <div class="pickerSection">
+        <label>Həftə günü</label>
+        <div class="chipSelector" id="scheduleDayChips"></div>
+      </div>
+      <div class="scheduleTimeSplit">
+        <div class="pickerSection">
+          <label>Başlama saatı</label>
+          <div class="timeChipGrid" id="scheduleStartGrid"></div>
+        </div>
+        <div class="pickerSection">
+          <label>Bitmə saatı</label>
+          <div class="timeChipGrid" id="scheduleEndGrid"></div>
+        </div>
       </div>
       <div class="formActions modalActions">
         <button type="button" class="secondary" id="cancelScheduleModal">Bağla</button>

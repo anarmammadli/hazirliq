@@ -9,6 +9,7 @@ let cloudSyncQueued=false;
 const TEACHER_SESSION_KEY='hazirliq_teacher_session_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
+const monthNames=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 const months=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 
 function id(){return crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random().toString(16)}
@@ -388,6 +389,60 @@ function syncDatePair(textId,pickerId){
   picker.addEventListener('change',()=>{ text.value=fromIsoDate(picker.value); });
   text.addEventListener('input',()=>{ const iso=toIsoDate(text.value); if(iso) picker.value=iso; });
 }
+
+function parseDateParts(iso){
+  const safe=toIsoDate(iso);
+  if(!safe) return null;
+  const [y,m,d]=safe.split('-').map(Number);
+  return {y,m,d};
+}
+function monthStartDate(iso){
+  const p=parseDateParts(iso||today());
+  return new Date(p.y,p.m-1,1);
+}
+function setInputDateValue(targetId, iso){
+  const el=$(targetId); if(!el) return;
+  el.value=fromIsoDate(iso);
+}
+function openDatePicker(targetId){
+  pickerState.dateTarget=targetId;
+  const current=toIsoDate($(targetId)?.value) || today();
+  pickerState.tempDate=current;
+  pickerState.monthCursor=monthStartDate(current);
+  const titles={joinDate:'Qoşulduğu tarixi seç',quickPaymentDate:'Sürətli ödəniş tarixi',paymentDate:'Ödəniş tarixini seç'};
+  if($('datePickerTitle')) $('datePickerTitle').textContent=titles[targetId]||'Tarix seç';
+  renderDatePicker();
+  $('datePickerModal')?.classList.remove('hidden');
+  refreshIcons();
+}
+function closeDatePicker(){ $('datePickerModal')?.classList.add('hidden'); }
+function renderDatePicker(){
+  const base=pickerState.monthCursor || monthStartDate(today());
+  if($('calendarMonthLabel')) $('calendarMonthLabel').textContent=`${monthNames[base.getMonth()]} ${base.getFullYear()}`;
+  const daysWrap=$('calendarDays'); if(!daysWrap) return;
+  const first=new Date(base.getFullYear(),base.getMonth(),1);
+  const startOffset=(first.getDay()+6)%7;
+  const total=new Date(base.getFullYear(),base.getMonth()+1,0).getDate();
+  let html='';
+  for(let i=0;i<startOffset;i++) html+='<span class="calendarDay placeholder"></span>';
+  for(let d=1; d<=total; d++){
+    const iso=toIsoDate(new Date(base.getFullYear(),base.getMonth(),d));
+    const cls=['calendarDay'];
+    if(iso===pickerState.tempDate) cls.push('selected');
+    if(iso===today()) cls.push('today');
+    html+=`<button type="button" class="${cls.join(' ')}" data-date-value="${iso}">${String(d).padStart(2,'0')}</button>`;
+  }
+  daysWrap.innerHTML=html;
+}
+function initSchedulePicker(){
+  const dayWrap=$('scheduleDayChips'), startWrap=$('scheduleStartGrid'), endWrap=$('scheduleEndGrid');
+  if(dayWrap) dayWrap.innerHTML=days.map(day=>`<button type="button" class="chipOption ${pickerState.schedule.day===day?'active':''}" data-sched-day="${day}">${day}</button>`).join('');
+  const chips=timeList().map(t=>`<button type="button" class="chipOption ${pickerState.schedule.start===t?'active':''}" data-sched-start="${t}">${t}</button>`).join('');
+  const endChips=timeList().map(t=>`<button type="button" class="chipOption ${pickerState.schedule.end===t?'active':''}" data-sched-end="${t}">${t}</button>`).join('');
+  if(startWrap) startWrap.innerHTML=chips;
+  if(endWrap) endWrap.innerHTML=endChips;
+}
+
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
 function cleanDate(d){const x=new Date(d);x.setHours(0,0,0,0);return x;}
 function addMonths(date,count){const d=new Date(date);const originalDay=d.getDate();d.setMonth(d.getMonth()+count);if(d.getDate()!==originalDay)d.setDate(0);return d;}
@@ -509,11 +564,7 @@ function addSchedule(day='',start='',end=''){
 function getSchedule(){
   return [...document.querySelectorAll('.scheduleRow')].map(r=>({day:r.querySelector('.schDay').value,start:r.querySelector('.schStart').value,end:r.querySelector('.schEnd').value}));
 }
-function resetScheduleModal(){
-  if($('modalScheduleDay')) $('modalScheduleDay').value='';
-  if($('modalScheduleStart')) $('modalScheduleStart').innerHTML=timeOptions('');
-  if($('modalScheduleEnd')) $('modalScheduleEnd').innerHTML=timeOptions('');
-}
+function resetScheduleModal(){ pickerState.schedule={day:'',start:'',end:''}; initSchedulePicker(); }
 function openScheduleModal(){ $('scheduleModal')?.classList.remove('hidden'); resetScheduleModal(); refreshIcons(); }
 function closeScheduleModal(){ $('scheduleModal')?.classList.add('hidden'); }
 function scheduleText(g){return (g.schedule||[]).map(s=>`${s.day}: ${s.start}-${s.end}`).join(', ')||'Dərs günü yoxdur'}
@@ -754,10 +805,7 @@ function renderQuickPaymentGroups(){
   if(!mount) return;
   const query=($('paymentSearch')?.value||'').trim().toLowerCase();
   const groups=data.groups || [];
-  if(!groups.length){
-    mount.innerHTML='<div class="empty">Ödəniş üçün əvvəl qrup və şagird yaradın.</div>';
-    return;
-  }
+  if(!groups.length){ mount.innerHTML='<div class="empty">Ödəniş üçün əvvəl qrup və şagird yaradın.</div>'; return; }
   const html=groups.map((g,i)=>{
     const students=active().filter(s=>s.groupId===g.id).filter(s=>!query || String(s.name||'').toLowerCase().includes(query));
     if(!students.length && query) return '';
@@ -767,12 +815,15 @@ function renderQuickPaymentGroups(){
       return `<div class="quickPayRow">
         <div class="quickPayStudent">
           <b>${esc(s.name)}</b>
-          <span>${esc(s.phone||'Telefon yoxdur')} • Bu ay: ${money(f.expected)} • 1+ ay: ${money(f.debt)}</span>
+          <span>${esc(s.phone||'Telefon yoxdur')}</span>
+        </div>
+        <div class="quickPayOptions">
+          <button type="button" class="amountChoice monthly" onclick="fillQuickAmount('${s.id}','${inputId}','monthly')"><small>Aylıq ödəniş</small><strong>${money(s.fee)}</strong></button>
+          <button type="button" class="amountChoice expected" onclick="fillQuickAmount('${s.id}','${inputId}','expected')"><small>Bu ay alınacaq</small><strong>${money(f.expected)}</strong></button>
+          <button type="button" class="amountChoice debt" onclick="fillQuickAmount('${s.id}','${inputId}','debt')"><small>1+ ay borc</small><strong>${money(f.debt)}</strong></button>
         </div>
         <div class="quickPayActions">
-          <button type="button" class="mini" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Bu ay</button>
-          <button type="button" class="mini" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">1+ ay</button>
-          <input id="${inputId}" type="number" min="0" placeholder="AZN">
+          <input id="${inputId}" type="number" min="0" placeholder="Məbləği daxil edin">
           <button type="button" class="primary miniPrimary" onclick="addQuickPayment('${s.id}','${inputId}')">Yadda saxla</button>
         </div>
       </div>`;
@@ -870,7 +921,7 @@ function persistAndRender(message){
 
 window.editGroup=id=>{let g=group(id); if(!g)return;$('groupId').value=g.id;$('groupName').value=g.name;$('groupNote').value=g.note||'';$('scheduleRows').innerHTML='';(g.schedule||[]).forEach(s=>addSchedule(s.day,s.start,s.end));openPage('groups')}
 window.deleteGroup=id=>{if(data.students.some(s=>s.groupId===id))return alert('Bu qrupda şagird var. Əvvəl şagirdləri silin və ya başqa qrupa keçirin.'); if(confirm('Qrup silinsin?')){data.groups=data.groups.filter(g=>g.id!==id);persistAndRender('Qrup silindi')}}
-window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.id;$('studentName').value=s.name;$('studentPhone').value=s.phone||'';$('parentPhone').value=s.parent||'';$('studentGroup').value=s.groupId;$('joinDate').value=fromIsoDate(s.joinDate); if($('joinDatePicker')) $('joinDatePicker').value=toIsoDate(s.joinDate); $('monthlyFee').value=s.fee;$('studentStatus').value=s.status;openPage('students')}
+window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.id;$('studentName').value=s.name;$('studentPhone').value=s.phone||'';$('parentPhone').value=s.parent||'';$('studentGroup').value=s.groupId;$('joinDate').value=fromIsoDate(s.joinDate); $('monthlyFee').value=s.fee;$('studentStatus').value=s.status;openPage('students')}
 window.deleteStudent=id=>{if(confirm('Şagird silinsin?')){data.students=data.students.filter(s=>s.id!==id);persistAndRender('Şagird silindi')}}
 window.deletePayment=id=>{if(confirm('Ödəniş silinsin?')){data.payments=data.payments.filter(p=>p.id!==id);persistAndRender('Ödəniş silindi')}}
 
@@ -949,7 +1000,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('quickPaymentMethod').onchange=renderQuickPaymentGroups;
   $('quickPaymentDate').onchange=renderQuickPaymentGroups;
   $('clearGroup').onclick=()=>{$('groupForm').reset();$('groupId').value='';$('scheduleRows').innerHTML='';};
-  $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value='';$('joinDate').value=''; if($('joinDatePicker')) $('joinDatePicker').value=''; $('studentGroup').value=''; $('studentStatus').value='';};
+  $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value=''; setInputDateValue('joinDate', today()); $('studentGroup').value=''; $('studentStatus').value='';};
   $('studentSearch').oninput=renderStudents;
   $('groupForm').onsubmit=e=>{
     e.preventDefault();
@@ -982,9 +1033,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(!paymentDate) return alert('Ödəniş tarixini Gün/Ay/İl formatında yazın. məsələn 05/05/2025');
     if(!$('paymentMethod').value) return alert('Ödəniş üsulunu seçin.');
     data.payments.push({id:id(),studentId:sid,amount:Number($('paymentAmount').value),date:paymentDate,method:$('paymentMethod').value,note:$('paymentNote').value.trim()});
-    $('paymentForm').reset();$('paymentDate').value=''; if($('paymentDatePicker')) $('paymentDatePicker').value=''; persistAndRender('Ödəniş yazıldı');
+    $('paymentForm').reset(); setInputDateValue('paymentDate', today()); persistAndRender('Ödəniş yazıldı');
   };
   if($('exportData')) $('exportData').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hazirliq-melumatlari.json';a.click();};
   if($('clearAll')) $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};persistAndRender('Bütün məlumatlar silindi')}};
-  $('joinDate').value='';$('paymentDate').value=''; if($('joinDatePicker')) $('joinDatePicker').value=''; if($('paymentDatePicker')) $('paymentDatePicker').value=''; syncDatePair('joinDate','joinDatePicker'); syncDatePair('quickPaymentDate','quickPaymentDatePicker'); syncDatePair('paymentDate','paymentDatePicker'); if($('closeScheduleModal')) $('closeScheduleModal').onclick=closeScheduleModal; if($('cancelScheduleModal')) $('cancelScheduleModal').onclick=closeScheduleModal; if($('saveScheduleModal')) $('saveScheduleModal').onclick=()=>{ const day=$('modalScheduleDay').value, start=$('modalScheduleStart').value, end=$('modalScheduleEnd').value; if(!day||!start||!end) return alert('Gün və saatları seçin.'); if(end<=start) return alert('Bitmə saatı başlama saatından sonra olmalıdır.'); addSchedule(day,start,end); closeScheduleModal(); }; if($('scheduleModal')) $('scheduleModal').addEventListener('click',(e)=>{ if(e.target.id==='scheduleModal') closeScheduleModal(); }); initSupabase();refreshIcons();
+  setInputDateValue('joinDate', today()); setInputDateValue('paymentDate', today()); setInputDateValue('quickPaymentDate', today()); document.querySelectorAll('[data-date-target]').forEach(btn=>btn.onclick=()=>openDatePicker(btn.dataset.dateTarget)); ['joinDate','paymentDate','quickPaymentDate'].forEach(id=>$(id)?.addEventListener('blur',()=>{ const iso=toIsoDate($(id).value); if(iso) $(id).value=fromIsoDate(iso); })); if($('closeDatePickerModal')) $('closeDatePickerModal').onclick=closeDatePicker; if($('prevCalendarMonth')) $('prevCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()-1,1); renderDatePicker(); }; if($('nextCalendarMonth')) $('nextCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()+1,1); renderDatePicker(); }; if($('calendarDays')) $('calendarDays').onclick=(e)=>{ const btn=e.target.closest('[data-date-value]'); if(!btn) return; pickerState.tempDate=btn.dataset.dateValue; renderDatePicker(); }; if($('pickTodayDate')) $('pickTodayDate').onclick=()=>{ pickerState.tempDate=today(); pickerState.monthCursor=monthStartDate(today()); renderDatePicker(); }; if($('clearSelectedDate')) $('clearSelectedDate').onclick=()=>{ pickerState.tempDate=''; if(pickerState.dateTarget) $(pickerState.dateTarget).value=''; closeDatePicker(); }; if($('applyDateSelection')) $('applyDateSelection').onclick=()=>{ if(pickerState.dateTarget && pickerState.tempDate) setInputDateValue(pickerState.dateTarget,pickerState.tempDate); closeDatePicker(); }; if($('datePickerModal')) $('datePickerModal').addEventListener('click',e=>{ if(e.target.id==='datePickerModal') closeDatePicker(); }); if($('openSchedulePicker')) $('openSchedulePicker').onclick=()=>openScheduleModal(); if($('closeScheduleModal')) $('closeScheduleModal').onclick=closeScheduleModal; if($('cancelScheduleModal')) $('cancelScheduleModal').onclick=closeScheduleModal; if($('saveScheduleModal')) $('saveScheduleModal').onclick=()=>{ const {day,start,end}=pickerState.schedule; if(!day||!start||!end) return alert('Gün və saatları seçin.'); if(end<=start) return alert('Bitmə saatı başlama saatından sonra olmalıdır.'); addSchedule(day,start,end); closeScheduleModal(); }; if($('scheduleModal')) $('scheduleModal').addEventListener('click',(e)=>{ if(e.target.id==='scheduleModal') closeScheduleModal(); }); if($('scheduleDayChips')) $('scheduleDayChips').onclick=(e)=>{ const b=e.target.closest('[data-sched-day]'); if(!b) return; pickerState.schedule.day=b.dataset.schedDay; initSchedulePicker(); }; if($('scheduleStartGrid')) $('scheduleStartGrid').onclick=(e)=>{ const b=e.target.closest('[data-sched-start]'); if(!b) return; pickerState.schedule.start=b.dataset.schedStart; initSchedulePicker(); }; if($('scheduleEndGrid')) $('scheduleEndGrid').onclick=(e)=>{ const b=e.target.closest('[data-sched-end]'); if(!b) return; pickerState.schedule.end=b.dataset.schedEnd; initSchedulePicker(); }; initSchedulePicker(); initSupabase();refreshIcons();
 });

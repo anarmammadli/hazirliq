@@ -587,3 +587,44 @@ body.nav-open{overflow:hidden;touch-action:none}
 .quickPayRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:16px;border:1px solid var(--line);border-radius:22px;background:#fff;margin:10px 0}
 .quickPayStudent{display:flex;flex-direction:column;gap:4px;min-width:0}.quickPayStudent span{color:var(--muted);font-size:13px;font-weight:700}.quickPayActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.quickPayActions input{width:120px;height:44px;padding:0 12px}.miniPrimary{min-height:44px;padding:0 16px;border-radius:16px}
 @media (max-width:760px){.quickPayRow{grid-template-columns:1fr}.quickPayActions{justify-content:stretch}.quickPayActions input,.quickPayActions button{flex:1 1 120px}}
+
+.smartDateField{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.compactSmartDateField{grid-template-columns:minmax(0,1fr) auto}
+.smartDateInput{height:56px}
+.dateTriggerBtn{height:56px;border-radius:18px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:0 18px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-weight:800;box-shadow:var(--soft-shadow)}
+.dateTriggerBtn svg{width:18px;height:18px}
+.compactDateTrigger{min-width:126px}
+.datePickerCard{width:min(420px,100%)}
+.compactModalHeader h3{font-size:26px}
+.calendarShell{border:1px solid var(--line);border-radius:24px;padding:16px;background:#f8fbff}
+.calendarTopBar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.calendarMonthLabel{font-weight:900;font-size:18px;color:var(--ink)}
+.calendarWeekdays,.calendarDays{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.calendarWeekdays span{font-size:12px;text-align:center;color:var(--muted);font-weight:900;padding:4px 0}
+.calendarDay{aspect-ratio:1;border-radius:16px;border:1px solid transparent;background:#fff;color:var(--ink);font-weight:800;cursor:pointer;box-shadow:var(--soft-shadow)}
+.calendarDay.placeholder{visibility:hidden}
+.calendarDay.today{border-color:#93c5fd;color:#2563eb}
+.calendarDay.selected{background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;box-shadow:0 12px 26px rgba(37,99,235,.22)}
+.calendarFooterActions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}
+.pickerSection{display:flex;flex-direction:column;gap:10px}
+.pickerSection>label{font-size:14px;font-weight:900;color:var(--ink)}
+.chipSelector,.timeChipGrid{display:flex;flex-wrap:wrap;gap:10px}
+.chipOption{border:1px solid var(--line);background:#fff;border-radius:999px;padding:12px 16px;font-weight:800;color:var(--ink);box-shadow:var(--soft-shadow);cursor:pointer}
+.chipOption.active{background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;border-color:transparent}
+.scheduleTimeSplit{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}
+.timeChipGrid{max-height:220px;overflow:auto;padding-right:4px}
+.timeChipGrid .chipOption{border-radius:18px;padding:10px 14px;min-width:82px;justify-content:center}
+.quickPayRow{grid-template-columns:minmax(0,220px) minmax(0,1fr) auto;align-items:center}
+.quickPayOptions{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr));gap:10px}
+.amountChoice{border:1px solid var(--line);border-radius:22px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;background:#fff;box-shadow:var(--soft-shadow);cursor:pointer}
+.amountChoice small{font-size:12px;font-weight:900;color:#64748b}
+.amountChoice strong{font-size:18px;line-height:1.15;color:var(--ink)}
+.amountChoice.monthly{background:#f8fbff}
+.amountChoice.expected{background:#eff6ff;border-color:#bfdbfe}
+.amountChoice.debt{background:#fff4f4;border-color:#fecaca}
+.quickPayActions{justify-content:flex-end}
+.quickPayActions input{width:170px}
+.pills{display:grid;grid-template-columns:repeat(2,170px);gap:10px;width:auto;justify-content:end}
+.pill{min-height:56px;padding:10px 14px;font-weight:800}
+@media (max-width:960px){.quickPayRow{grid-template-columns:1fr}.quickPayOptions{grid-template-columns:1fr}.quickPayActions{justify-content:stretch}}
+@media (max-width:760px){.smartDateField,.compactSmartDateField{grid-template-columns:1fr}.scheduleTimeSplit{grid-template-columns:1fr}.pills{grid-template-columns:1fr 1fr;width:100%}.dateTriggerBtn{width:100%}}
