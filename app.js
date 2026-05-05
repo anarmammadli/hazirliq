@@ -1,6 +1,7 @@
 let data={groups:[],students:[],payments:[]};
 let db=null;
 let currentTeacher=null;
+let pickerState={dateTarget:null,tempDate:'',monthCursor:null,schedule:{day:'',start:'',end:''}};
 let isHydrating=true;
 let saveTimer=null;
 let cloudSyncInProgress=false;
