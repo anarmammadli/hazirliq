@@ -2685,3 +2685,231 @@ html[data-theme="dark"] .topHeaderActions #logoutBtn{
   color:var(--text) !important;
   box-shadow:none !important;
 }
+
+
+/* =========================================================
+   V18 FINAL polish — keep schedule layout stable, premium mobile
+   ========================================================= */
+
+/* 1) Restore stable timetable geometry. Only visuals should differ in dark mode. */
+.timetableWrap{
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  padding-bottom:6px !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+.timetable,
+.timetableMain{
+  overflow:hidden !important;
+}
+.dayColumn{
+  position:relative !important;
+  overflow:hidden !important;
+}
+.dayColumnOverlay{
+  position:absolute !important;
+  inset:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+}
+.sessionBlock{
+  left:8px !important;
+  right:8px !important;
+  width:auto !important;
+  border-radius:18px !important;
+  padding:12px 12px 10px !important;
+  overflow:hidden !important;
+  transform:none !important;
+}
+.sessionBlock::after{display:none !important;}
+.sessionBlock::before{width:4px !important;}
+
+@media (max-width:760px){
+  .timetableWrap{
+    margin-left:-16px !important;
+    margin-right:-16px !important;
+    padding:0 16px 8px !important;
+  }
+  .dayColumn,
+  .dayColumnOverlay{overflow:hidden !important;}
+  .sessionBlock{
+    left:5px !important;
+    right:5px !important;
+    border-radius:14px !important;
+    padding:9px 8px !important;
+  }
+  .sessionBlock h4{font-size:12px !important;margin-top:7px !important;}
+  .sessionBlock p,.blockMeta{display:none !important;}
+  .sessionBlock .blockTime{font-size:10px !important;padding:5px 7px !important;}
+}
+
+/* Dark mode timetable: color-only enhancement, no layout changes */
+html[data-theme="dark"] .timetableWrap,
+html[data-theme="dark"] .timetable,
+html[data-theme="dark"] .timetableMain{
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+}
+html[data-theme="dark"] .dayColumn,
+html[data-theme="dark"] .dayColumnOverlay{
+  overflow:hidden !important;
+}
+html[data-theme="dark"] .slotLine{
+  background:linear-gradient(180deg,#0b1728 0%, #0a1524 100%) !important;
+  border-color:rgba(148,163,184,.18) !important;
+}
+html[data-theme="dark"] .slotLine:nth-child(even){
+  background:#0c1a2c !important;
+}
+html[data-theme="dark"] .sessionBlock{
+  color:#f8fbff !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  box-shadow:
+    inset 0 0 0 999px rgba(7,17,31,.18),
+    0 14px 30px rgba(2,6,23,.28) !important;
+}
+html[data-theme="dark"] .sessionBlock::before{
+  background:rgba(255,255,255,.18) !important;
+}
+html[data-theme="dark"] .sessionBlock h4,
+html[data-theme="dark"] .sessionBlock p,
+html[data-theme="dark"] .sessionBlock .blockTime,
+html[data-theme="dark"] .sessionBlock .blockMeta span,
+html[data-theme="dark"] .sessionBlock .blockMeta svg{
+  color:#f8fbff !important;
+}
+html[data-theme="dark"] .sessionBlock .blockTime,
+html[data-theme="dark"] .sessionBlock .blockMeta span{
+  background:rgba(7,17,31,.32) !important;
+  border-color:rgba(255,255,255,.12) !important;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+html[data-theme="dark"] .sessionBlock p{color:rgba(248,251,255,.86) !important;}
+
+/* 2) Premium centered mobile bottom nav */
+@media (max-width:1080px){
+  .bottomTabBar{
+    position:fixed !important;
+    left:50% !important;
+    right:auto !important;
+    bottom:max(10px,env(safe-area-inset-bottom)) !important;
+    transform:translateX(-50%) !important;
+    width:min(620px, calc(100vw - 20px)) !important;
+    max-width:calc(100vw - 20px) !important;
+    display:grid !important;
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+    gap:6px !important;
+    padding:8px !important;
+    border-radius:28px !important;
+    background:rgba(255,255,255,.94) !important;
+    border:1px solid rgba(191,211,238,.90) !important;
+    box-shadow:0 18px 46px rgba(15,23,42,.16) !important;
+    backdrop-filter:blur(20px) !important;
+    -webkit-backdrop-filter:blur(20px) !important;
+  }
+  .bottomTab.moreTab{display:none !important;}
+  .bottomTab{
+    min-width:0 !important;
+    min-height:56px !important;
+    border-radius:20px !important;
+    gap:4px !important;
+    padding:7px 4px !important;
+  }
+  .bottomTab svg{width:20px !important;height:20px !important;}
+  .bottomTab span{font-size:10px !important;line-height:1.05 !important;}
+}
+@media (max-width:520px){
+  .bottomTabBar{
+    width:calc(100vw - 16px) !important;
+    max-width:calc(100vw - 16px) !important;
+    bottom:max(8px,env(safe-area-inset-bottom)) !important;
+    padding:7px !important;
+    gap:4px !important;
+    border-radius:24px !important;
+  }
+  .bottomTab{min-height:54px !important;border-radius:18px !important;}
+  .bottomTab span{font-size:9.5px !important;}
+}
+html[data-theme="dark"] .bottomTabBar{
+  background:rgba(8,18,32,.94) !important;
+  border-color:rgba(148,163,184,.22) !important;
+  box-shadow:0 18px 48px rgba(0,0,0,.30) !important;
+}
+html[data-theme="dark"] .bottomTab{
+  color:#a8b7ce !important;
+}
+html[data-theme="dark"] .bottomTab.active{
+  background:linear-gradient(135deg,#60a5fa,#22d3ee) !important;
+  color:#06111f !important;
+  box-shadow:0 12px 28px rgba(34,211,238,.18) !important;
+}
+
+/* 3) Mobile global scale/spacing refinement */
+@media (max-width:760px){
+  html{font-size:14.5px !important;}
+  body{font-size:14.5px !important;}
+  .appShell{padding:10px 10px 92px !important;}
+  .mainContent{min-width:0 !important;}
+
+  .topHeader{
+    margin:0 0 14px !important;
+    padding:13px !important;
+    gap:10px !important;
+    border-radius:22px !important;
+  }
+  .topHeaderLeft{gap:11px !important;align-items:center !important;}
+  .mobileBrandPill{width:44px !important;height:44px !important;flex:0 0 44px !important;border-radius:15px !important;}
+  .topHeader .eyebrow{font-size:9px !important;letter-spacing:.12em !important;margin:0 0 3px !important;}
+  .topHeader h2{font-size:22px !important;line-height:1.02 !important;}
+  .topHeaderActions{grid-template-columns:1fr 1fr !important;gap:8px !important;}
+  .topThemeToggle,
+  .topHeaderActions .logoutBtn,
+  .topHeaderActions #logoutBtn{
+    min-height:42px !important;
+    height:42px !important;
+    padding:0 10px !important;
+    font-size:12.5px !important;
+    border-radius:15px !important;
+  }
+  .topThemeToggle span,
+  .topHeaderActions .logoutBtn span{font-size:12.5px !important;}
+
+  .surfaceCard,
+  .formCard,
+  .heroPanel,
+  .accordion,
+  .tableWrap,
+  .modalCard,
+  .modernScheduleModal{
+    padding:15px !important;
+    border-radius:22px !important;
+  }
+  .sectionHeader{margin-bottom:16px !important;}
+  .sectionHeader h3{font-size:21px !important;}
+  .heroPanel h3{font-size:26px !important;}
+  .panelLabel{font-size:10.5px !important;padding:7px 10px !important;}
+  .statCard{padding:16px !important;border-radius:20px !important;min-height:120px !important;}
+  .statCard b{font-size:24px !important;}
+  .quickPayRow,.improvedPayRow{padding:14px !important;gap:10px !important;}
+  .scheduleCardItem{padding:13px !important;border-radius:18px !important;}
+  input,select,textarea{padding:12px 13px !important;border-radius:15px !important;font-size:14px !important;}
+  .primary,.secondary,.mini,.savePayBtn,.presetBtn,.dateTriggerBtn,.pickerValueBtn{min-height:42px !important;font-size:13px !important;border-radius:15px !important;}
+}
+@media (max-width:420px){
+  html{font-size:14px !important;}
+  body{font-size:14px !important;}
+  .topHeader{padding:12px !important;border-radius:20px !important;}
+  .topHeader h2{font-size:21px !important;}
+  .topHeaderActions .logoutBtn,
+  .topHeaderActions #logoutBtn,
+  .topThemeToggle{font-size:12px !important;}
+  .surfaceCard,
+  .formCard,
+  .heroPanel,
+  .accordion,
+  .tableWrap,
+  .modalCard,
+  .modernScheduleModal{padding:14px !important;}
+}
