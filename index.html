@@ -397,32 +397,52 @@
   </div>
 
   <div class="modalOverlay hidden" id="scheduleModal">
-    <div class="modalCard scheduleModalCard">
+    <div class="modalCard scheduleModalCard modernScheduleModal">
       <div class="modalHeader">
         <div>
           <span class="panelLabel"><i data-lucide="calendar-clock"></i> Dərs günü və saatı</span>
-          <h3>Dərs günü və saat seç</h3>
-          <p>Əvvəl günü, sonra başlama və bitmə saatını seçin.</p>
+          <h3>Dərs günlərini və saatları seç</h3>
+          <p>Eyni pəncərədə bir neçə gün əlavə edə bilərsiniz. Hər günün saatı ayrıca seçilir.</p>
         </div>
         <button type="button" class="secondary iconOnlyBtn" id="closeScheduleModal" aria-label="Bağla"><i data-lucide="x"></i></button>
       </div>
+
       <div class="pickerSection">
         <label>Həftə günü</label>
-        <div class="chipSelector" id="scheduleDayChips"></div>
+        <div class="chipSelector compactDayChips" id="scheduleDayChips"></div>
       </div>
-      <div class="scheduleTimeSplit">
-        <div class="pickerSection">
+
+      <div class="schedulePickerRow">
+        <div class="pickerFieldBlock">
           <label>Başlama saatı</label>
-          <div class="timeChipGrid" id="scheduleStartGrid"></div>
+          <button type="button" class="pickerValueBtn" id="openStartTimePicker"><span id="selectedStartTimeLabel">Başlama saatı seç</span><i data-lucide="chevron-down"></i></button>
         </div>
-        <div class="pickerSection">
+        <div class="pickerFieldBlock">
           <label>Bitmə saatı</label>
-          <div class="timeChipGrid" id="scheduleEndGrid"></div>
+          <button type="button" class="pickerValueBtn" id="openEndTimePicker"><span id="selectedEndTimeLabel">Bitmə saatı seç</span><i data-lucide="chevron-down"></i></button>
         </div>
       </div>
+
+      <div class="timePalette hidden" id="scheduleTimePalette">
+        <div class="timePaletteHead">
+          <b id="timePaletteTitle">Saat seç</b>
+          <button type="button" class="secondary tinyBtn" id="closeTimePalette">Bağla</button>
+        </div>
+        <div class="timePaletteGrid" id="scheduleTimeChoices"></div>
+      </div>
+
+      <div class="scheduleAdderBar">
+        <button type="button" class="primary" id="addScheduleRowBtn"><i data-lucide="plus"></i><span>Günü əlavə et</span></button>
+      </div>
+
+      <div class="pickerSection">
+        <label>Seçilmiş dərs günləri</label>
+        <div id="modalScheduleList" class="modalScheduleList"></div>
+      </div>
+
       <div class="formActions modalActions">
-        <button type="button" class="secondary" id="cancelScheduleModal">Bağla</button>
-        <button type="button" class="primary" id="saveScheduleModal"><i data-lucide="plus"></i><span>Dərs saatını əlavə et</span></button>
+        <button type="button" class="secondary" id="cancelScheduleModal">Ləğv et</button>
+        <button type="button" class="primary" id="saveScheduleModal"><i data-lucide="check"></i><span>Tətbiq et</span></button>
       </div>
     </div>
   </div>

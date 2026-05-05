@@ -1,7 +1,7 @@
 let data={groups:[],students:[],payments:[]};
 let db=null;
 let currentTeacher=null;
-let pickerState={dateTarget:null,tempDate:'',monthCursor:null,schedule:{day:'',start:'',end:''}};
+let pickerState={dateTarget:null,tempDate:'',monthCursor:null,schedule:{day:'',start:'',end:''},scheduleItems:[],activeTimeField:null};
 let isHydrating=true;
 let saveTimer=null;
 let cloudSyncInProgress=false;
@@ -10,6 +10,7 @@ let cloudSyncQueued=false;
 const TEACHER_SESSION_KEY='hazirliq_teacher_session_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
+const dayShort={ 'Bazar ertəsi':'B.e', 'Çərşənbə axşamı':'Ç.a', 'Çərşənbə':'Ç', 'Cümə axşamı':'C.a', 'Cümə':'C', 'Şənbə':'Ş', 'Bazar':'B' }; 
 const monthNames=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 function timeList(){
   const list=[];
@@ -458,13 +459,33 @@ function renderDatePicker(){
   }
   daysWrap.innerHTML=html;
 }
+function renderModalScheduleList(){
+  const wrap=$('modalScheduleList');
+  if(!wrap) return;
+  if(!pickerState.scheduleItems.length){
+    wrap.innerHTML='<div class="empty">Hələ gün əlavə edilməyib.</div>';
+    return;
+  }
+  wrap.innerHTML=pickerState.scheduleItems.map((item,idx)=>`<div class="modalScheduleItem"><div><b>${esc(item.day)}</b><span>${esc(item.start)} - ${esc(item.end)}</span></div><button type="button" class="mini red" data-remove-schedule="${idx}">Sil</button></div>`).join('');
+}
+function renderTimePalette(){
+  const palette=$('scheduleTimePalette');
+  const choices=$('scheduleTimeChoices');
+  const title=$('timePaletteTitle');
+  if(!palette || !choices || !pickerState.activeTimeField) return;
+  palette.classList.remove('hidden');
+  if(title) title.textContent = pickerState.activeTimeField==='start' ? 'Başlama saatı seç' : 'Bitmə saatı seç';
+  const current=pickerState.schedule[pickerState.activeTimeField] || '';
+  choices.innerHTML=timeList().map(t=>`<button type="button" class="timeChoiceBtn ${current===t?'active':''}" data-time-choice="${t}">${t}</button>`).join('');
+}
+function hideTimePalette(){ $('scheduleTimePalette')?.classList.add('hidden'); pickerState.activeTimeField=null; }
 function initSchedulePicker(){
-  const dayWrap=$('scheduleDayChips'), startWrap=$('scheduleStartGrid'), endWrap=$('scheduleEndGrid');
-  if(dayWrap) dayWrap.innerHTML=days.map(day=>`<button type="button" class="chipOption ${pickerState.schedule.day===day?'active':''}" data-sched-day="${day}">${day}</button>`).join('');
-  const chips=timeList().map(t=>`<button type="button" class="chipOption ${pickerState.schedule.start===t?'active':''}" data-sched-start="${t}">${t}</button>`).join('');
-  const endChips=timeList().map(t=>`<button type="button" class="chipOption ${pickerState.schedule.end===t?'active':''}" data-sched-end="${t}">${t}</button>`).join('');
-  if(startWrap) startWrap.innerHTML=chips;
-  if(endWrap) endWrap.innerHTML=endChips;
+  const dayWrap=$('scheduleDayChips');
+  if(dayWrap) dayWrap.innerHTML=days.map(day=>`<button type="button" class="chipOption ${pickerState.schedule.day===day?'active':''}" data-sched-day="${day}">${dayShort[day]||day}</button>`).join('');
+  if($('selectedStartTimeLabel')) $('selectedStartTimeLabel').textContent=pickerState.schedule.start || 'Başlama saatı seç';
+  if($('selectedEndTimeLabel')) $('selectedEndTimeLabel').textContent=pickerState.schedule.end || 'Bitmə saatı seç';
+  renderModalScheduleList();
+  if(pickerState.activeTimeField) renderTimePalette(); else $('scheduleTimePalette')?.classList.add('hidden');
 }
 
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
@@ -578,19 +599,27 @@ function timeOptions(sel=''){
   }
   return out;
 }
+function renderExternalScheduleRows(list){
+  $('scheduleRows').innerHTML='';
+  (list||[]).forEach(item=>{
+    let div=document.createElement('div');
+    div.className='scheduleRow';
+    div.innerHTML=`<div class="scheduleCardItem"><div class="scheduleCardMain"><span class="scheduleDayText">${esc(item.day||'Gün seçilməyib')}</span><span class="scheduleTimeText">${item.start&&item.end ? `${item.start} - ${item.end}` : 'Saat seçilməyib'}</span></div><button type="button" class="mini red" aria-label="Sil">Sil</button><input type="hidden" class="schDay" value="${esc(item.day||'')}"><input type="hidden" class="schStart" value="${esc(item.start||'')}"><input type="hidden" class="schEnd" value="${esc(item.end||'')}"></div>`;
+    div.querySelector('button').onclick=()=>div.remove();
+    $('scheduleRows').appendChild(div);
+  });
+}
 function addSchedule(day='',start='',end=''){
-  let div=document.createElement('div');
-  div.className='scheduleRow';
-  div.innerHTML=`<div class="scheduleCardItem"><div class="scheduleCardMain"><span class="scheduleDayText">${esc(day||'Gün seçilməyib')}</span><span class="scheduleTimeText">${start&&end ? `${start} - ${end}` : 'Saat seçilməyib'}</span></div><button type="button" class="mini red" aria-label="Sil">Sil</button><input type="hidden" class="schDay" value="${esc(day)}"><input type="hidden" class="schStart" value="${esc(start)}"><input type="hidden" class="schEnd" value="${esc(end)}"></div>`;
-  div.querySelector('button').onclick=()=>div.remove();
-  $('scheduleRows').appendChild(div);
+  const current=getSchedule();
+  current.push({day,start,end});
+  renderExternalScheduleRows(current);
 }
 function getSchedule(){
   return [...document.querySelectorAll('.scheduleRow')].map(r=>({day:r.querySelector('.schDay').value,start:r.querySelector('.schStart').value,end:r.querySelector('.schEnd').value}));
 }
-function resetScheduleModal(){ pickerState.schedule={day:'',start:'',end:''}; initSchedulePicker(); }
-function openScheduleModal(){ $('scheduleModal')?.classList.remove('hidden'); resetScheduleModal(); refreshIcons(); }
-function closeScheduleModal(){ $('scheduleModal')?.classList.add('hidden'); }
+function resetScheduleModal(){ pickerState.schedule={day:'',start:'',end:''}; pickerState.activeTimeField=null; pickerState.scheduleItems=getSchedule().map(x=>({...x})); initSchedulePicker(); }
+function openScheduleModal(){ resetScheduleModal(); $('scheduleModal')?.classList.remove('hidden'); refreshIcons(); }
+function closeScheduleModal(){ $('scheduleModal')?.classList.add('hidden'); hideTimePalette(); }
 function scheduleText(g){return (g.schedule||[]).map(s=>`${s.day}: ${s.start}-${s.end}`).join(', ')||'Dərs günü yoxdur'}
 function table(head,rows,empty='Məlumat yoxdur'){
   if(!rows.length)return `<div class="empty">${empty}</div>`;
@@ -943,7 +972,7 @@ function persistAndRender(message){
   if(message) toast(message);
 }
 
-window.editGroup=id=>{let g=group(id); if(!g)return;$('groupId').value=g.id;$('groupName').value=g.name;$('groupNote').value=g.note||'';$('scheduleRows').innerHTML='';(g.schedule||[]).forEach(s=>addSchedule(s.day,s.start,s.end));openPage('groups')}
+window.editGroup=id=>{let g=group(id); if(!g)return;$('groupId').value=g.id;$('groupName').value=g.name;$('groupNote').value=g.note||'';renderExternalScheduleRows(g.schedule||[]);openPage('groups')}
 window.deleteGroup=id=>{if(data.students.some(s=>s.groupId===id))return alert('Bu qrupda şagird var. Əvvəl şagirdləri silin və ya başqa qrupa keçirin.'); if(confirm('Qrup silinsin?')){data.groups=data.groups.filter(g=>g.id!==id);persistAndRender('Qrup silindi')}}
 window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.id;$('studentName').value=s.name;$('studentPhone').value=s.phone||'';$('parentPhone').value=s.parent||'';$('studentGroup').value=s.groupId;$('joinDate').value=fromIsoDate(s.joinDate); $('monthlyFee').value=s.fee;$('studentStatus').value=s.status;openPage('students')}
 window.deleteStudent=id=>{if(confirm('Şagird silinsin?')){data.students=data.students.filter(s=>s.id!==id);persistAndRender('Şagird silindi')}}
@@ -1020,10 +1049,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   if($('openSchedulePicker')) $('openSchedulePicker').onclick=()=>openScheduleModal();
   $('paymentSearch').oninput=renderQuickPaymentGroups;
   $('reportGroup').onchange=()=>renderReport();
-  $('quickPaymentDate').value='';
+  setInputDateValue('quickPaymentDate', today());
   $('quickPaymentMethod').onchange=renderQuickPaymentGroups;
   $('quickPaymentDate').onchange=renderQuickPaymentGroups;
-  $('clearGroup').onclick=()=>{$('groupForm').reset();$('groupId').value='';$('scheduleRows').innerHTML='';};
+  $('clearGroup').onclick=()=>{$('groupForm').reset();$('groupId').value='';renderExternalScheduleRows([]);};
   $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value=''; setInputDateValue('joinDate', today()); $('studentGroup').value=''; $('studentStatus').value='';};
   $('studentSearch').oninput=renderStudents;
   $('groupForm').onsubmit=e=>{
@@ -1061,5 +1090,5 @@ document.addEventListener('DOMContentLoaded',()=>{
   };
   if($('exportData')) $('exportData').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hazirliq-melumatlari.json';a.click();};
   if($('clearAll')) $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};persistAndRender('Bütün məlumatlar silindi')}};
-  setInputDateValue('joinDate', today()); setInputDateValue('paymentDate', today()); setInputDateValue('quickPaymentDate', today()); document.querySelectorAll('[data-date-target]').forEach(btn=>btn.onclick=()=>openDatePicker(btn.dataset.dateTarget)); ['joinDate','paymentDate','quickPaymentDate'].forEach(id=>$(id)?.addEventListener('blur',()=>{ const iso=toIsoDate($(id).value); if(iso) $(id).value=fromIsoDate(iso); })); if($('closeDatePickerModal')) $('closeDatePickerModal').onclick=closeDatePicker; if($('prevCalendarMonth')) $('prevCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()-1,1); renderDatePicker(); }; if($('nextCalendarMonth')) $('nextCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()+1,1); renderDatePicker(); }; if($('calendarDays')) $('calendarDays').onclick=(e)=>{ const btn=e.target.closest('[data-date-value]'); if(!btn) return; pickerState.tempDate=btn.dataset.dateValue; renderDatePicker(); }; if($('pickTodayDate')) $('pickTodayDate').onclick=()=>{ pickerState.tempDate=today(); pickerState.monthCursor=monthStartDate(today()); renderDatePicker(); }; if($('clearSelectedDate')) $('clearSelectedDate').onclick=()=>{ pickerState.tempDate=''; if(pickerState.dateTarget) $(pickerState.dateTarget).value=''; closeDatePicker(); }; if($('applyDateSelection')) $('applyDateSelection').onclick=()=>{ if(pickerState.dateTarget && pickerState.tempDate) setInputDateValue(pickerState.dateTarget,pickerState.tempDate); closeDatePicker(); }; if($('datePickerModal')) $('datePickerModal').addEventListener('click',e=>{ if(e.target.id==='datePickerModal') closeDatePicker(); }); if($('openSchedulePicker')) $('openSchedulePicker').onclick=()=>openScheduleModal(); if($('closeScheduleModal')) $('closeScheduleModal').onclick=closeScheduleModal; if($('cancelScheduleModal')) $('cancelScheduleModal').onclick=closeScheduleModal; if($('saveScheduleModal')) $('saveScheduleModal').onclick=()=>{ const {day,start,end}=pickerState.schedule; if(!day||!start||!end) return alert('Gün və saatları seçin.'); if(end<=start) return alert('Bitmə saatı başlama saatından sonra olmalıdır.'); addSchedule(day,start,end); closeScheduleModal(); }; if($('scheduleModal')) $('scheduleModal').addEventListener('click',(e)=>{ if(e.target.id==='scheduleModal') closeScheduleModal(); }); if($('scheduleDayChips')) $('scheduleDayChips').onclick=(e)=>{ const b=e.target.closest('[data-sched-day]'); if(!b) return; pickerState.schedule.day=b.dataset.schedDay; initSchedulePicker(); }; if($('scheduleStartGrid')) $('scheduleStartGrid').onclick=(e)=>{ const b=e.target.closest('[data-sched-start]'); if(!b) return; pickerState.schedule.start=b.dataset.schedStart; initSchedulePicker(); }; if($('scheduleEndGrid')) $('scheduleEndGrid').onclick=(e)=>{ const b=e.target.closest('[data-sched-end]'); if(!b) return; pickerState.schedule.end=b.dataset.schedEnd; initSchedulePicker(); }; initSchedulePicker(); initSupabase();refreshIcons();
+  setInputDateValue('joinDate', today()); setInputDateValue('paymentDate', today()); setInputDateValue('quickPaymentDate', today()); document.querySelectorAll('[data-date-target]').forEach(btn=>btn.onclick=()=>openDatePicker(btn.dataset.dateTarget)); ['joinDate','paymentDate','quickPaymentDate'].forEach(id=>$(id)?.addEventListener('blur',()=>{ const iso=toIsoDate($(id).value); if(iso) $(id).value=fromIsoDate(iso); })); if($('closeDatePickerModal')) $('closeDatePickerModal').onclick=closeDatePicker; if($('prevCalendarMonth')) $('prevCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()-1,1); renderDatePicker(); }; if($('nextCalendarMonth')) $('nextCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()+1,1); renderDatePicker(); }; if($('calendarDays')) $('calendarDays').onclick=(e)=>{ const btn=e.target.closest('[data-date-value]'); if(!btn) return; pickerState.tempDate=btn.dataset.dateValue; renderDatePicker(); }; if($('pickTodayDate')) $('pickTodayDate').onclick=()=>{ pickerState.tempDate=today(); pickerState.monthCursor=monthStartDate(today()); renderDatePicker(); }; if($('clearSelectedDate')) $('clearSelectedDate').onclick=()=>{ pickerState.tempDate=''; if(pickerState.dateTarget) $(pickerState.dateTarget).value=''; closeDatePicker(); }; if($('applyDateSelection')) $('applyDateSelection').onclick=()=>{ if(pickerState.dateTarget && pickerState.tempDate) setInputDateValue(pickerState.dateTarget,pickerState.tempDate); closeDatePicker(); }; if($('datePickerModal')) $('datePickerModal').addEventListener('click',e=>{ if(e.target.id==='datePickerModal') closeDatePicker(); }); if($('openSchedulePicker')) $('openSchedulePicker').onclick=()=>openScheduleModal(); if($('closeScheduleModal')) $('closeScheduleModal').onclick=closeScheduleModal; if($('cancelScheduleModal')) $('cancelScheduleModal').onclick=closeScheduleModal; if($('openStartTimePicker')) $('openStartTimePicker').onclick=()=>{ pickerState.activeTimeField='start'; renderTimePalette(); refreshIcons(); }; if($('openEndTimePicker')) $('openEndTimePicker').onclick=()=>{ pickerState.activeTimeField='end'; renderTimePalette(); refreshIcons(); }; if($('closeTimePalette')) $('closeTimePalette').onclick=()=>hideTimePalette(); if($('scheduleTimeChoices')) $('scheduleTimeChoices').onclick=(e)=>{ const b=e.target.closest('[data-time-choice]'); if(!b||!pickerState.activeTimeField) return; pickerState.schedule[pickerState.activeTimeField]=b.dataset.timeChoice; initSchedulePicker(); }; if($('addScheduleRowBtn')) $('addScheduleRowBtn').onclick=()=>{ const {day,start,end}=pickerState.schedule; if(!day||!start||!end) return alert('Əvvəl gün, başlama saatı və bitmə saatını seçin.'); if(end<=start) return alert('Bitmə saatı başlama saatından sonra olmalıdır.'); const ix=pickerState.scheduleItems.findIndex(x=>x.day===day); if(ix>=0) pickerState.scheduleItems[ix]={day,start,end}; else pickerState.scheduleItems.push({day,start,end}); pickerState.schedule={day:'',start:'',end:''}; pickerState.activeTimeField=null; initSchedulePicker(); }; if($('saveScheduleModal')) $('saveScheduleModal').onclick=()=>{ renderExternalScheduleRows(pickerState.scheduleItems); closeScheduleModal(); }; if($('scheduleModal')) $('scheduleModal').addEventListener('click',(e)=>{ if(e.target.id==='scheduleModal') closeScheduleModal(); }); if($('scheduleDayChips')) $('scheduleDayChips').onclick=(e)=>{ const b=e.target.closest('[data-sched-day]'); if(!b) return; pickerState.schedule.day=b.dataset.schedDay; initSchedulePicker(); }; if($('modalScheduleList')) $('modalScheduleList').onclick=(e)=>{ const b=e.target.closest('[data-remove-schedule]'); if(!b) return; pickerState.scheduleItems.splice(Number(b.dataset.removeSchedule),1); initSchedulePicker(); }; initSchedulePicker(); initSupabase();refreshIcons();
 });
