@@ -5,6 +5,8 @@ let currentUser=null;
 let isHydrating=true;
 let saveTimer=null;
 let unsubscribeAuth=null;
+let pendingCloudSave=false;
+let resumeTimer=null;
 const LOCAL_BACKUP_KEY='hazirliq_supabase_unsaved_backup_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
@@ -32,39 +34,111 @@ function backupUnsavedData(){
 function clearUnsavedBackup(){
   try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
 }
-async function ensureActiveUser(){
+function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+function isRecoverableSupabaseError(err){
+  const msg=String(err?.message||err?.error_description||'').toLowerCase();
+  const code=String(err?.code||err?.status||'').toLowerCase();
+  return msg.includes('jwt') || msg.includes('session') || msg.includes('auth') ||
+         msg.includes('rls') || msg.includes('row-level') || msg.includes('permission') ||
+         msg.includes('failed to fetch') || msg.includes('network') ||
+         code==='401' || code==='403' || code==='0';
+}
+async function ensureActiveUser(forceRefresh=false){
   if(!auth) return null;
-  const {data:sessionData,error}=await auth.getSession();
-  if(error) throw error;
-  currentUser=sessionData?.session?.user || null;
+  let session=null;
+  try{
+    if(forceRefresh && typeof auth.refreshSession==='function'){
+      const refreshed=await auth.refreshSession();
+      if(refreshed.error) throw refreshed.error;
+      session=refreshed.data?.session||null;
+    }else{
+      const sessionData=await auth.getSession();
+      if(sessionData.error) throw sessionData.error;
+      session=sessionData.data?.session||null;
+      const expiresAt=session?.expires_at ? session.expires_at*1000 : 0;
+      const almostExpired=expiresAt && expiresAt-Date.now()<120000;
+      if(almostExpired && typeof auth.refreshSession==='function'){
+        const refreshed=await auth.refreshSession();
+        if(refreshed.error) throw refreshed.error;
+        session=refreshed.data?.session||session;
+      }
+    }
+  }catch(err){
+    if(!forceRefresh && typeof auth.refreshSession==='function'){
+      const refreshed=await auth.refreshSession();
+      if(refreshed.error) throw refreshed.error;
+      session=refreshed.data?.session||null;
+    }else{
+      throw err;
+    }
+  }
+  currentUser=session?.user || null;
   return currentUser;
 }
-async function saveNow(){
+async function saveNow(options={}){
   backupUnsavedData();
   if(isHydrating) return false;
-  try{
-    if(!db || !auth) throw new Error('Supabase client hazır deyil. Səhifəni refresh edin.');
-    const user=await ensureActiveUser();
-    if(!user){
-      $('appShell')?.classList.add('locked');
-      $('authScreen')?.classList.remove('locked');
-      throw new Error('Sessiya bitib. Yenidən daxil olun.');
+  let lastErr=null;
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      if(!db || !auth) throw new Error('Supabase client hazır deyil. Səhifəni refresh edin.');
+      if(!navigator.onLine) throw new Error('İnternet bağlantısı yoxdur.');
+      const user=await ensureActiveUser(attempt>0);
+      if(!user){
+        $('appShell')?.classList.add('locked');
+        $('authScreen')?.classList.remove('locked');
+        throw new Error('Sessiya bitib. Yenidən daxil olun.');
+      }
+      if($('cloudStatus')) $('cloudStatus').textContent=attempt?'Session yenilənir...':'Cloud yazılır...';
+      const payload={user_id:user.id,data:normalizeData(data),updated_at:new Date().toISOString()};
+      const {error}=await db
+        .from('user_states')
+        .upsert(payload,{onConflict:'user_id'});
+      if(error) throw error;
+      pendingCloudSave=false;
+      clearUnsavedBackup();
+      if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
+      return true;
+    }catch(err){
+      lastErr=err;
+      console.warn('Supabase save attempt failed:', attempt+1, err);
+      if(attempt<2 && isRecoverableSupabaseError(err)){
+        await wait(450*(attempt+1));
+        continue;
+      }
+      break;
     }
-    if($('cloudStatus')) $('cloudStatus').textContent='Cloud yazılır...';
-    const payload={user_id:user.id,data:normalizeData(data),updated_at:new Date().toISOString()};
-    const {error}=await db
-      .from('user_states')
-      .upsert(payload,{onConflict:'user_id'});
-    if(error) throw error;
-    clearUnsavedBackup();
-    if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
-    return true;
-  }catch(err){
-    console.error('Supabase save error:', err);
-    if($('cloudStatus')) $('cloudStatus').textContent='Cloud xətası';
-    toast('Yaddaşa yazılmadı: '+(err?.message||'Console-u yoxlayın.'));
-    return false;
   }
+  pendingCloudSave=true;
+  console.error('Supabase save error:', lastErr);
+  if($('cloudStatus')) $('cloudStatus').textContent='Cloud xətası';
+  if(!options.silent) toast('Yaddaşa yazılmadı. Sayta qayıdanda yenidən cəhd ediləcək.');
+  return false;
+}
+async function resumeSupabaseConnection(reason='resume'){
+  if(!auth || !db || document.hidden) return;
+  clearTimeout(resumeTimer);
+  resumeTimer=setTimeout(async()=>{
+    try{
+      if($('cloudStatus')) $('cloudStatus').textContent='Session yoxlanılır...';
+      const user=await ensureActiveUser(true);
+      if(!user){
+        $('appShell')?.classList.add('locked');
+        $('authScreen')?.classList.remove('locked');
+        if($('cloudStatus')) $('cloudStatus').textContent='Session bitib';
+        return;
+      }
+      if(pendingCloudSave || localStorage.getItem(LOCAL_BACKUP_KEY)){
+        await saveNow({silent:true});
+      }else if($('cloudStatus')){
+        $('cloudStatus').textContent='Cloud aktivdir';
+      }
+    }catch(err){
+      console.warn('Session resume failed:', reason, err);
+      pendingCloudSave=true;
+      if($('cloudStatus')) $('cloudStatus').textContent='Session gözləyir';
+    }
+  },180);
 }
 function save(){
   if(isHydrating) return;
@@ -685,6 +759,11 @@ function openPage(p){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
+  window.addEventListener('focus',()=>resumeSupabaseConnection('focus'));
+  window.addEventListener('pageshow',()=>resumeSupabaseConnection('pageshow'));
+  window.addEventListener('online',()=>resumeSupabaseConnection('online'));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden) resumeSupabaseConnection('visibilitychange')});
+
   // v11: Mobile drawer removed completely. Navigation is now direct single-tap.
   document.addEventListener('click',(e)=>{
     const btn=e.target.closest('.nav[data-page], .bottomTab[data-page]');
