@@ -7,8 +7,8 @@ let saveTimer=null;
 let unsubscribeAuth=null;
 let pendingCloudSave=false;
 let resumeTimer=null;
-let sessionCheckPromise=null;
-let saveChain=Promise.resolve();
+let saveInProgress=false;
+let needsSaveAfterCurrent=false;
 const LOCAL_BACKUP_KEY='hazirliq_supabase_unsaved_backup_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
@@ -53,38 +53,38 @@ function isRecoverableSupabaseError(err){
 }
 async function ensureActiveUser(forceRefresh=false){
   if(!auth) return null;
-  if(sessionCheckPromise) return sessionCheckPromise;
+  try{
+    const sessionData=await withTimeout(auth.getSession(),4500,'Session yoxlanışı gecikdi');
+    if(sessionData.error) throw sessionData.error;
+    let session=sessionData.data?.session||null;
 
-  sessionCheckPromise=(async()=>{
-    try{
-      const sessionData=await withTimeout(auth.getSession(),5000,'Session yoxlanışı gecikdi');
-      if(sessionData.error) throw sessionData.error;
-      let session=sessionData.data?.session||null;
-
-      const expiresAt=session?.expires_at ? session.expires_at*1000 : 0;
-      const almostExpired=expiresAt && expiresAt-Date.now()<120000;
-      if(session && (forceRefresh || almostExpired) && typeof auth.refreshSession==='function'){
-        const refreshed=await withTimeout(auth.refreshSession(),6000,'Session yenilənməsi gecikdi');
-        if(refreshed.error) throw refreshed.error;
-        session=refreshed.data?.session||session;
-      }
-
-      // Important: do not trust only the cached session after tab/Alt+Tab.
-      // getUser() validates the currently active Supabase user before save.
-      const userData=await withTimeout(auth.getUser(),6000,'İstifadəçi yoxlanışı gecikdi');
-      if(userData.error) throw userData.error;
-      currentUser=userData.data?.user || session?.user || null;
-      return currentUser;
-    }catch(err){
-      console.warn('Session/user check failed:', err);
-      currentUser=null;
-      throw err;
-    }finally{
-      setTimeout(()=>{sessionCheckPromise=null},80);
+    const expiresAt=session?.expires_at ? session.expires_at*1000 : 0;
+    const almostExpired=expiresAt && expiresAt-Date.now()<180000;
+    if(session && (forceRefresh || almostExpired) && typeof auth.refreshSession==='function'){
+      const refreshed=await withTimeout(auth.refreshSession(),4500,'Session yenilənməsi gecikdi');
+      if(!refreshed.error && refreshed.data?.session) session=refreshed.data.session;
     }
-  })();
-  return sessionCheckPromise;
+
+    // Prefer validated user, but do not hang the app if getUser is slow after Alt+Tab.
+    try{
+      const userData=await withTimeout(auth.getUser(),4500,'İstifadəçi yoxlanışı gecikdi');
+      if(!userData.error && userData.data?.user){
+        currentUser=userData.data.user;
+        return currentUser;
+      }
+    }catch(e){
+      console.warn('getUser skipped/fallback:', e);
+    }
+
+    currentUser=session?.user||null;
+    return currentUser;
+  }catch(err){
+    console.warn('Session/user check failed:', err);
+    currentUser=null;
+    throw err;
+  }
 }
+
 
 async function saveNowCore(options={}){
   backupUnsavedData();
@@ -106,7 +106,7 @@ async function saveNowCore(options={}){
       const payload={user_id:user.id,data:normalizeData(data),updated_at:new Date().toISOString()};
       const {error}=await withTimeout(
         db.from('user_states').upsert(payload,{onConflict:'user_id'}),
-        7000,
+        6500,
         'Supabase yazma əməliyyatı gecikdi'
       );
       if(error) throw error;
@@ -118,7 +118,7 @@ async function saveNowCore(options={}){
       lastErr=err;
       console.warn('Supabase save attempt failed:', attempt+1, err);
       if(attempt<1 && isRecoverableSupabaseError(err)){
-        await wait(700);
+        await wait(500);
         continue;
       }
       break;
@@ -126,47 +126,53 @@ async function saveNowCore(options={}){
   }
   pendingCloudSave=true;
   console.error('Supabase save error:', lastErr);
-  if($('cloudStatus')) $('cloudStatus').textContent='Cloud gözləyir';
-  if(!options.silent) toast('Yaddaşa yazılmadı. Bir az sonra yenə cəhd edin.');
+  if($('cloudStatus')) $('cloudStatus').textContent='Offline backup saxlandı';
+  if(!options.silent) toast('Yaddaşa yazılmadı. İnternet/session yoxlayın. Data backup-da saxlandı.');
   return false;
 }
-function saveNow(options={}){
-  saveChain=saveChain.catch(()=>false).then(()=>saveNowCore(options));
-  return saveChain;
+async function saveNow(options={}){
+  if(saveInProgress){
+    needsSaveAfterCurrent=true;
+    if($('cloudStatus')) $('cloudStatus').textContent='Cloud növbədədir';
+    return false;
+  }
+  saveInProgress=true;
+  try{
+    const ok=await withTimeout(saveNowCore(options),9000,'Save kilidləndi');
+    return ok;
+  }catch(err){
+    console.warn('saveNow hard timeout:', err);
+    pendingCloudSave=true;
+    backupUnsavedData();
+    if($('cloudStatus')) $('cloudStatus').textContent='Offline backup saxlandı';
+    return false;
+  }finally{
+    saveInProgress=false;
+    if(needsSaveAfterCurrent){
+      needsSaveAfterCurrent=false;
+      setTimeout(()=>saveNow({silent:true}),250);
+    }
+  }
 }
+
 
 async function resumeSupabaseConnection(reason='resume'){
   if(!auth || !db || document.hidden) return;
   clearTimeout(resumeTimer);
   resumeTimer=setTimeout(async()=>{
     try{
-      if($('cloudStatus')) $('cloudStatus').textContent='Cloud yoxlanır...';
-      const user=await ensureActiveUser(reason==='online');
-      if(!user){
-        $('appShell')?.classList.add('locked');
-        $('authScreen')?.classList.remove('locked');
-        if($('cloudStatus')) $('cloudStatus').textContent='Session bitib';
-        return;
-      }
-
-      // A tiny read verifies that RLS + auth are actually usable, not just cached.
-      const {error}=await withTimeout(
-        db.from('user_states').select('user_id').eq('user_id',user.id).maybeSingle(),
-        6000,
-        'Cloud yoxlanışı gecikdi'
-      );
-      if(error) throw error;
-
-      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
-      if(pendingCloudSave && navigator.onLine){
-        await saveNow({silent:true, forceRefresh:true});
-      }
+      // Do not save or reload data on Alt+Tab / tab return.
+      // Only refresh auth lightly so the next user action can save normally.
+      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivləşir...';
+      await ensureActiveUser(reason==='online');
+      if($('cloudStatus')) $('cloudStatus').textContent=pendingCloudSave?'Backup gözləyir':'Cloud aktivdir';
     }catch(err){
-      console.warn('Resume check failed:', reason, err);
-      if($('cloudStatus')) $('cloudStatus').textContent='Cloud gözləyir';
+      console.warn('Resume auth check failed:', reason, err);
+      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
     }
-  },700);
+  },350);
 }
+
 
 function save(){
   if(isHydrating) return;

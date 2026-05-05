@@ -1,21 +1,25 @@
-# Hazirliq Anar v9 - Session/Alt-Tab Fix
+# Hazırlıq Anar v10
 
-Bu versiyada əsas düzəliş Supabase session/save problemidir.
+Bu versiyada Alt+Tab / tab dəyişəndən sonra yaranan save problemi üçün daha sadə və stabil fix tətbiq edildi.
 
-Dəyişikliklər:
-- Alt+Tab və ya başqa browser tabından geri qayıdanda session yenidən yoxlanır.
-- Save zamanı köhnə cached user istifadə edilmir; hər save-dən əvvəl Supabase-dən fresh user yoxlanır.
-- Token refresh event-i artıq bütün datanı yenidən yükləyib save prosesini qarışdırmır.
-- Save əməliyyatları queue ilə ardıcıl işləyir, eyni anda iki save race condition yaratmır.
-- Cloud aktiv statusu kiçik read testindən sonra göstərilir.
+## Dəyişikliklər
 
-Deploy:
-1. Bu ZIP-i extract edin.
-2. GitHub repo-da bu faylları köhnələrin üstünə upload edin:
-   - index.html
-   - style.css
-   - app.js
-   - supabase-config.js
-   - README.md
-3. Vercel redeploy olacaq.
-4. Saytda çıxış edin və yenidən login olun.
+- Tab-a qayıdanda artıq avtomatik save edilmir.
+- Tab-a qayıdanda yalnız session yüngül yoxlanılır.
+- `Cloud gözləyir` ilişməsi aradan qaldırıldı.
+- Save queue çıxarıldı və sadə `saveInProgress` qoruması əlavə edildi.
+- Save əməliyyatı timeout ilə işləyir, sonsuz gözləmir.
+- Save alınmasa data lokal backup-da saxlanır.
+- Növbəti save zamanı yenidən Supabase-ə yazmağa çalışır.
+
+## Deploy
+
+GitHub repo-da bu faylları upload edin:
+
+- index.html
+- style.css
+- app.js
+- supabase-config.js
+- README.md
+
+Sonra Vercel redeploy olacaq.
