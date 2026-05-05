@@ -663,3 +663,33 @@ body.nav-open{overflow:hidden;touch-action:none}
   .modalScheduleItem{flex-direction:column;align-items:flex-start}
   .toolbarGrid{grid-template-columns:1fr}
 }
+
+/* v24: colored payment metrics + compact iPhone-like schedule wheels */
+.metricPills{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.metricPill{display:inline-flex;align-items:center;gap:10px;min-width:190px;justify-content:flex-start;padding:11px 14px;border-radius:22px;border:1px solid var(--line);background:#fff;font-weight:900;box-shadow:0 12px 28px rgba(37,99,235,.08)}
+.metricPill svg{width:18px;height:18px;flex:0 0 auto}
+.metricPill small{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;line-height:1;color:var(--muted)}
+.metricPill b{display:block;font-size:15px;line-height:1.15;margin-top:4px;color:var(--ink)}
+.metricPill.expected{background:linear-gradient(135deg,#eef6ff,#dbeafe);border-color:#bfdbfe;color:#2563eb}
+.metricPill.debt{background:linear-gradient(135deg,#fff5f5,#fee2e2);border-color:#fecaca;color:#dc2626}
+.metricPill.monthly{background:linear-gradient(135deg,#f5f9ff,#e0f2fe);border-color:#bae6fd;color:#0284c7}
+.modernScheduleModal{width:min(620px,calc(100vw - 28px));max-height:calc(100vh - 34px);overflow:auto}
+.modernScheduleModal .modalHeader{padding-bottom:12px}
+.compactDayChips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.compactDayChips .chipOption{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:12px 8px;border-radius:18px}
+.compactDayChips .chipOption span{font-size:17px;font-weight:950;line-height:1}
+.compactDayChips .chipOption small{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.compactDayChips .chipOption.active small{color:rgba(255,255,255,.85)}
+.wheelPickerRow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.timeWheelPanel{border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,#ffffff,#f8fbff);padding:14px;box-shadow:var(--soft-shadow)}
+.timeWheelTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.timeWheelTitle span{font-size:13px;font-weight:900;color:var(--muted)}
+.timeWheelTitle b{font-size:16px;font-weight:950;color:var(--ink)}
+.timeWheel{height:190px;overflow-y:auto;scroll-snap-type:y mandatory;padding:58px 6px;display:grid;gap:8px;scrollbar-width:thin;background:linear-gradient(180deg,rgba(239,246,255,.75),#fff 35%,#fff 65%,rgba(239,246,255,.75));border-radius:18px;border:1px solid #eaf2ff;position:relative}
+.timeWheel:before,.timeWheel:after{content:"";position:sticky;left:0;right:0;height:1px;background:#bfdbfe;display:block;z-index:2}.timeWheel:before{top:63px}.timeWheel:after{bottom:63px}
+.wheelTime{scroll-snap-align:center;border:0;background:transparent;border-radius:14px;padding:12px 10px;font-size:18px;font-weight:950;color:#64748b;cursor:pointer;transition:.15s ease}
+.wheelTime:hover{background:#eef6ff;color:#2563eb}
+.wheelTime.active{background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;box-shadow:0 12px 26px rgba(37,99,235,.22);transform:scale(1.02)}
+.quickPayOptions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:420px}.amountChoice{border-radius:22px;border:1px solid var(--line);padding:13px 14px;text-align:left;min-height:86px}.amountChoice small{display:block;font-weight:900;font-size:11px;letter-spacing:.04em;text-transform:uppercase}.amountChoice strong{display:block;font-size:21px;margin-top:7px}.amountChoice.monthly{background:linear-gradient(135deg,#f5f9ff,#e0f2fe);border-color:#bae6fd}.amountChoice.expected{background:linear-gradient(135deg,#eef6ff,#dbeafe);border-color:#bfdbfe}.amountChoice.debt{background:linear-gradient(135deg,#fff5f5,#fee2e2);border-color:#fecaca;color:#b91c1c}
+.compactSmartDateField{display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:10px;min-width:330px}.compactSmartDateField input{min-width:150px}.toolbarGrid{grid-template-columns:minmax(260px,2fr) minmax(200px,230px) minmax(330px,360px)}
+@media (max-width:900px){.compactDayChips{grid-template-columns:repeat(2,minmax(0,1fr))}.wheelPickerRow{grid-template-columns:1fr}.quickPayOptions{min-width:0;grid-template-columns:1fr}.metricPill{min-width:160px}.toolbarGrid{grid-template-columns:1fr}.compactSmartDateField{min-width:0}}

@@ -412,23 +412,15 @@
         <div class="chipSelector compactDayChips" id="scheduleDayChips"></div>
       </div>
 
-      <div class="schedulePickerRow">
-        <div class="pickerFieldBlock">
-          <label>Başlama saatı</label>
-          <button type="button" class="pickerValueBtn" id="openStartTimePicker"><span id="selectedStartTimeLabel">Başlama saatı seç</span><i data-lucide="chevron-down"></i></button>
+      <div class="schedulePickerRow wheelPickerRow">
+        <div class="timeWheelPanel">
+          <div class="timeWheelTitle"><span>Başlama saatı</span><b id="selectedStartTimeLabel">Seçilməyib</b></div>
+          <div class="timeWheel" id="scheduleStartWheel"></div>
         </div>
-        <div class="pickerFieldBlock">
-          <label>Bitmə saatı</label>
-          <button type="button" class="pickerValueBtn" id="openEndTimePicker"><span id="selectedEndTimeLabel">Bitmə saatı seç</span><i data-lucide="chevron-down"></i></button>
+        <div class="timeWheelPanel">
+          <div class="timeWheelTitle"><span>Bitmə saatı</span><b id="selectedEndTimeLabel">Seçilməyib</b></div>
+          <div class="timeWheel" id="scheduleEndWheel"></div>
         </div>
-      </div>
-
-      <div class="timePalette hidden" id="scheduleTimePalette">
-        <div class="timePaletteHead">
-          <b id="timePaletteTitle">Saat seç</b>
-          <button type="button" class="secondary tinyBtn" id="closeTimePalette">Bağla</button>
-        </div>
-        <div class="timePaletteGrid" id="scheduleTimeChoices"></div>
       </div>
 
       <div class="scheduleAdderBar">
