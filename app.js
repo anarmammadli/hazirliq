@@ -1042,18 +1042,12 @@ function applyTheme(theme){
   document.documentElement.dataset.theme = safe;
   try{localStorage.setItem('hazirliqTheme', safe);}catch(e){}
 
-  // v35: real two-file theme switch. Light loads style.css, dark loads dark.css.
-  // This avoids mixing hundreds of dark overrides inside one CSS file.
-  let themeLink = document.getElementById('themeStylesheet');
-  if(!themeLink){
-    themeLink = document.createElement('link');
-    themeLink.id = 'themeStylesheet';
-    themeLink.rel = 'stylesheet';
-    document.head.appendChild(themeLink);
+  // One CSS file only. The theme changes by data-theme variables/overrides.
+  // This prevents the old half-light / half-dark problem caused by switching CSS files.
+  const themeLink = document.getElementById('themeStylesheet');
+  if(themeLink && (themeLink.getAttribute('href') || '').split('/').pop() !== 'style.css'){
+    themeLink.setAttribute('href','style.css');
   }
-  const nextHref = safe === 'dark' ? 'dark.css' : 'style.css';
-  const currentHref = (themeLink.getAttribute('href') || '').split('/').pop();
-  if(currentHref !== nextHref) themeLink.setAttribute('href', nextHref);
 
   document.querySelectorAll('[data-theme-toggle]').forEach(btn=>{
     const icon = btn.querySelector('i');

@@ -10,10 +10,10 @@
   <script>
     try{
       const savedTheme = localStorage.getItem("hazirliqTheme") || "light";
-      document.documentElement.dataset.theme = savedTheme;
-      document.write('<link id="themeStylesheet" rel="stylesheet" href="' + (savedTheme === "dark" ? "dark.css" : "style.css") + '">');
-    }catch(e){document.write('<link id="themeStylesheet" rel="stylesheet" href="style.css">');}
+      document.documentElement.dataset.theme = savedTheme === "dark" ? "dark" : "light";
+    }catch(e){document.documentElement.dataset.theme = "light";}
   </script>
+  <link id="themeStylesheet" rel="stylesheet" href="style.css">
   <script defer src="https://unpkg.com/lucide@latest"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="supabase-config.js"></script>
@@ -36,10 +36,10 @@
       </div>
 
       <form id="authForm" class="authForm authPane active" data-auth-pane="teacher">
-        <label>Username</label>
-        <input id="teacherUsername" type="text" required placeholder="Username daxil edin" autocomplete="username">
-        <label>Kod</label>
-        <input id="teacherCode" type="password" required placeholder="Müəllim kodu" autocomplete="current-password">
+        <label>İstifadəçi Adı</label>
+        <input id="teacherUsername" type="text" required placeholder="İstifadəçi adı daxil edin" autocomplete="username">
+        <label>Şifrə</label>
+        <input id="teacherCode" type="password" required placeholder="Müəllim şifrəsi" autocomplete="current-password">
         <div class="authActions singleAuthAction">
           <button class="primary" id="loginBtn" type="submit"><i data-lucide="log-in"></i><span>Daxil ol</span></button>
         </div>

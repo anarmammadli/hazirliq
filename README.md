@@ -21,7 +21,7 @@ Bu versiya demo müəllim yaratmır və əvvəlki `demo` müəllimi varsa silir.
 
 ## GitHub/Vercel üçün yüklənəcək əsas fayllar
 - index.html
-- style.css
+- style.css  *(light + dark mode both inside this one file)*
 - app.js
 - supabase-config.js
 - README.md
@@ -29,3 +29,7 @@ Bu versiya demo müəllim yaratmır və əvvəlki `demo` müəllimi varsa silir.
 ## Tarix formatı
 Bütün tarixlər Gün/Ay/İl kimi göstərilir və daxil edilir.
 Məsələn: `05/05/2025`.
+
+
+## Dark mode fix
+Bu versiyada `dark.css` və `light.css` lazım deyil. Tema yalnız `style.css` içində `html[data-theme="dark"]` ilə işləyir, ona görə dark mode-da ağ qalan kart/panel problemi aradan qaldırılıb.

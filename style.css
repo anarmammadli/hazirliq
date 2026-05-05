@@ -1679,3 +1679,310 @@ body.authMode .authScreen{display:flex !important;}
   .topHeaderActions .logoutBtn span{display:none !important;}
   .topHeaderActions #logoutBtn,.topHeaderActions .logoutBtn{width:42px !important;padding:0 !important;justify-content:center !important;}
 }
+
+/* =========================================================
+   FINAL THEME SYSTEM — one file, no dark.css/light.css split
+   Fixes mixed white/dark UI by overriding hardcoded white cards.
+   ========================================================= */
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#07111f;
+  --bg-2:#0a1628;
+  --surface:#0e1a2d;
+  --surface-2:#13223a;
+  --surface-3:#193152;
+  --text:#f8fbff;
+  --muted:#a8b7ce;
+  --line:rgba(148,163,184,.24);
+  --line-strong:rgba(191,219,254,.34);
+  --accent:#60a5fa;
+  --accent-2:#22d3ee;
+  --accent-soft:rgba(96,165,250,.16);
+  --ok:#34d399;
+  --ok-soft:rgba(16,185,129,.13);
+  --warn:#fbbf24;
+  --warn-soft:rgba(251,191,36,.14);
+  --danger:#fb7185;
+  --danger-soft:rgba(251,113,133,.14);
+  --navy:#f8fbff;
+  --navy-2:#e5eefc;
+  --ink:#f8fbff;
+  --soft-shadow:0 18px 44px rgba(0,0,0,.26);
+  --shadow:0 28px 90px rgba(0,0,0,.42);
+  --shadow-soft:0 18px 44px rgba(0,0,0,.28);
+}
+
+html[data-theme="dark"] body{
+  color:var(--text) !important;
+  background:
+    radial-gradient(circle at top left, rgba(96,165,250,.16), transparent 34%),
+    radial-gradient(circle at top right, rgba(34,211,238,.10), transparent 32%),
+    linear-gradient(180deg,#050b14 0%,#081423 48%,#06111f 100%) !important;
+}
+html[data-theme="dark"] .ambientOne{background:rgba(96,165,250,.18) !important}
+html[data-theme="dark"] .ambientTwo{background:rgba(34,211,238,.14) !important}
+
+html[data-theme="dark"] .side{
+  background:linear-gradient(180deg,#07111f 0%,#0b1728 100%) !important;
+  border-color:rgba(148,163,184,.20) !important;
+  box-shadow:0 28px 70px rgba(0,0,0,.36) !important;
+}
+html[data-theme="dark"] .brandText h1,
+html[data-theme="dark"] .sideNote b,
+html[data-theme="dark"] .nav.active span,
+html[data-theme="dark"] .nav.active svg{color:#fff !important}
+html[data-theme="dark"] .brandText p,
+html[data-theme="dark"] .sideNote span{color:#9fb4d6 !important}
+html[data-theme="dark"] .nav{color:#dbe7f5 !important}
+html[data-theme="dark"] .nav svg{color:#9fb4d6 !important}
+html[data-theme="dark"] .nav:hover{background:rgba(255,255,255,.07) !important;border-color:rgba(191,211,238,.14) !important}
+html[data-theme="dark"] .nav.active{background:linear-gradient(135deg,rgba(96,165,250,.24),rgba(34,211,238,.12)) !important;border-color:rgba(96,165,250,.34) !important}
+
+html[data-theme="dark"] .authScreen,
+html[data-theme="dark"] .authCard,
+html[data-theme="dark"] .multiAuthCard,
+html[data-theme="dark"] .adminPanel,
+html[data-theme="dark"] .heroPanel,
+html[data-theme="dark"] .heroMiniCard,
+html[data-theme="dark"] .surfaceCard,
+html[data-theme="dark"] .statCard,
+html[data-theme="dark"] .quickScheduleCard,
+html[data-theme="dark"] .schedulePreviewDay,
+html[data-theme="dark"] .accordion,
+html[data-theme="dark"] .tableWrap,
+html[data-theme="dark"] .modalCard,
+html[data-theme="dark"] .calendarShell,
+html[data-theme="dark"] .timePalette,
+html[data-theme="dark"] .timeWheelPanel,
+html[data-theme="dark"] .scheduleAdderBar,
+html[data-theme="dark"] .scheduleHelpText,
+html[data-theme="dark"] .modalScheduleItem,
+html[data-theme="dark"] .teacherAdminList,
+html[data-theme="dark"] .teacherAdminItem,
+html[data-theme="dark"] .empty,
+html[data-theme="dark"] .reportBox,
+html[data-theme="dark"] .reportFilter,
+html[data-theme="dark"] .studentCard,
+html[data-theme="dark"] .groupCard{
+  background:linear-gradient(180deg,rgba(15,30,52,.96),rgba(10,23,40,.96)) !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+  box-shadow:var(--shadow-soft) !important;
+}
+
+html[data-theme="dark"] .heroPanel{
+  background:
+    linear-gradient(135deg,rgba(15,30,52,.96),rgba(9,21,37,.96)),
+    radial-gradient(circle at top right,rgba(96,165,250,.16),transparent 35%) !important;
+}
+html[data-theme="dark"] .heroMiniCard,
+html[data-theme="dark"] .statCard,
+html[data-theme="dark"] .statCard.accent,
+html[data-theme="dark"] .statCard.softDanger{
+  background:linear-gradient(180deg,#10203a 0%,#0b1728 100%) !important;
+}
+html[data-theme="dark"] .statIcon,
+html[data-theme="dark"] .panelLabel{
+  background:rgba(96,165,250,.15) !important;
+  color:var(--accent) !important;
+  border-color:rgba(96,165,250,.24) !important;
+}
+html[data-theme="dark"] .softDanger .statIcon{background:rgba(251,113,133,.14) !important;color:var(--danger) !important;border-color:rgba(251,113,133,.25) !important}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .nativeDatePicker,
+html[data-theme="dark"] .dateTriggerBtn,
+html[data-theme="dark"] .pickerValueBtn,
+html[data-theme="dark"] .searchInput{
+  background:#0b1728 !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+  box-shadow:none !important;
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder{color:#7185a3 !important}
+html[data-theme="dark"] input:focus,
+html[data-theme="dark"] select:focus,
+html[data-theme="dark"] textarea:focus{
+  background:#0f1e34 !important;
+  border-color:rgba(96,165,250,.70) !important;
+  box-shadow:0 0 0 5px rgba(96,165,250,.14) !important;
+}
+
+html[data-theme="dark"] .secondary,
+html[data-theme="dark"] .mini,
+html[data-theme="dark"] .presetBtn,
+html[data-theme="dark"] .themeToggle,
+html[data-theme="dark"] .topThemeToggle,
+html[data-theme="dark"] .mobileNavToggle,
+html[data-theme="dark"] .drawerClose,
+html[data-theme="dark"] .calendarDay,
+html[data-theme="dark"] .chipOption,
+html[data-theme="dark"] .timeChoiceBtn,
+html[data-theme="dark"] .amountChoice,
+html[data-theme="dark"] .metricPill,
+html[data-theme="dark"] .pill,
+html[data-theme="dark"] .topBadge,
+html[data-theme="dark"] .schedulePreviewCount,
+html[data-theme="dark"] .moreTag{
+  background:#101f34 !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+  box-shadow:none !important;
+}
+html[data-theme="dark"] .secondary:hover,
+html[data-theme="dark"] .mini:hover,
+html[data-theme="dark"] .presetBtn:hover,
+html[data-theme="dark"] .themeToggle:hover,
+html[data-theme="dark"] .chipOption:hover,
+html[data-theme="dark"] .pickerValueBtn:hover{
+  background:#152842 !important;
+  border-color:var(--line-strong) !important;
+}
+
+html[data-theme="dark"] table,
+html[data-theme="dark"] thead,
+html[data-theme="dark"] tbody,
+html[data-theme="dark"] tr,
+html[data-theme="dark"] td,
+html[data-theme="dark"] th{
+  background:transparent !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+}
+html[data-theme="dark"] th{color:#cfe0f8 !important;background:#0e1a2d !important}
+html[data-theme="dark"] tr:hover td{background:rgba(96,165,250,.06) !important}
+
+html[data-theme="dark"] .accHead,
+html[data-theme="dark"] .collapsibleHead{background:transparent !important;color:var(--text) !important}
+html[data-theme="dark"] .accHead:hover,
+html[data-theme="dark"] .collapsibleHead:hover{background:rgba(255,255,255,.04) !important}
+html[data-theme="dark"] .accChevron{background:#14243b !important;color:var(--text) !important}
+html[data-theme="dark"] .accIndicator{background:rgba(96,165,250,.14) !important;border-color:rgba(96,165,250,.25) !important;color:var(--accent) !important}
+
+html[data-theme="dark"] .scheduleRow,
+html[data-theme="dark"] .previewItem,
+html[data-theme="dark"] .modalScheduleList .empty,
+html[data-theme="dark"] .calendarDay,
+html[data-theme="dark"] .timeWheel,
+html[data-theme="dark"] .timePaletteGrid,
+html[data-theme="dark"] .bottomTabBar{
+  background:#0b1728 !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+html[data-theme="dark"] .timeWheel{
+  background:
+    linear-gradient(180deg,rgba(15,30,52,.92),rgba(11,23,40,.55) 34%,rgba(11,23,40,.55) 66%,rgba(15,30,52,.92)),
+    #0b1728 !important;
+  box-shadow:inset 0 0 0 1px rgba(148,163,184,.10) !important;
+}
+html[data-theme="dark"] .timeWheel:before,
+html[data-theme="dark"] .timeWheel:after{background:rgba(96,165,250,.38) !important}
+html[data-theme="dark"] .wheelTime{color:#a8b7ce !important;background:transparent !important}
+html[data-theme="dark"] .wheelTime:hover{background:#14243b !important;color:#93c5fd !important}
+html[data-theme="dark"] .wheelTime.active,
+html[data-theme="dark"] .calendarDay.selected,
+html[data-theme="dark"] .chipOption.active,
+html[data-theme="dark"] .timeChoiceBtn.active,
+html[data-theme="dark"] .bottomTab.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2)) !important;
+  color:#06111f !important;
+  border-color:transparent !important;
+  box-shadow:0 12px 26px rgba(34,211,238,.16) !important;
+}
+html[data-theme="dark"] .chipOption.active span,
+html[data-theme="dark"] .chipOption.active small{color:#06111f !important}
+html[data-theme="dark"] .calendarDay.today{border-color:var(--accent) !important;color:#93c5fd !important}
+
+html[data-theme="dark"] .metricPill.expected,
+html[data-theme="dark"] .amountChoice.expected,
+html[data-theme="dark"] .amountChoice.actionAmount.expected,
+html[data-theme="dark"] .amountChoice.infoCard.expected,
+html[data-theme="dark"] .metricPill.expected:hover,
+html[data-theme="dark"] .amountChoice.infoCard.expected:hover{
+  background:rgba(96,165,250,.13) !important;
+  border-color:rgba(96,165,250,.30) !important;
+  color:#93c5fd !important;
+}
+html[data-theme="dark"] .metricPill.debt,
+html[data-theme="dark"] .amountChoice.debt,
+html[data-theme="dark"] .amountChoice.actionAmount.debt,
+html[data-theme="dark"] .amountChoice.infoCard.debt,
+html[data-theme="dark"] .metricPill.debt:hover,
+html[data-theme="dark"] .amountChoice.infoCard.debt:hover{
+  background:rgba(251,113,133,.12) !important;
+  border-color:rgba(251,113,133,.32) !important;
+  color:#fb7185 !important;
+}
+html[data-theme="dark"] .metricPill.monthly,
+html[data-theme="dark"] .amountChoice.monthly,
+html[data-theme="dark"] .amountChoice.infoCard.monthly,
+html[data-theme="dark"] .metricPill.monthly:hover,
+html[data-theme="dark"] .amountChoice.infoCard.monthly:hover{
+  background:rgba(34,211,238,.11) !important;
+  border-color:rgba(34,211,238,.28) !important;
+  color:#67e8f9 !important;
+}
+html[data-theme="dark"] .metricPill.clearDebt,
+html[data-theme="dark"] .amountChoice.actionAmount.clearDebt,
+html[data-theme="dark"] .metricPill.clearDebt:hover{
+  background:rgba(52,211,153,.12) !important;
+  border-color:rgba(52,211,153,.30) !important;
+  color:#34d399 !important;
+}
+html[data-theme="dark"] .metricPill b,
+html[data-theme="dark"] .amountChoice strong,
+html[data-theme="dark"] .amountChoice.actionAmount strong,
+html[data-theme="dark"] .quickPayStudent .monthlyInline strong,
+html[data-theme="dark"] .timeWheelTitle b,
+html[data-theme="dark"] .compactDayChips .chipOption span,
+html[data-theme="dark"] .modalScheduleItem b{color:var(--text) !important}
+html[data-theme="dark"] .metricPill small,
+html[data-theme="dark"] .amountChoice small,
+html[data-theme="dark"] .amountChoice.actionAmount small,
+html[data-theme="dark"] .quickPayStudent .monthlyInline,
+html[data-theme="dark"] .timeWheelTitle span,
+html[data-theme="dark"] .compactDayChips .chipOption small,
+html[data-theme="dark"] .modalScheduleItem span,
+html[data-theme="dark"] .scheduleAdderBar::after,
+html[data-theme="dark"] .scheduleHelpText{color:var(--muted) !important}
+
+html[data-theme="dark"] .authTab{background:#0b1728 !important;color:var(--muted) !important;border-color:var(--line) !important}
+html[data-theme="dark"] .authTab.active{background:rgba(96,165,250,.15) !important;color:#93c5fd !important;border-color:rgba(96,165,250,.30) !important}
+html[data-theme="dark"] .authMessage{color:#fca5a5 !important;background:rgba(251,113,133,.10) !important;border-color:rgba(251,113,133,.20) !important}
+html[data-theme="dark"] .authMessage.ok{color:#6ee7b7 !important;background:rgba(52,211,153,.10) !important;border-color:rgba(52,211,153,.22) !important}
+
+html[data-theme="dark"] .danger,
+html[data-theme="dark"] .mini.red,
+html[data-theme="dark"] .debtPreset{
+  background:rgba(251,113,133,.12) !important;
+  color:#fb7185 !important;
+  border-color:rgba(251,113,133,.28) !important;
+}
+html[data-theme="dark"] .primary,
+html[data-theme="dark"] .savePayBtn{
+  color:#06111f !important;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2)) !important;
+  box-shadow:0 16px 32px rgba(34,211,238,.16) !important;
+}
+
+/* mobile card conversion was forcing white; keep it dark too */
+@media (max-width:760px){
+  html[data-theme="dark"] #studentList tr,
+  html[data-theme="dark"] #paymentGroups tr,
+  html[data-theme="dark"] #studentList td,
+  html[data-theme="dark"] #paymentGroups td{
+    background:#0e1a2d !important;
+    color:var(--text) !important;
+    border-color:var(--line) !important;
+  }
+  html[data-theme="dark"] .bottomTabBar{
+    background:rgba(8,18,32,.94) !important;
+    border-color:var(--line) !important;
+  }
+  html[data-theme="dark"] .bottomTab{color:#a8b7ce !important}
+  html[data-theme="dark"] .bottomTab.active{color:#06111f !important}
+}
