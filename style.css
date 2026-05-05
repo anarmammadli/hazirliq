@@ -550,3 +550,36 @@ body.nav-open{overflow:hidden;touch-action:none}
 .teacherRowActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .teacherAdminRow strong{color:var(--ink)}
 @media (max-width: 640px){.teacherRowActions{width:100%;justify-content:flex-start}.teacherAdminRow span{line-height:1.6}}
+
+.dateInputWrap{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:10px;align-items:center}
+.compactDateWrap{grid-template-columns:minmax(0,1fr) 86px}
+.nativeDatePicker{min-width:0;padding:0 12px;text-align:center;font-weight:800;color:var(--ink)}
+.nativeDatePicker::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.95}
+.schedulePickerBox{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.inlineNote{margin:0}
+.scheduleCards{display:grid;gap:10px}
+.scheduleCardItem{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:20px;border:1px solid var(--line);background:#f8fbff;box-shadow:var(--soft-shadow)}
+.scheduleCardMain{display:flex;flex-direction:column;gap:4px;min-width:0}
+.scheduleDayText{font-weight:800;color:var(--ink)}
+.scheduleTimeText{font-size:13px;color:var(--muted);font-weight:700}
+.modalOverlay{position:fixed;inset:0;background:rgba(15,23,42,.42);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:3000}
+.modalOverlay.hidden{display:none}
+.modalCard{width:min(720px,100%);background:#fff;border:1px solid var(--line);border-radius:28px;box-shadow:0 30px 80px rgba(15,23,42,.18);padding:24px}
+.modalHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.modalHeader h3{margin:10px 0 6px;font-size:32px;letter-spacing:-.04em}
+.modalHeader p{margin:0;color:var(--muted)}
+.iconOnlyBtn{width:48px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.scheduleModalGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.scheduleModalGrid label{display:flex;flex-direction:column;gap:8px;font-weight:700;color:var(--ink)}
+.modalActions{margin-top:18px}
+.pills{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:8px;width:100%}
+.pill{display:flex;align-items:center;justify-content:center;text-align:center;min-height:48px;white-space:normal}
+@media (max-width:760px){
+  .dateInputWrap,.compactDateWrap{grid-template-columns:minmax(0,1fr)}
+  .scheduleCardItem{align-items:flex-start}
+  .scheduleCardItem .mini{align-self:center}
+  .modalCard{padding:18px;border-radius:24px}
+  .modalHeader h3{font-size:24px}
+  .scheduleModalGrid{grid-template-columns:1fr}
+  .pills{grid-template-columns:1fr 1fr}
+}

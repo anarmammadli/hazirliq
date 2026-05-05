@@ -358,6 +358,13 @@ function dateAz(d){
   return `${day}/${m}/${y}`;
 }
 function toIsoDate(v){
+  if(!v) return '';
+  if(v instanceof Date){
+    const y=v.getFullYear();
+    const m=String(v.getMonth()+1).padStart(2,'0');
+    const d=String(v.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
   v=String(v||'').trim();
   if(!v) return '';
   if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
@@ -373,6 +380,12 @@ function fromIsoDate(iso){
   if(!iso) return '';
   const [y,m,d]=iso.split('-');
   return `${d}/${m}/${y}`;
+}
+function syncDatePair(textId,pickerId){
+  const text=$(textId), picker=$(pickerId);
+  if(!text||!picker) return;
+  picker.addEventListener('change',()=>{ text.value=fromIsoDate(picker.value); });
+  text.addEventListener('input',()=>{ const iso=toIsoDate(text.value); if(iso) picker.value=iso; });
 }
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
 function cleanDate(d){const x=new Date(d);x.setHours(0,0,0,0);return x;}
@@ -488,13 +501,20 @@ function timeOptions(sel=''){
 function addSchedule(day='',start='',end=''){
   let div=document.createElement('div');
   div.className='scheduleRow';
-  div.innerHTML=`<select class="schDay"><option value="">Gün seç</option>${days.map(d=>`<option ${d===day?'selected':''}>${d}</option>`).join('')}</select><select class="schStart">${timeOptions(start)}</select><select class="schEnd">${timeOptions(end)}</select><button type="button" class="mini red">X</button>`;
+  div.innerHTML=`<div class="scheduleCardItem"><div class="scheduleCardMain"><span class="scheduleDayText">${esc(day||'Gün seçilməyib')}</span><span class="scheduleTimeText">${start&&end ? `${start} - ${end}` : 'Saat seçilməyib'}</span></div><button type="button" class="mini red" aria-label="Sil">Sil</button><input type="hidden" class="schDay" value="${esc(day)}"><input type="hidden" class="schStart" value="${esc(start)}"><input type="hidden" class="schEnd" value="${esc(end)}"></div>`;
   div.querySelector('button').onclick=()=>div.remove();
   $('scheduleRows').appendChild(div);
 }
 function getSchedule(){
   return [...document.querySelectorAll('.scheduleRow')].map(r=>({day:r.querySelector('.schDay').value,start:r.querySelector('.schStart').value,end:r.querySelector('.schEnd').value}));
 }
+function resetScheduleModal(){
+  if($('modalScheduleDay')) $('modalScheduleDay').value='';
+  if($('modalScheduleStart')) $('modalScheduleStart').innerHTML=timeOptions('');
+  if($('modalScheduleEnd')) $('modalScheduleEnd').innerHTML=timeOptions('');
+}
+function openScheduleModal(){ $('scheduleModal')?.classList.remove('hidden'); resetScheduleModal(); refreshIcons(); }
+function closeScheduleModal(){ $('scheduleModal')?.classList.add('hidden'); }
 function scheduleText(g){return (g.schedule||[]).map(s=>`${s.day}: ${s.start}-${s.end}`).join(', ')||'Dərs günü yoxdur'}
 function table(head,rows,empty='Məlumat yoxdur'){
   if(!rows.length)return `<div class="empty">${empty}</div>`;
@@ -553,8 +573,6 @@ function renderHome(){
   $('stPaid').textContent=money(paidThisMonth());
   $('stExpected').textContent=money(totalExpected());
   $('stDebt').textContent=money(totalDebt());
-  $('stCash').textContent=money(paidThisMonth('cash'));
-  $('stCard').textContent=money(paidThisMonth('card'));
   $('homeGroups').innerHTML=groupAccordions(false);
   renderHomeSchedulePreview();
 }
@@ -716,11 +734,11 @@ function renderStudents(){
       return `<tr>
         <td><b>${esc(s.name)}</b><br>${esc(s.phone||'')}</td>
         <td>${money(s.fee)}</td>
-        <td>${dateAz(addMonths(cleanDate(s.joinDate),1))}</td>
+        <td>${dateAz(s.joinDate)}</td>
         <td>${dateAz(f.nextDue)}</td>
         <td>${money(f.expected)}</td>
         <td>${money(f.debt)}</td>
-        <td>${s.status==='active'?'Aktiv':'Çıxıb'}</td>
+        <td>${studentStatusHtml(s)}</td>
         <td><button class="mini" onclick="editStudent('${s.id}')">Dəyiş</button> <button class="mini red" onclick="deleteStudent('${s.id}')">Sil</button></td>
       </tr>`;
     });
@@ -736,7 +754,7 @@ function addQuickPayment(studentId, amountInputId){
   const amount = Number(input.value || 0);
   if(amount <= 0) return alert('Məbləği düzgün yazın.');
   const payDate=toIsoDate($('quickPaymentDate').value);
-  if(!payDate) return alert('Ödəniş tarixini Gün/Ay/İl formatında yazın. Məsələn: 05/05/2025');
+  if(!payDate) return alert('Ödəniş tarixini Gün/Ay/İl formatında yazın. məsələn 05/05/2025');
   if(!$('quickPaymentMethod').value) return alert('Ödəniş üsulunu seçin.');
   data.payments.push({id:id(),studentId:studentId,amount:amount,date:payDate,method:$('quickPaymentMethod').value,note:''});
   input.value = '';
@@ -748,99 +766,10 @@ function fillQuickAmount(studentId, inputId, type){
   if(!s) return;
   const f = studentFinance(s);
   const input = $(inputId);
-  if(type === 'monthly') input.value = Number(s.fee || 0);
-  if(type === 'expected') input.value = Number(f.expected || 0);
-  if(type === 'debt') input.value = Number(f.debt || 0);
-}
-
-function renderQuickPaymentGroups(){
-  const box = $('quickPaymentGroups');
-  if(!box) return;
-  const search = ($('paymentSearch')?.value || '').toLowerCase().trim();
-  if(!data.groups.length){box.innerHTML = '<div class="empty">Hələ qrup yoxdur.</div>';return;}
-  box.innerHTML = data.groups.map((g,i)=>{
-    let ss = active().filter(s=>s.groupId===g.id).filter(s=>!search || s.name.toLowerCase().includes(search));
-    let rows = ss.map(s=>{
-      const f = studentFinance(s);
-      const inputId = 'payinp_' + s.id.replaceAll('-', '_');
-      return `<tr>
-        <td><b>${esc(s.name)}</b><br><span class="muted">${esc(s.phone||'')}</span></td>
-        <td>${money(s.fee)}</td>
-        <td>${money(f.paid)}</td>
-        <td>${money(f.expected)}</td>
-        <td>${money(f.debt)}</td>
-        <td>${studentStatusHtml(s)}</td>
-        <td>
-          <div class="payBox">
-            <div class="payMainLine">
-              <input id="${inputId}" type="number" min="0" placeholder="Məbləğ yaz">
-              <button class="savePayBtn" type="button" onclick="addQuickPayment('${s.id}','${inputId}')">Ödənişi yadda saxla</button>
-            </div>
-            <div class="payHelperText">Hazır məbləğ seç:</div>
-            <div class="presetBtns">
-              <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','monthly')">${money(s.fee)} yaz</button>
-              <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Bu ayın məbləğini yaz</button>
-              <button class="presetBtn debtPreset" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">1+ ay ödənməyəni yaz</button>
-            </div>
-          </div>
-        </td>
-      </tr>`;
-    });
-    return acc('quickpay'+g.id,esc(g.name),scheduleText(g),[`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay ödənməyən: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Ödənilib','Bu ay','1+ ay ödənməyən','Status','Ödəniş əlavə et'],rows,'Bu qrupda şagird yoxdur.'),i===0);
-  }).join('');
-}
-
-function renderPayments(){
-  $('paymentList').innerHTML=data.groups.map((g,i)=>{
-    let ps=data.payments.filter(p=>student(p.studentId)?.groupId===g.id);
-    let rows=ps.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>`<tr><td>${esc(student(p.studentId)?.name||'Silinmiş')}</td><td>${money(p.amount)}</td><td>${dateAz(p.date)}</td><td>${methodHtml(p.method)}</td><td><button class="mini red" onclick="deletePayment('${p.id}')">Sil</button></td></tr>`);
-    return acc('pay'+g.id,esc(g.name),ps.length+' ödəniş',[`Toplam ödənilib: ${money(ps.reduce((a,p)=>a+Number(p.amount||0),0))}`,`Bu ay: ${money(totalExpected(g.id))}`],table(['Şagird','Məbləğ','Tarix','Forma',''],rows,'Ödəniş yoxdur.'),i===0)
-  }).join('');
-}
-function renderDebtors(){if($('debtorList')) $('debtorList').innerHTML=groupAccordions(true);}
-function renderReport(){
-  const gid = $('reportGroup') ? ($('reportGroup').value || 'all') : 'all';
-  const selectedGroups = gid === 'all' ? data.groups : data.groups.filter(g => g.id === gid);
-  const selectedIds = selectedGroups.map(g => g.id);
-  const selectedStudents = active().filter(s => selectedIds.includes(s.groupId));
-  const expectedSum = selectedStudents.reduce((a,s)=>a + studentFinance(s).expected, 0);
-  const debtSum = selectedStudents.reduce((a,s)=>a + studentFinance(s).debt, 0);
-  const selectedPayments = data.payments.filter(p => {const st = student(p.studentId);return st && selectedIds.includes(st.groupId);});
-  const paidSum = selectedPayments.reduce((a,p)=>a + Number(p.amount || 0), 0);
-  const cashSum = selectedPayments.filter(p=>p.method==='cash').reduce((a,p)=>a + Number(p.amount || 0), 0);
-  const cardSum = selectedPayments.filter(p=>p.method==='card').reduce((a,p)=>a + Number(p.amount || 0), 0);
-  $('rpExpected').textContent = money(expectedSum);
-  $('rpPaid').textContent = money(paidSum);
-  $('rpDebt').textContent = money(debtSum);
-  $('rpCashCard').textContent = money(cashSum) + ' / ' + money(cardSum);
-  $('reportList').innerHTML = selectedGroups.map((g,i)=>{
-    const ss = active().filter(s => s.groupId === g.id);
-    const rows = ss.map(s=>{
-      const f = studentFinance(s);
-      return `<tr>
-        <td>${esc(s.name)}</td>
-        <td>${money(s.fee)}</td>
-        <td>${dateAz(f.nextDue)}</td>
-        <td>${money(f.paid)}</td>
-        <td>${money(f.expected)}</td>
-        <td>${money(f.debt)}</td>
-        <td>${studentStatusHtml(s)}</td>
-      </tr>`;
-    });
-    return acc('rep'+g.id,esc(g.name),'Ümumi hesabat',[`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay ödənməyən: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Növbəti tarix','Ödənilib','Bu ay','1+ ay ödənməyən','Status'], rows, 'Bu qrupda şagird yoxdur.'),i===0)
-  }).join('');
-}
-
-function renderAll(){
-  fillSelects();
-  renderHome();
-  renderGroups();
-  renderSchedule();
-  renderStudents();
-  renderQuickPaymentGroups();
-  renderPayments();
-  renderReport();
-  refreshIcons();
+  if(!input) return;
+  if(type==='monthly') input.value = Number(s.fee||0) || '';
+  else if(type==='expected') input.value = Number(f.expected||0) || '';
+  else if(type==='debt') input.value = Number(f.debt||0) || '';
 }
 
 function persistAndRender(message){
@@ -851,7 +780,7 @@ function persistAndRender(message){
 
 window.editGroup=id=>{let g=group(id); if(!g)return;$('groupId').value=g.id;$('groupName').value=g.name;$('groupNote').value=g.note||'';$('scheduleRows').innerHTML='';(g.schedule||[]).forEach(s=>addSchedule(s.day,s.start,s.end));openPage('groups')}
 window.deleteGroup=id=>{if(data.students.some(s=>s.groupId===id))return alert('Bu qrupda şagird var. Əvvəl şagirdləri silin və ya başqa qrupa keçirin.'); if(confirm('Qrup silinsin?')){data.groups=data.groups.filter(g=>g.id!==id);persistAndRender('Qrup silindi')}}
-window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.id;$('studentName').value=s.name;$('studentPhone').value=s.phone||'';$('parentPhone').value=s.parent||'';$('studentGroup').value=s.groupId;$('joinDate').value=fromIsoDate(s.joinDate);$('monthlyFee').value=s.fee;$('studentStatus').value=s.status;openPage('students')}
+window.editStudent=id=>{let s=student(id); if(!s)return;$('studentId').value=s.id;$('studentName').value=s.name;$('studentPhone').value=s.phone||'';$('parentPhone').value=s.parent||'';$('studentGroup').value=s.groupId;$('joinDate').value=fromIsoDate(s.joinDate); if($('joinDatePicker')) $('joinDatePicker').value=toIsoDate(s.joinDate); $('monthlyFee').value=s.fee;$('studentStatus').value=s.status;openPage('students')}
 window.deleteStudent=id=>{if(confirm('Şagird silinsin?')){data.students=data.students.filter(s=>s.id!==id);persistAndRender('Şagird silindi')}}
 window.deletePayment=id=>{if(confirm('Ödəniş silinsin?')){data.payments=data.payments.filter(p=>p.id!==id);persistAndRender('Ödəniş silindi')}}
 
@@ -923,14 +852,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     showLogin('Çıxış edildi. Username və kod ilə daxil olun.');
     refreshIcons();
   };
-  $('addSchedule').onclick=()=>addSchedule();
+  if($('openSchedulePicker')) $('openSchedulePicker').onclick=()=>openScheduleModal();
   $('paymentSearch').oninput=renderQuickPaymentGroups;
   $('reportGroup').onchange=()=>renderReport();
   $('quickPaymentDate').value='';
   $('quickPaymentMethod').onchange=renderQuickPaymentGroups;
   $('quickPaymentDate').onchange=renderQuickPaymentGroups;
-  $('clearGroup').onclick=()=>{$('groupForm').reset();$('groupId').value='';$('scheduleRows').innerHTML='';addSchedule()};
-  $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value='';$('joinDate').value=''};
+  $('clearGroup').onclick=()=>{$('groupForm').reset();$('groupId').value='';$('scheduleRows').innerHTML='';};
+  $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value='';$('joinDate').value=''; if($('joinDatePicker')) $('joinDatePicker').value=''; $('studentGroup').value=''; $('studentStatus').value='';};
   $('studentSearch').oninput=renderStudents;
   $('groupForm').onsubmit=e=>{
     e.preventDefault();
@@ -949,7 +878,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     let sid=$('studentId').value||id();
     const joinDate=toIsoDate($('joinDate').value);
     if(!$('studentGroup').value) return alert('Qrup seçin.');
-    if(!joinDate) return alert('Qoşulduğu tarixi Gün/Ay/İl formatında yazın. Məsələn: 05/05/2025');
+    if(!joinDate) return alert('Qoşulduğu tarixi Gün/Ay/İl formatında yazın. məsələn 05/05/2025');
     if(!$('studentStatus').value) return alert('Status seçin.');
     let s={id:sid,name:$('studentName').value.trim(),phone:$('studentPhone').value.trim(),parent:$('parentPhone').value.trim(),groupId:$('studentGroup').value,joinDate:joinDate,fee:Number($('monthlyFee').value),status:$('studentStatus').value};
     let i=data.students.findIndex(x=>x.id===sid); i>=0?data.students[i]=s:data.students.push(s);
@@ -960,12 +889,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     let sid=$('paymentStudent').value;
     if(!sid)return alert('Şagird seçin.');
     const paymentDate=toIsoDate($('paymentDate').value);
-    if(!paymentDate) return alert('Ödəniş tarixini Gün/Ay/İl formatında yazın. Məsələn: 05/05/2025');
+    if(!paymentDate) return alert('Ödəniş tarixini Gün/Ay/İl formatında yazın. məsələn 05/05/2025');
     if(!$('paymentMethod').value) return alert('Ödəniş üsulunu seçin.');
     data.payments.push({id:id(),studentId:sid,amount:Number($('paymentAmount').value),date:paymentDate,method:$('paymentMethod').value,note:$('paymentNote').value.trim()});
-    $('paymentForm').reset();$('paymentDate').value='';persistAndRender('Ödəniş yazıldı');
+    $('paymentForm').reset();$('paymentDate').value=''; if($('paymentDatePicker')) $('paymentDatePicker').value=''; persistAndRender('Ödəniş yazıldı');
   };
   if($('exportData')) $('exportData').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hazirliq-melumatlari.json';a.click();};
   if($('clearAll')) $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};persistAndRender('Bütün məlumatlar silindi')}};
-  $('joinDate').value='';$('paymentDate').value='';addSchedule();initSupabase();refreshIcons();
+  $('joinDate').value='';$('paymentDate').value=''; if($('joinDatePicker')) $('joinDatePicker').value=''; if($('paymentDatePicker')) $('paymentDatePicker').value=''; syncDatePair('joinDate','joinDatePicker'); syncDatePair('quickPaymentDate','quickPaymentDatePicker'); syncDatePair('paymentDate','paymentDatePicker'); if($('closeScheduleModal')) $('closeScheduleModal').onclick=closeScheduleModal; if($('cancelScheduleModal')) $('cancelScheduleModal').onclick=closeScheduleModal; if($('saveScheduleModal')) $('saveScheduleModal').onclick=()=>{ const day=$('modalScheduleDay').value, start=$('modalScheduleStart').value, end=$('modalScheduleEnd').value; if(!day||!start||!end) return alert('Gün və saatları seçin.'); if(end<=start) return alert('Bitmə saatı başlama saatından sonra olmalıdır.'); addSchedule(day,start,end); closeScheduleModal(); }; if($('scheduleModal')) $('scheduleModal').addEventListener('click',(e)=>{ if(e.target.id==='scheduleModal') closeScheduleModal(); }); initSupabase();refreshIcons();
 });

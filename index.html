@@ -28,7 +28,7 @@
 
       <form id="authForm" class="authForm authPane active" data-auth-pane="teacher">
         <label>Username</label>
-        <input id="teacherUsername" type="text" required placeholder="məsələn: ayten" autocomplete="username">
+        <input id="teacherUsername" type="text" required placeholder="Username daxil edin" autocomplete="username">
         <label>Kod</label>
         <input id="teacherCode" type="password" required placeholder="Müəllim kodu" autocomplete="current-password">
         <div class="authActions singleAuthAction">
@@ -54,11 +54,11 @@
           </div>
           <form id="teacherCreateForm" class="authForm compactAuthForm">
             <label>Müəllim adı</label>
-            <input id="newTeacherName" type="text" placeholder="Məsələn: Aytən müəllimə">
+            <input id="newTeacherName" type="text" placeholder="Müəllimin adını daxil edin">
             <label>Username</label>
-            <input id="newTeacherUsername" type="text" placeholder="məsələn: ayten">
+            <input id="newTeacherUsername" type="text" placeholder="Username daxil edin">
             <label>Kod</label>
-            <input id="newTeacherCode" type="text" placeholder="məsələn: 482917">
+            <input id="newTeacherCode" type="text" placeholder="Kod daxil edin">
             <button class="primary" type="submit"><i data-lucide="user-plus"></i><span>Müəllim yarat / yenilə</span></button>
           </form>
           <div id="teacherAdminList" class="teacherAdminList"></div>
@@ -147,14 +147,6 @@
             <div class="statMeta"><span class="statIcon"><i data-lucide="circle-alert"></i></span><span>1 aydan artıq ödənməyən pul</span></div>
             <b id="stDebt">0 AZN</b>
           </div>
-          <div class="statCard compactStat">
-            <div class="statMeta"><span class="statIcon"><i data-lucide="wallet"></i></span><span>Nəğd</span></div>
-            <b id="stCash">0 AZN</b>
-          </div>
-          <div class="statCard compactStat">
-            <div class="statMeta"><span class="statIcon"><i data-lucide="credit-card"></i></span><span>Kart</span></div>
-            <b id="stCard">0 AZN</b>
-          </div>
         </div>
 
         <div class="surfaceCard quickScheduleCard">
@@ -194,13 +186,16 @@
             <label>Qrup adı</label>
             <input id="groupName" required placeholder="Qrup adını qeyd edin">
             <label>Dərs günləri və saatları</label>
-            <div id="scheduleRows"></div>
-            <button type="button" class="secondary iconButton" id="addSchedule"><i data-lucide="plus"></i><span>Dərs günü əlavə et</span></button>
+            <div class="schedulePickerBox">
+              <button type="button" class="secondary iconButton" id="openSchedulePicker"><i data-lucide="calendar-plus"></i><span>Dərs panelini aç</span></button>
+              <p class="smallNote inlineNote">Gün və saatları paneldən seçin. Heç nə avtomatik seçilmir.</p>
+            </div>
+            <div id="scheduleRows" class="scheduleCards"></div>
             <label>Qeyd</label>
             <textarea id="groupNote" placeholder="İstəyə bağlı qeyd"></textarea>
             <div class="formActions">
               <button class="primary"><i data-lucide="save"></i><span>Yadda saxla</span></button>
-              <button type="button" class="secondary" id="clearGroup">Formanı təmizlə</button>
+              <button type="button" class="secondary" id="clearGroup">Sahələri sıfırla</button>
             </div>
           </form>
 
@@ -242,15 +237,18 @@
             </div>
             <input type="hidden" id="studentId">
             <label>Ad Soyad</label>
-            <input id="studentName" required placeholder="Şagirdin adı və soyadı">
+            <input id="studentName" required placeholder="Ad və soyad daxil edin">
             <label>Telefon</label>
-            <input id="studentPhone" placeholder="Şagird telefonu">
+            <input id="studentPhone" placeholder="Telefon nömrəsi daxil edin">
             <label>Valideyn telefonu</label>
-            <input id="parentPhone" placeholder="Valideyn telefonu">
+            <input id="parentPhone" placeholder="Valideyn nömrəsi daxil edin">
             <label>Qrup</label>
             <select id="studentGroup" required></select>
             <label>Qoşulduğu tarix <span class="dateHint">Gün/Ay/İl</span></label>
-            <input id="joinDate" type="text" required placeholder="GG/AA/İİİİ, məsələn 05/05/2025" inputmode="numeric">
+            <div class="dateInputWrap">
+              <input id="joinDate" type="text" required placeholder="GG/AA/İİİİ" inputmode="numeric">
+              <input id="joinDatePicker" class="nativeDatePicker" type="date" aria-label="Qoşulduğu tarixi seç">
+            </div>
             <label>Aylıq ödəniş</label>
             <input id="monthlyFee" type="number" min="0" required placeholder="AZN">
             <label>Status</label>
@@ -261,7 +259,7 @@
             </select>
             <div class="formActions">
               <button class="primary"><i data-lucide="save"></i><span>Yadda saxla</span></button>
-              <button type="button" class="secondary" id="clearStudent">Formanı təmizlə</button>
+              <button type="button" class="secondary" id="clearStudent">Sahələri sıfırla</button>
             </div>
           </form>
 
@@ -296,7 +294,10 @@
               <option value="cash">Nəğd</option>
               <option value="card">Kart</option>
             </select>
-            <input id="quickPaymentDate" type="text" placeholder="Ödəniş tarixi: GG/AA/İİİİ" inputmode="numeric">
+            <div class="dateInputWrap compactDateWrap">
+              <input id="quickPaymentDate" type="text" placeholder="GG/AA/İİİİ" inputmode="numeric">
+              <input id="quickPaymentDatePicker" class="nativeDatePicker" type="date" aria-label="Ödəniş tarixini seç">
+            </div>
           </div>
 
           <div id="quickPaymentGroups"></div>
@@ -316,7 +317,10 @@
         <form id="paymentForm" class="hiddenPaymentForm">
           <select id="paymentStudent" required></select>
           <input id="paymentAmount" type="number" min="0" required>
-          <input id="paymentDate" type="text" required placeholder="GG/AA/İİİİ" inputmode="numeric">
+          <div class="dateInputWrap">
+            <input id="paymentDate" type="text" required placeholder="GG/AA/İİİİ" inputmode="numeric">
+            <input id="paymentDatePicker" class="nativeDatePicker" type="date" aria-label="Ödəniş tarixini seç">
+          </div>
           <select id="paymentMethod" required><option value="">Ödəniş üsulunu seç</option><option value="cash">Nəğd</option><option value="card">Kart</option></select>
           <textarea id="paymentNote"></textarea>
         </form>
@@ -361,6 +365,43 @@
         </div>
       </section>
 </main>
+
+  <div class="modalOverlay hidden" id="scheduleModal">
+    <div class="modalCard scheduleModalCard">
+      <div class="modalHeader">
+        <div>
+          <span class="panelLabel"><i data-lucide="calendar-clock"></i> Dərs paneli</span>
+          <h3>Dərs günü və saat seç</h3>
+          <p>Əvvəl günü, sonra başlama və bitmə saatını seçin.</p>
+        </div>
+        <button type="button" class="secondary iconOnlyBtn" id="closeScheduleModal" aria-label="Bağla"><i data-lucide="x"></i></button>
+      </div>
+      <div class="scheduleModalGrid">
+        <label>Gün
+          <select id="modalScheduleDay">
+            <option value="">Gün seç</option>
+            <option value="Bazar ertəsi">Bazar ertəsi</option>
+            <option value="Çərşənbə axşamı">Çərşənbə axşamı</option>
+            <option value="Çərşənbə">Çərşənbə</option>
+            <option value="Cümə axşamı">Cümə axşamı</option>
+            <option value="Cümə">Cümə</option>
+            <option value="Şənbə">Şənbə</option>
+            <option value="Bazar">Bazar</option>
+          </select>
+        </label>
+        <label>Başlama saatı
+          <select id="modalScheduleStart"></select>
+        </label>
+        <label>Bitmə saatı
+          <select id="modalScheduleEnd"></select>
+        </label>
+      </div>
+      <div class="formActions modalActions">
+        <button type="button" class="secondary" id="cancelScheduleModal">Bağla</button>
+        <button type="button" class="primary" id="saveScheduleModal"><i data-lucide="plus"></i><span>Dərs saatını əlavə et</span></button>
+      </div>
+    </div>
+  </div>
 
     <nav class="bottomTabBar" aria-label="Mobil menyu">
       <button type="button" class="bottomTab active" data-page="home"><i data-lucide="layout-dashboard"></i><span>Ana səhifə</span></button>
