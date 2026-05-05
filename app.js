@@ -299,6 +299,7 @@ async function createTeacherAccount(){
   const username=normalizeUsername($('newTeacherUsername')?.value||'');
   const code=($('newTeacherCode')?.value||'').trim();
   if(!username || !code) return setAuthMessage('Username və kod yazın.');
+  if(!db) return setAuthMessage('Supabase hazır deyil. supabase-config.js və deploy-u yoxlayın.');
   try{
     const {data:oldTeacher,error:findError}=await db.from('teacher_states').select('username').eq('username',username).maybeSingle();
     if(findError) throw findError;
@@ -745,6 +746,95 @@ function renderStudents(){
     return acc('sg'+g.id,esc(g.name),ss.length+' şagird',[`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay ödənməyən: ${money(totalDebt(g.id))}`],table(['Şagird','Aylıq','Başlama','Növbəti tarix','Bu ay','1+ ay ödənməyən','Status','Əməliyyat'],rows,'Bu qrupda şagird yoxdur.'),i===0)
   }).join('');
   $('studentList').innerHTML=html||'<div class="empty">Qrup yoxdur.</div>';
+}
+
+
+function renderQuickPaymentGroups(){
+  const mount=$('quickPaymentGroups');
+  if(!mount) return;
+  const query=($('paymentSearch')?.value||'').trim().toLowerCase();
+  const groups=data.groups || [];
+  if(!groups.length){
+    mount.innerHTML='<div class="empty">Ödəniş üçün əvvəl qrup və şagird yaradın.</div>';
+    return;
+  }
+  const html=groups.map((g,i)=>{
+    const students=active().filter(s=>s.groupId===g.id).filter(s=>!query || String(s.name||'').toLowerCase().includes(query));
+    if(!students.length && query) return '';
+    const rows=students.map(s=>{
+      const f=studentFinance(s);
+      const inputId='qp_'+s.id;
+      return `<div class="quickPayRow">
+        <div class="quickPayStudent">
+          <b>${esc(s.name)}</b>
+          <span>${esc(s.phone||'Telefon yoxdur')} • Bu ay: ${money(f.expected)} • 1+ ay: ${money(f.debt)}</span>
+        </div>
+        <div class="quickPayActions">
+          <button type="button" class="mini" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Bu ay</button>
+          <button type="button" class="mini" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">1+ ay</button>
+          <input id="${inputId}" type="number" min="0" placeholder="AZN">
+          <button type="button" class="primary miniPrimary" onclick="addQuickPayment('${s.id}','${inputId}')">Yadda saxla</button>
+        </div>
+      </div>`;
+    }).join('');
+    return acc('pay_'+g.id, esc(g.name), `${students.length} şagird`, [`Bu ay: ${money(totalExpected(g.id))}`,`1+ ay: ${money(totalDebt(g.id))}`], rows || '<div class="empty">Bu qrupda aktiv şagird yoxdur.</div>', i===0);
+  }).join('');
+  mount.innerHTML=html || '<div class="empty">Axtarışa uyğun şagird tapılmadı.</div>';
+  refreshIcons();
+}
+
+function renderPayments(){
+  const mount=$('paymentList');
+  if(!mount) return;
+  const rows=[...(data.payments||[])].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(p=>{
+    const s=student(p.studentId);
+    const g=s?group(s.groupId):null;
+    return `<tr>
+      <td><b>${esc(s?.name||'Silinmiş şagird')}</b><br>${esc(g?.name||'-')}</td>
+      <td>${money(p.amount)}</td>
+      <td>${dateAz(p.date)}</td>
+      <td>${methodHtml(p.method)}</td>
+      <td>${esc(p.note||'')}</td>
+      <td><button class="mini red" onclick="deletePayment('${p.id}')">Sil</button></td>
+    </tr>`;
+  });
+  mount.innerHTML=table(['Şagird','Məbləğ','Tarix','Üsul','Qeyd','Əməliyyat'],rows,'Hələ ödəniş yoxdur.');
+  refreshIcons();
+}
+
+function renderReport(){
+  const gid=$('reportGroup')?.value || 'all';
+  if($('rpExpected')) $('rpExpected').textContent=money(totalExpected(gid));
+  if($('rpPaid')) $('rpPaid').textContent=money(totalPaid(gid));
+  if($('rpDebt')) $('rpDebt').textContent=money(totalDebt(gid));
+  if($('rpCashCard')) $('rpCashCard').textContent=`${money(totalPaid(gid,'cash'))} / ${money(totalPaid(gid,'card'))}`;
+  const students=active().filter(s=>gid==='all'||s.groupId===gid);
+  const rows=students.map(s=>{
+    const f=studentFinance(s);
+    return `<tr>
+      <td><b>${esc(s.name)}</b><br>${esc(group(s.groupId)?.name||'-')}</td>
+      <td>${money(s.fee)}</td>
+      <td>${dateAz(s.joinDate)}</td>
+      <td>${dateAz(f.nextDue)}</td>
+      <td>${money(f.expected)}</td>
+      <td>${money(f.debt)}</td>
+      <td>${money(f.paid)}</td>
+    </tr>`;
+  });
+  if($('reportList')) $('reportList').innerHTML=table(['Şagird','Aylıq','Başlama','Növbəti tarix','Bu ay','1+ ay','Ümumi ödənilib'],rows,'Hesabat üçün şagird yoxdur.');
+  refreshIcons();
+}
+
+function renderAll(){
+  fillSelects();
+  renderHome();
+  renderGroups();
+  renderSchedule();
+  renderStudents();
+  renderQuickPaymentGroups();
+  renderPayments();
+  renderReport();
+  refreshIcons();
 }
 
 function addQuickPayment(studentId, amountInputId){

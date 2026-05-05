@@ -583,3 +583,7 @@ body.nav-open{overflow:hidden;touch-action:none}
   .scheduleModalGrid{grid-template-columns:1fr}
   .pills{grid-template-columns:1fr 1fr}
 }
+
+.quickPayRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:16px;border:1px solid var(--line);border-radius:22px;background:#fff;margin:10px 0}
+.quickPayStudent{display:flex;flex-direction:column;gap:4px;min-width:0}.quickPayStudent span{color:var(--muted);font-size:13px;font-weight:700}.quickPayActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.quickPayActions input{width:120px;height:44px;padding:0 12px}.miniPrimary{min-height:44px;padding:0 16px;border-radius:16px}
+@media (max-width:760px){.quickPayRow{grid-template-columns:1fr}.quickPayActions{justify-content:stretch}.quickPayActions input,.quickPayActions button{flex:1 1 120px}}
