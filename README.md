@@ -1,20 +1,18 @@
-# Hazırlıq Anar v10
+# Hazırlıq sistemi
 
-Bu versiyada Alt+Tab / tab dəyişəndən sonra yaranan save problemi üçün daha sadə və stabil fix tətbiq edildi.
+Bu versiya local-first məntiqlə işləyir.
 
-## Dəyişikliklər
+## Əsas dəyişiklik
 
-- Tab-a qayıdanda artıq avtomatik save edilmir.
-- Tab-a qayıdanda yalnız session yüngül yoxlanılır.
-- `Cloud gözləyir` ilişməsi aradan qaldırıldı.
-- Save queue çıxarıldı və sadə `saveInProgress` qoruması əlavə edildi.
-- Save əməliyyatı timeout ilə işləyir, sonsuz gözləmir.
-- Save alınmasa data lokal backup-da saxlanır.
-- Növbəti save zamanı yenidən Supabase-ə yazmağa çalışır.
+Əlavə/edit/sil əməliyyatları əvvəlcə cihaz yaddaşına yazılır və UI dərhal işləyir. Supabase yalnız arxa planda cloud sync üçün istifadə olunur.
 
-## Deploy
+Bu o deməkdir:
 
-GitHub repo-da bu faylları upload edin:
+- Alt+Tab və ya başqa tabdan qayıdanda əməliyyatlar bloklanmır.
+- Supabase session geciksə belə, qrup/şagird/ödəniş əlavə etmək dayanmayacaq.
+- Cloud sync fail olsa, məlumat cihazda qalır və sonra yenidən sync etməyə çalışır.
+
+## Fayllar
 
 - index.html
 - style.css
@@ -22,4 +20,4 @@ GitHub repo-da bu faylları upload edin:
 - supabase-config.js
 - README.md
 
-Sonra Vercel redeploy olacaq.
+GitHub-a bu 5 faylı upload edin və Vercel redeploy olacaq.

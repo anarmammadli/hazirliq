@@ -26,16 +26,14 @@ function normalizeData(cloudData){
     payments:Array.isArray(cloudData?.payments)?cloudData.payments:[]
   };
 }
-function backupUnsavedData(){
-  try{
-    localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify({data, savedAt:new Date().toISOString()}));
-  }catch(e){
-    console.warn('Local backup failed', e);
-  }
-}
-function clearUnsavedBackup(){
-  try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
-}
+const LOCAL_DATA_PREFIX='hazirliq_local_data_v2_';
+const LOCAL_PENDING_PREFIX='hazirliq_pending_sync_v2_';
+let cloudSyncInProgress=false;
+let cloudSyncQueued=false;
+
+function localDataKey(userId=currentUser?.id){return LOCAL_DATA_PREFIX+(userId||'guest')}
+function localPendingKey(userId=currentUser?.id){return LOCAL_PENDING_PREFIX+(userId||'guest')}
+function nowIso(){return new Date().toISOString()}
 function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 function withTimeout(promise,ms,label='Əməliyyat gecikdi'){
   return Promise.race([
@@ -43,174 +41,162 @@ function withTimeout(promise,ms,label='Əməliyyat gecikdi'){
     new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))
   ]);
 }
-function isRecoverableSupabaseError(err){
-  const msg=String(err?.message||err?.error_description||'').toLowerCase();
-  const code=String(err?.code||err?.status||'').toLowerCase();
-  return msg.includes('jwt') || msg.includes('session') || msg.includes('auth') ||
-         msg.includes('rls') || msg.includes('row-level') || msg.includes('permission') ||
-         msg.includes('failed to fetch') || msg.includes('network') || msg.includes('timeout') ||
-         code==='401' || code==='403' || code==='0';
-}
-async function ensureActiveUser(forceRefresh=false){
-  if(!auth) return null;
+function readLocalState(userId=currentUser?.id){
+  if(!userId) return null;
   try{
-    const sessionData=await withTimeout(auth.getSession(),4500,'Session yoxlanışı gecikdi');
-    if(sessionData.error) throw sessionData.error;
-    let session=sessionData.data?.session||null;
-
-    const expiresAt=session?.expires_at ? session.expires_at*1000 : 0;
-    const almostExpired=expiresAt && expiresAt-Date.now()<180000;
-    if(session && (forceRefresh || almostExpired) && typeof auth.refreshSession==='function'){
-      const refreshed=await withTimeout(auth.refreshSession(),4500,'Session yenilənməsi gecikdi');
-      if(!refreshed.error && refreshed.data?.session) session=refreshed.data.session;
-    }
-
-    // Prefer validated user, but do not hang the app if getUser is slow after Alt+Tab.
-    try{
-      const userData=await withTimeout(auth.getUser(),4500,'İstifadəçi yoxlanışı gecikdi');
-      if(!userData.error && userData.data?.user){
-        currentUser=userData.data.user;
-        return currentUser;
-      }
-    }catch(e){
-      console.warn('getUser skipped/fallback:', e);
-    }
-
-    currentUser=session?.user||null;
-    return currentUser;
-  }catch(err){
-    console.warn('Session/user check failed:', err);
-    currentUser=null;
-    throw err;
+    const raw=localStorage.getItem(localDataKey(userId));
+    if(!raw) return null;
+    const parsed=JSON.parse(raw);
+    return {data:normalizeData(parsed?.data), updatedAt:parsed?.updatedAt||'1970-01-01T00:00:00.000Z'};
+  }catch(e){
+    console.warn('Local state read failed:', e);
+    return null;
   }
 }
-
-
-async function saveNowCore(options={}){
-  backupUnsavedData();
-  if(isHydrating) return false;
-  let lastErr=null;
-  for(let attempt=0;attempt<2;attempt++){
-    try{
-      if(!db || !auth) throw new Error('Supabase client hazır deyil. Səhifəni refresh edin.');
-      if(!navigator.onLine) throw new Error('İnternet bağlantısı yoxdur.');
-      if($('cloudStatus')) $('cloudStatus').textContent=attempt?'Yenidən cəhd edilir...':'Cloud yazılır...';
-
-      const user=await ensureActiveUser(Boolean(options.forceRefresh) || attempt>0);
-      if(!user){
-        $('appShell')?.classList.add('locked');
-        $('authScreen')?.classList.remove('locked');
-        throw new Error('Sessiya bitib. Yenidən daxil olun.');
-      }
-
-      const payload={user_id:user.id,data:normalizeData(data),updated_at:new Date().toISOString()};
-      const {error}=await withTimeout(
-        db.from('user_states').upsert(payload,{onConflict:'user_id'}),
-        6500,
-        'Supabase yazma əməliyyatı gecikdi'
-      );
-      if(error) throw error;
-      pendingCloudSave=false;
-      clearUnsavedBackup();
-      if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
-      return true;
-    }catch(err){
-      lastErr=err;
-      console.warn('Supabase save attempt failed:', attempt+1, err);
-      if(attempt<1 && isRecoverableSupabaseError(err)){
-        await wait(500);
-        continue;
-      }
-      break;
-    }
-  }
-  pendingCloudSave=true;
-  console.error('Supabase save error:', lastErr);
-  if($('cloudStatus')) $('cloudStatus').textContent='Offline backup saxlandı';
-  if(!options.silent) toast('Yaddaşa yazılmadı. İnternet/session yoxlayın. Data backup-da saxlandı.');
-  return false;
-}
-async function saveNow(options={}){
-  if(saveInProgress){
-    needsSaveAfterCurrent=true;
-    if($('cloudStatus')) $('cloudStatus').textContent='Cloud növbədədir';
+function writeLocalState(){
+  if(!currentUser?.id) return false;
+  try{
+    const payload={data:normalizeData(data), updatedAt:nowIso()};
+    localStorage.setItem(localDataKey(currentUser.id), JSON.stringify(payload));
+    localStorage.setItem(localPendingKey(currentUser.id),'1');
+    pendingCloudSave=true;
+    if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
+    return true;
+  }catch(e){
+    console.error('Local save failed:', e);
+    toast('Cihaz yaddaşına yazmaq alınmadı. Browser storage yoxlayın.');
     return false;
   }
-  saveInProgress=true;
-  try{
-    const ok=await withTimeout(saveNowCore(options),9000,'Save kilidləndi');
-    return ok;
-  }catch(err){
-    console.warn('saveNow hard timeout:', err);
+}
+function markCloudSynced(userId=currentUser?.id){
+  if(!userId) return;
+  try{localStorage.removeItem(localPendingKey(userId));}catch(e){}
+  pendingCloudSave=false;
+}
+function hasPendingLocalSync(userId=currentUser?.id){
+  if(!userId) return false;
+  try{return localStorage.getItem(localPendingKey(userId))==='1'}catch(e){return false}
+}
+async function getFreshSessionUser(){
+  if(!auth) return null;
+  const {data:sessionData,error}=await withTimeout(auth.getSession(),3500,'Session gecikdi');
+  if(error) throw error;
+  let session=sessionData?.session||null;
+  if(!session) return null;
+  const expiresAt=session.expires_at ? session.expires_at*1000 : 0;
+  if(expiresAt && expiresAt-Date.now()<120000 && typeof auth.refreshSession==='function'){
+    try{
+      const refreshed=await withTimeout(auth.refreshSession(),3500,'Session refresh gecikdi');
+      if(!refreshed.error && refreshed.data?.session) session=refreshed.data.session;
+    }catch(e){console.warn('Session refresh skipped:', e)}
+  }
+  currentUser=session?.user||currentUser;
+  return currentUser;
+}
+async function syncToCloud(options={}){
+  // Cloud sync is background only. It must never block UI actions.
+  if(isHydrating || !db || !auth || !currentUser?.id) return false;
+  if(!navigator.onLine){
     pendingCloudSave=true;
-    backupUnsavedData();
-    if($('cloudStatus')) $('cloudStatus').textContent='Offline backup saxlandı';
+    if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
+    return false;
+  }
+  if(cloudSyncInProgress){
+    cloudSyncQueued=true;
+    return false;
+  }
+  cloudSyncInProgress=true;
+  const userIdAtStart=currentUser.id;
+  const snapshot=normalizeData(data);
+  try{
+    if($('cloudStatus')) $('cloudStatus').textContent='Cloud-a yazılır';
+    const user=await getFreshSessionUser();
+    if(!user?.id || user.id!==userIdAtStart) throw new Error('Session hazır deyil');
+    const {error}=await withTimeout(
+      db.from('user_states').upsert({
+        user_id:user.id,
+        data:snapshot,
+        updated_at:nowIso()
+      },{onConflict:'user_id'}),
+      5500,
+      'Cloud save timeout'
+    );
+    if(error) throw error;
+    markCloudSynced(user.id);
+    if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
+    return true;
+  }catch(err){
+    // Important: no blocking error for the user. Data is already local.
+    console.warn('Background cloud sync failed. Local data is safe:', err);
+    pendingCloudSave=true;
+    try{localStorage.setItem(localPendingKey(userIdAtStart),'1')}catch(e){}
+    if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     return false;
   }finally{
-    saveInProgress=false;
-    if(needsSaveAfterCurrent){
-      needsSaveAfterCurrent=false;
-      setTimeout(()=>saveNow({silent:true}),250);
+    cloudSyncInProgress=false;
+    if(cloudSyncQueued){
+      cloudSyncQueued=false;
+      setTimeout(()=>syncToCloud({silent:true}),800);
     }
   }
 }
-
-
+function scheduleCloudSync(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>syncToCloud({silent:true}),700);
+}
+function save(){
+  if(isHydrating) return;
+  writeLocalState();
+  scheduleCloudSync();
+}
 async function resumeSupabaseConnection(reason='resume'){
+  // Returning from Alt+Tab must not block the app and must not overwrite data.
   if(!auth || !db || document.hidden) return;
   clearTimeout(resumeTimer);
   resumeTimer=setTimeout(async()=>{
     try{
-      // Do not save or reload data on Alt+Tab / tab return.
-      // Only refresh auth lightly so the next user action can save normally.
-      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivləşir...';
-      await ensureActiveUser(reason==='online');
-      if($('cloudStatus')) $('cloudStatus').textContent=pendingCloudSave?'Backup gözləyir':'Cloud aktivdir';
+      await withTimeout(getFreshSessionUser(),3500,'Resume session timeout');
+      if(hasPendingLocalSync()) scheduleCloudSync();
+      else if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
     }catch(err){
-      console.warn('Resume auth check failed:', reason, err);
-      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
+      console.warn('Resume check skipped:', reason, err);
+      if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     }
-  },350);
-}
-
-
-function save(){
-  if(isHydrating) return;
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>saveNow(),350);
+  },500);
 }
 async function loadCloudData(){
   isHydrating=true;
+  const userId=currentUser?.id;
+  const local=readLocalState(userId);
+  if(local?.data){
+    data=normalizeData(local.data);
+  }else{
+    data={groups:[],students:[],payments:[]};
+  }
   try{
-    const {data:row,error}=await db
-      .from('user_states')
-      .select('data')
-      .eq('user_id',currentUser.id)
-      .maybeSingle();
+    if($('cloudStatus')) $('cloudStatus').textContent='Məlumat yüklənir';
+    const {data:row,error}=await withTimeout(
+      db.from('user_states').select('data, updated_at').eq('user_id',userId).maybeSingle(),
+      5500,
+      'Cloud load timeout'
+    );
     if(error) throw error;
-    if(row?.data){
+    const cloudUpdated=row?.updated_at||'1970-01-01T00:00:00.000Z';
+    const localUpdated=local?.updatedAt||'1970-01-01T00:00:00.000Z';
+    if(row?.data && (!local || new Date(cloudUpdated) > new Date(localUpdated))){
       data=normalizeData(row.data);
-    }else{
-      data={groups:[],students:[],payments:[]};
-      const {error:insertError}=await db
-        .from('user_states')
-        .insert({user_id:currentUser.id,data});
-      if(insertError) throw insertError;
+      try{localStorage.setItem(localDataKey(userId), JSON.stringify({data, updatedAt:cloudUpdated}))}catch(e){}
+      markCloudSynced(userId);
+    }else if(!row?.data){
+      // Create initial row in background, without blocking UI.
+      setTimeout(()=>syncToCloud({silent:true}),700);
+    }else if(local && new Date(localUpdated) >= new Date(cloudUpdated) && hasPendingLocalSync(userId)){
+      setTimeout(()=>syncToCloud({silent:true}),700);
     }
-    try{
-      const backup=JSON.parse(localStorage.getItem(LOCAL_BACKUP_KEY)||'null');
-      const b=backup?.data;
-      const hasBackup=b && ((b.groups||[]).length || (b.students||[]).length || (b.payments||[]).length);
-      const cloudEmpty=!data.groups.length && !data.students.length && !data.payments.length;
-      if(hasBackup && cloudEmpty){
-        data=normalizeData(b);
-        await saveNow();
-      }
-    }catch(e){console.warn('Backup restore skipped', e)}
-    if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
+    if($('cloudStatus')) $('cloudStatus').textContent=hasPendingLocalSync(userId)?'Cihazda saxlandı':'Cloud aktivdir';
   }catch(err){
-    console.error(err);
-    toast('Supabase məlumatları yüklənmədi');
+    console.warn('Cloud load failed, using local data:', err);
+    if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
   }finally{
     isHydrating=false;
     $('appShell')?.classList.remove('locked');
@@ -273,7 +259,8 @@ async function initSupabase(){
       setAuthMessage('Uğurla daxil oldunuz.',true);
       await loadCloudData();
     }else{
-      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
+      if(hasPendingLocalSync()) scheduleCloudSync();
+      else if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
     }
     refreshIcons();
   });
@@ -753,10 +740,10 @@ function renderAll(){
   refreshIcons();
 }
 
-async function persistAndRender(message){
+function persistAndRender(message){
   renderAll();
-  const ok=await saveNow();
-  if(message) toast(ok?message:'Yaddaşa yazılmadı. İnternet/session/RLS yoxlayın.');
+  save();
+  if(message) toast(message);
 }
 
 window.editGroup=id=>{let g=group(id); if(!g)return;$('groupId').value=g.id;$('groupName').value=g.name;$('groupNote').value=g.note||'';$('scheduleRows').innerHTML='';(g.schedule||[]).forEach(s=>addSchedule(s.day,s.start,s.end));openPage('groups')}
