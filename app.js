@@ -14,7 +14,7 @@ const dayShort={ 'Bazar ertəsi':'B.e', 'Çərşənbə axşamı':'Ç.a', 'Çər�
 const monthNames=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 function timeList(){
   const list=[];
-  for(let h=6; h<=23; h++){
+  for(let h=0; h<=23; h++){
     for(const m of [0,15,30,45]){
       list.push(String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0'));
     }
@@ -463,7 +463,7 @@ function renderModalScheduleList(){
   const wrap=$('modalScheduleList');
   if(!wrap) return;
   if(!pickerState.scheduleItems.length){
-    wrap.innerHTML='<div class="empty">Hələ gün əlavə edilməyib.</div>';
+    wrap.innerHTML='<div class="empty">Seçilmiş günlər burada görünəcək.</div>';
     return;
   }
   wrap.innerHTML=pickerState.scheduleItems.map((item,idx)=>`<div class="modalScheduleItem"><div><b>${esc(item.day)}</b><span>${esc(item.start)} - ${esc(item.end)}</span></div><button type="button" class="mini red" data-remove-schedule="${idx}">Sil</button></div>`).join('');
