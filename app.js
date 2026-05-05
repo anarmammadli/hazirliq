@@ -23,9 +23,13 @@ function normalizeData(cloudData){
   return {
     groups:Array.isArray(cloudData?.groups)?cloudData.groups:[],
     students:Array.isArray(cloudData?.students)?cloudData.students:[],
-    payments:Array.isArray(cloudData?.payments)?cloudData.payments:[]
+    payments:Array.isArray(cloudData?.payments)?cloudData.payments:[],
+    __updatedAt:cloudData?.__updatedAt || cloudData?.updatedAt || '1970-01-01T00:00:00.000Z'
   };
 }
+function dataUpdatedAt(d=data){return d?.__updatedAt || d?.updatedAt || '1970-01-01T00:00:00.000Z'}
+function newerOrEqual(a,b){return new Date(a||0).getTime() >= new Date(b||0).getTime()}
+function touchData(){data.__updatedAt=nowIso(); return data.__updatedAt;}
 const LOCAL_DATA_PREFIX='hazirliq_local_data_v2_';
 const LOCAL_PENDING_PREFIX='hazirliq_pending_sync_v2_';
 let cloudSyncInProgress=false;
@@ -56,7 +60,8 @@ function readLocalState(userId=currentUser?.id){
 function writeLocalState(){
   if(!currentUser?.id) return false;
   try{
-    const payload={data:normalizeData(data), updatedAt:nowIso()};
+    const ts=touchData();
+    const payload={data:normalizeData(data), updatedAt:ts};
     localStorage.setItem(localDataKey(currentUser.id), JSON.stringify(payload));
     localStorage.setItem(localPendingKey(currentUser.id),'1');
     pendingCloudSave=true;
@@ -94,10 +99,12 @@ async function getFreshSessionUser(){
   return currentUser;
 }
 async function syncToCloud(options={}){
-  // Cloud sync is background only. It must never block UI actions.
+  // Local-first: cloud sync is background only. It must never block UI actions.
   if(isHydrating || !db || !auth || !currentUser?.id) return false;
+  const userIdAtStart=currentUser.id;
   if(!navigator.onLine){
     pendingCloudSave=true;
+    try{localStorage.setItem(localPendingKey(userIdAtStart),'1')}catch(e){}
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     return false;
   }
@@ -106,27 +113,42 @@ async function syncToCloud(options={}){
     return false;
   }
   cloudSyncInProgress=true;
-  const userIdAtStart=currentUser.id;
-  const snapshot=normalizeData(data);
   try{
     if($('cloudStatus')) $('cloudStatus').textContent='Cloud-a yazılır';
     const user=await getFreshSessionUser();
     if(!user?.id || user.id!==userIdAtStart) throw new Error('Session hazır deyil');
+
+    // Always sync the newest local snapshot, not a possibly stale global variable.
+    const localSnapshot=readLocalState(user.id);
+    const snapshot=normalizeData(localSnapshot?.data || data);
+    const snapshotTime=dataUpdatedAt(snapshot) || localSnapshot?.updatedAt || nowIso();
+    snapshot.__updatedAt=snapshotTime;
+
     const {error}=await withTimeout(
       db.from('user_states').upsert({
         user_id:user.id,
         data:snapshot,
-        updated_at:nowIso()
+        updated_at:snapshotTime
       },{onConflict:'user_id'}),
-      5500,
+      6500,
       'Cloud save timeout'
     );
     if(error) throw error;
-    markCloudSynced(user.id);
-    if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
+
+    // Only clear pending if no newer local change happened while this request was running.
+    const latestLocal=readLocalState(user.id);
+    const latestTime=latestLocal?.updatedAt || dataUpdatedAt(latestLocal?.data);
+    if(!latestLocal || latestTime===snapshotTime){
+      markCloudSynced(user.id);
+      if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
+    }else{
+      // A newer local change exists; keep pending and sync again.
+      try{localStorage.setItem(localPendingKey(user.id),'1')}catch(e){}
+      cloudSyncQueued=true;
+      if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
+    }
     return true;
   }catch(err){
-    // Important: no blocking error for the user. Data is already local.
     console.warn('Background cloud sync failed. Local data is safe:', err);
     pendingCloudSave=true;
     try{localStorage.setItem(localPendingKey(userIdAtStart),'1')}catch(e){}
@@ -136,7 +158,7 @@ async function syncToCloud(options={}){
     cloudSyncInProgress=false;
     if(cloudSyncQueued){
       cloudSyncQueued=false;
-      setTimeout(()=>syncToCloud({silent:true}),800);
+      setTimeout(()=>syncToCloud({silent:true}),900);
     }
   }
 }
@@ -168,32 +190,49 @@ async function loadCloudData(){
   isHydrating=true;
   const userId=currentUser?.id;
   const local=readLocalState(userId);
+  const localTime=local?.updatedAt || dataUpdatedAt(local?.data);
+  const localPending=hasPendingLocalSync(userId);
+
   if(local?.data){
     data=normalizeData(local.data);
   }else{
-    data={groups:[],students:[],payments:[]};
+    data={groups:[],students:[],payments:[],__updatedAt:'1970-01-01T00:00:00.000Z'};
   }
+
   try{
     if($('cloudStatus')) $('cloudStatus').textContent='Məlumat yüklənir';
     const {data:row,error}=await withTimeout(
       db.from('user_states').select('data, updated_at').eq('user_id',userId).maybeSingle(),
-      5500,
+      6500,
       'Cloud load timeout'
     );
     if(error) throw error;
-    const cloudUpdated=row?.updated_at||'1970-01-01T00:00:00.000Z';
-    const localUpdated=local?.updatedAt||'1970-01-01T00:00:00.000Z';
-    if(row?.data && (!local || new Date(cloudUpdated) > new Date(localUpdated))){
-      data=normalizeData(row.data);
-      try{localStorage.setItem(localDataKey(userId), JSON.stringify({data, updatedAt:cloudUpdated}))}catch(e){}
+
+    const cloudData=row?.data ? normalizeData(row.data) : null;
+    const cloudTime=cloudData ? (dataUpdatedAt(cloudData) || row?.updated_at) : '1970-01-01T00:00:00.000Z';
+
+    if(localPending && local?.data){
+      // Critical fix: never let older cloud data overwrite unsynced local changes.
+      data=normalizeData(local.data);
+      setTimeout(()=>syncToCloud({silent:true}),600);
+      if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
+    }else if(cloudData && (!local || newerOrEqual(cloudTime, localTime))){
+      data=cloudData;
+      try{localStorage.setItem(localDataKey(userId), JSON.stringify({data, updatedAt:cloudTime}))}catch(e){}
       markCloudSynced(userId);
-    }else if(!row?.data){
-      // Create initial row in background, without blocking UI.
-      setTimeout(()=>syncToCloud({silent:true}),700);
-    }else if(local && new Date(localUpdated) >= new Date(cloudUpdated) && hasPendingLocalSync(userId)){
-      setTimeout(()=>syncToCloud({silent:true}),700);
+      if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
+    }else if(local?.data){
+      // Local is newer than cloud, so keep it and push it to cloud.
+      data=normalizeData(local.data);
+      try{localStorage.setItem(localPendingKey(userId),'1')}catch(e){}
+      setTimeout(()=>syncToCloud({silent:true}),600);
+      if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
+    }else{
+      data={groups:[],students:[],payments:[],__updatedAt:nowIso()};
+      writeLocalState();
+      setTimeout(()=>syncToCloud({silent:true}),600);
+      if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     }
-    if($('cloudStatus')) $('cloudStatus').textContent=hasPendingLocalSync(userId)?'Cihazda saxlandı':'Cloud aktivdir';
   }catch(err){
     console.warn('Cloud load failed, using local data:', err);
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';

@@ -1,23 +1,25 @@
-# Hazırlıq sistemi
+# Hazırlıq Ödəniş Sistemi
 
-Bu versiya local-first məntiqlə işləyir.
+Bu versiyada local-first + Supabase timestamp merge fix əlavə edildi.
 
-## Əsas dəyişiklik
+## Əsas fix
 
-Əlavə/edit/sil əməliyyatları əvvəlcə cihaz yaddaşına yazılır və UI dərhal işləyir. Supabase yalnız arxa planda cloud sync üçün istifadə olunur.
-
-Bu o deməkdir:
-
-- Alt+Tab və ya başqa tabdan qayıdanda əməliyyatlar bloklanmır.
-- Supabase session geciksə belə, qrup/şagird/ödəniş əlavə etmək dayanmayacaq.
-- Cloud sync fail olsa, məlumat cihazda qalır və sonra yenidən sync etməyə çalışır.
+- Data əvvəl cihazda saxlanır.
+- Supabase arxada sync edir.
+- Refresh zamanı köhnə cloud data yeni local datanı silmir.
+- Hər dəyişiklik `__updatedAt` timestamp ilə saxlanılır.
+- App açılarkən local və cloud timestamp müqayisə olunur.
+- Daha yeni olan data qalır.
+- Local daha yenidirsə, cloud avtomatik yenilənir.
 
 ## Fayllar
 
-- index.html
-- style.css
-- app.js
-- supabase-config.js
-- README.md
+- `index.html`
+- `style.css`
+- `app.js`
+- `supabase-config.js`
+- `README.md`
 
-GitHub-a bu 5 faylı upload edin və Vercel redeploy olacaq.
+## Deploy
+
+Bu faylları GitHub repo-da köhnə faylların üstünə upload edin. Vercel avtomatik redeploy edəcək.
