@@ -21,12 +21,20 @@ function withTimeout(promise,ms,label='Əməliyyat gecikdi'){
     new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))
   ]);
 }
+const DEFAULT_SUPABASE_CONFIG={
+  url:'https://dmbqqqdpithwxgshyyuu.supabase.co',
+  anonKey:'sb_publishable__yJM--NxxASz70KcaxSBpw_Yyy2ML92',
+  adminPassword:'a0516600094'
+};
+function supabaseConfig(){
+  return Object.assign({}, DEFAULT_SUPABASE_CONFIG, window.HAZIRLIQ_SUPABASE_CONFIG || {});
+}
 function isSupabaseConfigured(){
-  const cfg=window.HAZIRLIQ_SUPABASE_CONFIG;
+  const cfg=supabaseConfig();
   return !!(cfg && cfg.url && cfg.anonKey && !String(cfg.url).includes('PASTE_') && !String(cfg.anonKey).includes('PASTE_'));
 }
 function adminPassword(){
-  return String(window.HAZIRLIQ_SUPABASE_CONFIG?.adminPassword || 'a0516600094');
+  return String(supabaseConfig().adminPassword || 'a0516600094');
 }
 function normalizeData(cloudData){
   return {
@@ -233,9 +241,15 @@ async function initSupabase(){
     refreshIcons();
     return;
   }
+  if(!window.supabase?.createClient){
+    showLogin('Supabase kitabxanası yüklənmədi. İnternet/CDN bağlantısını yoxlayın.');
+    refreshIcons();
+    return;
+  }
+  const cfg=supabaseConfig();
   db=window.supabase.createClient(
-    window.HAZIRLIQ_SUPABASE_CONFIG.url,
-    window.HAZIRLIQ_SUPABASE_CONFIG.anonKey,
+    cfg.url,
+    cfg.anonKey,
     {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}
   );
 
