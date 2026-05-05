@@ -1,23 +1,33 @@
 let data={groups:[],students:[],payments:[]};
-let auth=null;
 let db=null;
-let currentUser=null;
 let isHydrating=true;
 let saveTimer=null;
-let unsubscribeAuth=null;
-let pendingCloudSave=false;
-let resumeTimer=null;
-let saveInProgress=false;
-let needsSaveAfterCurrent=false;
-const LOCAL_BACKUP_KEY='hazirliq_supabase_unsaved_backup_v1';
+let cloudSyncInProgress=false;
+let cloudSyncQueued=false;
+
+const APP_STATE_ID='main';
+const LOCAL_DATA_KEY='hazirliq_single_admin_data_v1';
+const LOCAL_PENDING_KEY='hazirliq_single_admin_pending_v1';
+const ADMIN_OK_KEY='hazirliq_admin_unlocked_v1';
 const $=id=>document.getElementById(id);
 const days=['Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə','Bazar'];
 const months=['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
 
 function id(){return crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random().toString(16)}
+function nowIso(){return new Date().toISOString()}
+function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+function withTimeout(promise,ms,label='Əməliyyat gecikdi'){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))
+  ]);
+}
 function isSupabaseConfigured(){
   const cfg=window.HAZIRLIQ_SUPABASE_CONFIG;
   return !!(cfg && cfg.url && cfg.anonKey && !String(cfg.url).includes('PASTE_') && !String(cfg.anonKey).includes('PASTE_'));
+}
+function adminPassword(){
+  return String(window.HAZIRLIQ_SUPABASE_CONFIG?.adminPassword || '123456');
 }
 function normalizeData(cloudData){
   return {
@@ -30,41 +40,23 @@ function normalizeData(cloudData){
 function dataUpdatedAt(d=data){return d?.__updatedAt || d?.updatedAt || '1970-01-01T00:00:00.000Z'}
 function newerOrEqual(a,b){return new Date(a||0).getTime() >= new Date(b||0).getTime()}
 function touchData(){data.__updatedAt=nowIso(); return data.__updatedAt;}
-const LOCAL_DATA_PREFIX='hazirliq_local_data_v2_';
-const LOCAL_PENDING_PREFIX='hazirliq_pending_sync_v2_';
-let cloudSyncInProgress=false;
-let cloudSyncQueued=false;
-
-function localDataKey(userId=currentUser?.id){return LOCAL_DATA_PREFIX+(userId||'guest')}
-function localPendingKey(userId=currentUser?.id){return LOCAL_PENDING_PREFIX+(userId||'guest')}
-function nowIso(){return new Date().toISOString()}
-function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
-function withTimeout(promise,ms,label='Əməliyyat gecikdi'){
-  return Promise.race([
-    promise,
-    new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms))
-  ]);
-}
-function readLocalState(userId=currentUser?.id){
-  if(!userId) return null;
+function readLocalState(){
   try{
-    const raw=localStorage.getItem(localDataKey(userId));
+    const raw=localStorage.getItem(LOCAL_DATA_KEY);
     if(!raw) return null;
     const parsed=JSON.parse(raw);
-    return {data:normalizeData(parsed?.data), updatedAt:parsed?.updatedAt||'1970-01-01T00:00:00.000Z'};
+    return {data:normalizeData(parsed?.data), updatedAt:parsed?.updatedAt||dataUpdatedAt(parsed?.data)};
   }catch(e){
     console.warn('Local state read failed:', e);
     return null;
   }
 }
 function writeLocalState(){
-  if(!currentUser?.id) return false;
   try{
     const ts=touchData();
     const payload={data:normalizeData(data), updatedAt:ts};
-    localStorage.setItem(localDataKey(currentUser.id), JSON.stringify(payload));
-    localStorage.setItem(localPendingKey(currentUser.id),'1');
-    pendingCloudSave=true;
+    localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(payload));
+    localStorage.setItem(LOCAL_PENDING_KEY,'1');
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     return true;
   }catch(e){
@@ -73,38 +65,17 @@ function writeLocalState(){
     return false;
   }
 }
-function markCloudSynced(userId=currentUser?.id){
-  if(!userId) return;
-  try{localStorage.removeItem(localPendingKey(userId));}catch(e){}
-  pendingCloudSave=false;
+function markCloudSynced(){
+  try{localStorage.removeItem(LOCAL_PENDING_KEY);}catch(e){}
 }
-function hasPendingLocalSync(userId=currentUser?.id){
-  if(!userId) return false;
-  try{return localStorage.getItem(localPendingKey(userId))==='1'}catch(e){return false}
+function hasPendingLocalSync(){
+  try{return localStorage.getItem(LOCAL_PENDING_KEY)==='1'}catch(e){return false}
 }
-async function getFreshSessionUser(){
-  if(!auth) return null;
-  const {data:sessionData,error}=await withTimeout(auth.getSession(),3500,'Session gecikdi');
-  if(error) throw error;
-  let session=sessionData?.session||null;
-  if(!session) return null;
-  const expiresAt=session.expires_at ? session.expires_at*1000 : 0;
-  if(expiresAt && expiresAt-Date.now()<120000 && typeof auth.refreshSession==='function'){
-    try{
-      const refreshed=await withTimeout(auth.refreshSession(),3500,'Session refresh gecikdi');
-      if(!refreshed.error && refreshed.data?.session) session=refreshed.data.session;
-    }catch(e){console.warn('Session refresh skipped:', e)}
-  }
-  currentUser=session?.user||currentUser;
-  return currentUser;
-}
-async function syncToCloud(options={}){
-  // Local-first: cloud sync is background only. It must never block UI actions.
-  if(isHydrating || !db || !auth || !currentUser?.id) return false;
-  const userIdAtStart=currentUser.id;
+async function syncToCloud(){
+  // Single-admin row: no Supabase Auth, no session, no user_id.
+  // UI actions are already saved locally, so cloud sync must never block the app.
+  if(isHydrating || !db) return false;
   if(!navigator.onLine){
-    pendingCloudSave=true;
-    try{localStorage.setItem(localPendingKey(userIdAtStart),'1')}catch(e){}
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     return false;
   }
@@ -115,56 +86,49 @@ async function syncToCloud(options={}){
   cloudSyncInProgress=true;
   try{
     if($('cloudStatus')) $('cloudStatus').textContent='Cloud-a yazılır';
-    const user=await getFreshSessionUser();
-    if(!user?.id || user.id!==userIdAtStart) throw new Error('Session hazır deyil');
-
-    // Always sync the newest local snapshot, not a possibly stale global variable.
-    const localSnapshot=readLocalState(user.id);
+    const localSnapshot=readLocalState();
     const snapshot=normalizeData(localSnapshot?.data || data);
-    const snapshotTime=dataUpdatedAt(snapshot) || localSnapshot?.updatedAt || nowIso();
+    const snapshotTime=localSnapshot?.updatedAt || dataUpdatedAt(snapshot) || nowIso();
     snapshot.__updatedAt=snapshotTime;
 
     const {error}=await withTimeout(
-      db.from('user_states').upsert({
-        user_id:user.id,
+      db.from('app_states').upsert({
+        id:APP_STATE_ID,
         data:snapshot,
         updated_at:snapshotTime
-      },{onConflict:'user_id'}),
-      6500,
+      },{onConflict:'id'}),
+      9000,
       'Cloud save timeout'
     );
     if(error) throw error;
 
-    // Only clear pending if no newer local change happened while this request was running.
-    const latestLocal=readLocalState(user.id);
+    const latestLocal=readLocalState();
     const latestTime=latestLocal?.updatedAt || dataUpdatedAt(latestLocal?.data);
     if(!latestLocal || latestTime===snapshotTime){
-      markCloudSynced(user.id);
+      markCloudSynced();
       if($('cloudStatus')) $('cloudStatus').textContent='Cloud saxlandı';
     }else{
-      // A newer local change exists; keep pending and sync again.
-      try{localStorage.setItem(localPendingKey(user.id),'1')}catch(e){}
+      localStorage.setItem(LOCAL_PENDING_KEY,'1');
       cloudSyncQueued=true;
       if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     }
     return true;
   }catch(err){
-    console.warn('Background cloud sync failed. Local data is safe:', err);
-    pendingCloudSave=true;
-    try{localStorage.setItem(localPendingKey(userIdAtStart),'1')}catch(e){}
+    console.error('Cloud sync failed:', err);
+    try{localStorage.setItem(LOCAL_PENDING_KEY,'1')}catch(e){}
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     return false;
   }finally{
     cloudSyncInProgress=false;
     if(cloudSyncQueued){
       cloudSyncQueued=false;
-      setTimeout(()=>syncToCloud({silent:true}),900);
+      setTimeout(()=>syncToCloud(),1200);
     }
   }
 }
 function scheduleCloudSync(){
   clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>syncToCloud({silent:true}),700);
+  saveTimer=setTimeout(()=>syncToCloud(),700);
 }
 function save(){
   if(isHydrating) return;
@@ -172,26 +136,26 @@ function save(){
   scheduleCloudSync();
 }
 async function resumeSupabaseConnection(reason='resume'){
-  // Returning from Alt+Tab must not block the app and must not overwrite data.
-  if(!auth || !db || document.hidden) return;
-  clearTimeout(resumeTimer);
-  resumeTimer=setTimeout(async()=>{
-    try{
-      await withTimeout(getFreshSessionUser(),3500,'Resume session timeout');
-      if(hasPendingLocalSync()) scheduleCloudSync();
-      else if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
-    }catch(err){
-      console.warn('Resume check skipped:', reason, err);
-      if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
-    }
-  },500);
+  // Returning from Alt+Tab/tab change does NOT reload/overwrite data.
+  // It only retries pending cloud sync in the background.
+  if(!db || document.hidden) return;
+  if(hasPendingLocalSync()) scheduleCloudSync();
+  else if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
+}
+function showApp(){
+  $('appShell')?.classList.remove('locked');
+  $('authScreen')?.classList.add('locked');
+}
+function showLogin(msg=''){
+  $('appShell')?.classList.add('locked');
+  $('authScreen')?.classList.remove('locked');
+  setAuthMessage(msg);
 }
 async function loadCloudData(){
   isHydrating=true;
-  const userId=currentUser?.id;
-  const local=readLocalState(userId);
+  const local=readLocalState();
   const localTime=local?.updatedAt || dataUpdatedAt(local?.data);
-  const localPending=hasPendingLocalSync(userId);
+  const localPending=hasPendingLocalSync();
 
   if(local?.data){
     data=normalizeData(local.data);
@@ -200,10 +164,10 @@ async function loadCloudData(){
   }
 
   try{
-    if($('cloudStatus')) $('cloudStatus').textContent='Məlumat yüklənir';
+    if($('cloudStatus')) $('cloudStatus').textContent='Cloud yoxlanılır';
     const {data:row,error}=await withTimeout(
-      db.from('user_states').select('data, updated_at').eq('user_id',userId).maybeSingle(),
-      6500,
+      db.from('app_states').select('data, updated_at').eq('id',APP_STATE_ID).maybeSingle(),
+      9000,
       'Cloud load timeout'
     );
     if(error) throw error;
@@ -212,34 +176,30 @@ async function loadCloudData(){
     const cloudTime=cloudData ? (dataUpdatedAt(cloudData) || row?.updated_at) : '1970-01-01T00:00:00.000Z';
 
     if(localPending && local?.data){
-      // Critical fix: never let older cloud data overwrite unsynced local changes.
       data=normalizeData(local.data);
-      setTimeout(()=>syncToCloud({silent:true}),600);
+      setTimeout(()=>syncToCloud(),600);
       if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     }else if(cloudData && (!local || newerOrEqual(cloudTime, localTime))){
       data=cloudData;
-      try{localStorage.setItem(localDataKey(userId), JSON.stringify({data, updatedAt:cloudTime}))}catch(e){}
-      markCloudSynced(userId);
+      try{localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify({data, updatedAt:cloudTime}))}catch(e){}
+      markCloudSynced();
       if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
     }else if(local?.data){
-      // Local is newer than cloud, so keep it and push it to cloud.
       data=normalizeData(local.data);
-      try{localStorage.setItem(localPendingKey(userId),'1')}catch(e){}
-      setTimeout(()=>syncToCloud({silent:true}),600);
+      try{localStorage.setItem(LOCAL_PENDING_KEY,'1')}catch(e){}
+      setTimeout(()=>syncToCloud(),600);
       if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
     }else{
       data={groups:[],students:[],payments:[],__updatedAt:nowIso()};
       writeLocalState();
-      setTimeout(()=>syncToCloud({silent:true}),600);
-      if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
+      setTimeout(()=>syncToCloud(),600);
     }
   }catch(err){
     console.warn('Cloud load failed, using local data:', err);
     if($('cloudStatus')) $('cloudStatus').textContent='Cihazda saxlandı';
   }finally{
     isHydrating=false;
-    $('appShell')?.classList.remove('locked');
-    $('authScreen')?.classList.add('locked');
+    showApp();
     renderAll();
   }
 }
@@ -249,61 +209,26 @@ function setAuthMessage(text,ok=false){
   box.textContent=text||'';
   box.classList.toggle('ok',!!ok);
 }
-function supabaseErrorMessage(err){
-  const msg=String(err?.message||'').toLowerCase();
-  if(msg.includes('invalid login credentials')) return 'Email və ya şifrə yanlışdır.';
-  if(msg.includes('already registered') || msg.includes('user already registered')) return 'Bu email ilə hesab artıq var.';
-  if(msg.includes('password')) return 'Şifrə minimum 6 simvol olmalıdır.';
-  if(msg.includes('email not confirmed')) return 'Email təsdiqlənməyib. Supabase-də email confirmation-u söndürün və ya emaili təsdiqləyin.';
-  if(msg.includes('failed to fetch') || msg.includes('network')) return 'İnternet bağlantısını yoxlayın.';
-  return err?.message||'Supabase xətası baş verdi.';
-}
 async function initSupabase(){
   if(!isSupabaseConfigured()){
-    $('appShell')?.classList.add('locked');
-    $('authScreen')?.classList.remove('locked');
-    setAuthMessage('Supabase config hələ yazılmayıb. supabase-config.js faylını doldurun.');
+    showLogin('Supabase config yazılmayıb. supabase-config.js faylını yoxlayın.');
+    refreshIcons();
     return;
   }
-  db=window.supabase.createClient(window.HAZIRLIQ_SUPABASE_CONFIG.url, window.HAZIRLIQ_SUPABASE_CONFIG.anonKey);
-  auth=db.auth;
+  db=window.supabase.createClient(
+    window.HAZIRLIQ_SUPABASE_CONFIG.url,
+    window.HAZIRLIQ_SUPABASE_CONFIG.anonKey,
+    {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}
+  );
 
-  const {data:sessionData}=await auth.getSession();
-  currentUser=sessionData?.session?.user||null;
-  if(currentUser){
-    await loadCloudData();
-  }else{
+  const unlocked=localStorage.getItem(ADMIN_OK_KEY)==='1';
+  if(!unlocked){
     isHydrating=true;
-    data={groups:[],students:[],payments:[]};
-    $('appShell')?.classList.add('locked');
-    $('authScreen')?.classList.remove('locked');
-  }
-
-  const {data:listener}=auth.onAuthStateChange(async(event,session)=>{
-    const previousUserId=currentUser?.id||null;
-    currentUser=session?.user||null;
-
-    if(!currentUser){
-      isHydrating=true;
-      data={groups:[],students:[],payments:[]};
-      $('appShell')?.classList.add('locked');
-      $('authScreen')?.classList.remove('locked');
-      refreshIcons();
-      return;
-    }
-
-    // Only load data when a user actually signs in or changes.
-    // Do NOT reload all data on TOKEN_REFRESHED after tab/Alt+Tab.
-    if(event==='SIGNED_IN' || event==='INITIAL_SESSION' || previousUserId!==currentUser.id){
-      setAuthMessage('Uğurla daxil oldunuz.',true);
-      await loadCloudData();
-    }else{
-      if(hasPendingLocalSync()) scheduleCloudSync();
-      else if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
-    }
+    showLogin('Admin şifrəsini yazın.');
     refreshIcons();
-  });
-  unsubscribeAuth=listener?.subscription;
+    return;
+  }
+  await loadCloudData();
   refreshIcons();
 }
 function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -843,25 +768,20 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   $('authForm').onsubmit=async(e)=>{
     e.preventDefault();
-    if(!auth) return setAuthMessage('Supabase config tamamlanmayıb.');
-    try{
-      setAuthMessage('Daxil olunur...',true);
-      const {error}=await auth.signInWithPassword({email:$('authEmail').value.trim(),password:$('authPassword').value});
-      if(error) throw error;
-    }catch(err){setAuthMessage(supabaseErrorMessage(err));}
+    const pass=$('authPassword')?.value || '';
+    if(pass!==adminPassword()) return setAuthMessage('Admin şifrəsi yanlışdır.');
+    localStorage.setItem(ADMIN_OK_KEY,'1');
+    setAuthMessage('Giriş uğurludur.',true);
+    await loadCloudData();
   };
-  $('registerBtn').onclick=async()=>{
-    if(!auth) return setAuthMessage('Supabase config tamamlanmayıb.');
-    try{
-      setAuthMessage('Hesab yaradılır...',true);
-      const {data:signupData,error}=await auth.signUp({email:$('authEmail').value.trim(),password:$('authPassword').value});
-      if(error) throw error;
-      if(signupData?.user && !signupData?.session){
-        setAuthMessage('Hesab yaradıldı. Email təsdiqi aktivdirsə, emailinizi təsdiqləyin və sonra daxil olun.',true);
-      }
-    }catch(err){setAuthMessage(supabaseErrorMessage(err));}
+  if($('registerBtn')) $('registerBtn').onclick=()=>{
+    setAuthMessage('Bu versiyada hesab yaratmaq yoxdur. Tək admin şifrəsi istifadə olunur.');
   };
-  $('logoutBtn').onclick=()=>auth?.signOut();
+  $('logoutBtn').onclick=()=>{
+    localStorage.removeItem(ADMIN_OK_KEY);
+    showLogin('Çıxış edildi. Admin şifrəsini yazın.');
+    refreshIcons();
+  };
   $('addSchedule').onclick=()=>addSchedule();
   $('paymentSearch').oninput=renderQuickPaymentGroups;
   $('reportGroup').onchange=()=>renderReport();

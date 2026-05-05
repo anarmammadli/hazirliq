@@ -17,21 +17,19 @@
   <div class="authScreen" id="authScreen">
     <div class="authCard">
       <div class="brandMark authMark"><i data-lucide="graduation-cap"></i></div>
-      <span class="panelLabel"><i data-lucide="cloud"></i> Supabase cloud yaddaş</span>
+      <span class="panelLabel"><i data-lucide="database"></i> Tək admin yaddaşı</span>
       <h2>Hazırlıq sisteminə giriş</h2>
-      <p>Qruplar, şagirdlər, ödənişlər və cədvəl hesabınıza bağlı cloud database-də saxlanacaq.</p>
+      <p>Bu versiya Supabase Auth istifadə etmir. Bütün məlumatlar Supabase-də tək <b>main</b> row-da saxlanır.</p>
       <form id="authForm" class="authForm">
-        <label>Email</label>
-        <input id="authEmail" type="email" required placeholder="email@example.com" autocomplete="email">
-        <label>Şifrə</label>
-        <input id="authPassword" type="password" required minlength="6" placeholder="Minimum 6 simvol" autocomplete="current-password">
-        <div class="authActions">
+        <label>Admin şifrəsi</label>
+        <input id="authPassword" type="password" required placeholder="Admin şifrəsi" autocomplete="current-password">
+        <div class="authActions singleAuthAction">
           <button class="primary" id="loginBtn" type="submit"><i data-lucide="log-in"></i><span>Daxil ol</span></button>
-          <button class="secondary" id="registerBtn" type="button"><i data-lucide="user-plus"></i><span>Hesab yarat</span></button>
+          <button class="secondary" id="registerBtn" type="button"><i data-lucide="info"></i><span>Məlumat</span></button>
         </div>
       </form>
       <div id="authMessage" class="authMessage"></div>
-      <div class="authHelp">İlk dəfə istifadə edirsinizsə, email və şifrə yazıb <b>Hesab yarat</b> düyməsinə basın.</div>
+      <div class="authHelp">Standart şifrə: <b>123456</b>. İstəsəniz <b>supabase-config.js</b> içində dəyişə bilərsiniz.</div>
     </div>
   </div>
 
@@ -61,7 +59,7 @@
         <i data-lucide="shield-check"></i>
         <div>
           <b>Cloud yaddaş</b>
-          <span>Məlumatlar Supabase-də saxlanılır və hesabınızla açılır.</span>
+          <span>Məlumatlar tək Supabase row-da saxlanılır. Session problemi yoxdur.</span>
         </div>
       </div>
     </aside>
