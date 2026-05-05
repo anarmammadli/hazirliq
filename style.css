@@ -994,3 +994,465 @@ body.nav-open{overflow:hidden;touch-action:none}
   .tableWrap td:last-child{min-width:150px}
   .tableWrap td:nth-child(7){min-width:165px}
 }
+
+
+/* v30 responsive hardening + auth isolation */
+body.authMode{
+  min-height:100dvh;
+  overflow:hidden;
+}
+body.authMode .appShell,
+.authScreen:not(.locked) ~ .appShell{
+  display:none !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+body.authMode .ambient{
+  display:none !important;
+}
+body.authMode .authScreen{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:5000 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:clamp(16px,4vw,34px) !important;
+  background:
+    radial-gradient(circle at 25% 15%, rgba(191,219,254,.75), transparent 34%),
+    linear-gradient(135deg,#f8fbff 0%,#edf5ff 100%) !important;
+}
+body.appMode{
+  overflow:auto;
+}
+
+/* make real clickable controls feel clickable; keep info cards calm */
+button:not(.amountChoice):not(.metricPill),
+.clickable,
+.navItem,
+.bottomNavBtn,
+.iconOnlyBtn,
+.primary,
+.secondary,
+.danger,
+.mini,
+.pickerValueBtn,
+.timeChoiceBtn,
+.chipOption,
+.datePickButton,
+[data-action]{
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+button:not(.amountChoice):not(.metricPill):hover,
+.clickable:hover,
+.navItem:hover,
+.bottomNavBtn:hover,
+.primary:hover,
+.secondary:hover,
+.danger:hover,
+.mini:hover,
+.pickerValueBtn:hover,
+.timeChoiceBtn:hover,
+.chipOption:hover{
+  transform:translateY(-1px);
+}
+.amountChoice,
+.metricPill,
+.paymentInfoCard{
+  cursor:default !important;
+}
+.amountChoice.actionAmount{
+  cursor:pointer !important;
+}
+.amountChoice.actionAmount:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 38px rgba(37,99,235,.12) !important;
+}
+
+/* safer layouts on medium screens */
+@media (max-width:1180px){
+  .appShell{
+    grid-template-columns:1fr !important;
+  }
+  .side{
+    display:none !important;
+  }
+  .pageContent{
+    width:100% !important;
+    margin:0 !important;
+    padding:24px 18px 104px !important;
+  }
+  .bottomTabBar{
+    display:flex !important;
+  }
+  .topActions{
+    top:12px !important;
+    right:12px !important;
+    gap:8px !important;
+  }
+  .topActions .secondary{
+    min-height:46px !important;
+    padding:0 14px !important;
+    border-radius:16px !important;
+  }
+  .hero,
+  .glassPanel,
+  .card,
+  .sectionCard{
+    border-radius:28px !important;
+  }
+  .dashboardGrid,
+  .statsGrid,
+  .cardsGrid,
+  .overviewGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+  .formAndList,
+  .twoColumn,
+  .managementGrid,
+  .contentGrid{
+    grid-template-columns:1fr !important;
+  }
+}
+
+/* phone: every form, table, and payment row stacks cleanly */
+@media (max-width:760px){
+  html,body{
+    width:100%;
+    overflow-x:hidden !important;
+  }
+  body.authMode .authScreen{
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:auto !important;
+  }
+  .authCard,
+  .multiAuthCard{
+    width:min(100%,560px) !important;
+    max-height:calc(100dvh - 28px) !important;
+    overflow:auto !important;
+    border-radius:28px !important;
+    padding:24px !important;
+  }
+  .authCard h1{font-size:32px !important;line-height:1.05 !important}
+  .authTabs{grid-template-columns:1fr 1fr !important}
+  .authActions,
+  .singleAuthAction{grid-template-columns:1fr !important}
+  .authForm input,
+  .authForm button{
+    min-height:54px !important;
+  }
+
+  .pageContent{
+    padding:18px 12px 104px !important;
+  }
+  .pageHeader{
+    padding-right:0 !important;
+    margin-top:72px !important;
+  }
+  .pageHeader h1{
+    font-size:36px !important;
+    line-height:1.02 !important;
+    letter-spacing:-.06em !important;
+  }
+  .pageHeader p{font-size:16px !important}
+  .topActions{
+    left:12px !important;
+    right:12px !important;
+    justify-content:flex-end !important;
+  }
+  .topActions .secondary{
+    min-height:42px !important;
+    padding:0 12px !important;
+    font-size:13px !important;
+  }
+
+  .hero{
+    padding:22px !important;
+  }
+  .hero h2,
+  .sectionTitle,
+  .card h2{
+    font-size:28px !important;
+    line-height:1.05 !important;
+  }
+  .dashboardGrid,
+  .statsGrid,
+  .cardsGrid,
+  .overviewGrid{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+  }
+  .statCard,
+  .metricCard{
+    min-height:118px !important;
+    padding:20px !important;
+  }
+
+  form,
+  .formGrid,
+  .inlineForm,
+  .toolbarGrid,
+  .paymentToolbar,
+  .filterGrid,
+  .scheduleRow,
+  .schedulePickerRow,
+  .wheelPickerRow{
+    grid-template-columns:1fr !important;
+  }
+  input,select,textarea,button{
+    max-width:100% !important;
+  }
+
+  .groupHeader,
+  .groupSummary,
+  .collapsibleHead{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:14px !important;
+    align-items:start !important;
+  }
+  .groupHeaderActions,
+  .pills,
+  .groupPills{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+  .groupHeaderActions .secondary,
+  .groupHeaderActions .mini,
+  .groupPills .metricPill{
+    width:100% !important;
+  }
+
+  .quickPayRow,
+  .improvedPayRow{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    padding:16px !important;
+    border-radius:22px !important;
+  }
+  .quickPayStudent{
+    display:block !important;
+    min-width:0 !important;
+  }
+  .quickPayOptions,
+  .actionAmountOptions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+  .quickPayActions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+  .quickPayActions input,
+  .quickPayActions button{
+    width:100% !important;
+  }
+  .amountChoice{
+    min-width:0 !important;
+    width:100% !important;
+    text-align:left !important;
+    border-radius:22px !important;
+  }
+
+  .tableWrap{
+    overflow-x:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+    border-radius:22px !important;
+  }
+  .tableWrap table{
+    min-width:760px !important;
+  }
+  .tableWrap td:last-child{
+    white-space:nowrap !important;
+  }
+  .tableWrap td:last-child .mini,
+  .tableWrap .mini{
+    display:inline-flex !important;
+    width:auto !important;
+    margin:3px !important;
+  }
+
+  .bottomTabBar{
+    position:fixed !important;
+    left:10px !important;
+    right:10px !important;
+    bottom:10px !important;
+    z-index:2500 !important;
+    max-width:calc(100vw - 20px) !important;
+    overflow-x:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+    gap:6px !important;
+    padding:8px !important;
+    border-radius:24px !important;
+  }
+  .bottomTabBar .bottomNavBtn{
+    min-width:72px !important;
+    flex:0 0 auto !important;
+  }
+}
+
+/* modal + custom date/schedule pickers: phone friendly */
+@media (max-width:760px){
+  .modalOverlay{
+    align-items:flex-end !important;
+    justify-content:center !important;
+    padding:0 !important;
+    overflow:hidden !important;
+  }
+  .modalCard,
+  .datePickerCard,
+  .modernScheduleModal{
+    width:100vw !important;
+    max-width:100vw !important;
+    max-height:92dvh !important;
+    overflow:auto !important;
+    border-radius:28px 28px 0 0 !important;
+    padding:20px !important;
+    margin:0 !important;
+  }
+  .modalHeader{
+    gap:12px !important;
+    align-items:flex-start !important;
+  }
+  .modalHeader h3{
+    font-size:26px !important;
+    line-height:1.05 !important;
+  }
+  .iconOnlyBtn{
+    width:46px !important;
+    min-width:46px !important;
+    height:46px !important;
+  }
+
+  .datePickerCard .calendarShell{
+    padding:12px !important;
+    border-radius:22px !important;
+  }
+  .calendarTopBar{
+    grid-template-columns:44px 1fr 44px !important;
+    gap:8px !important;
+  }
+  .calendarMonthLabel{
+    font-size:16px !important;
+    text-align:center !important;
+  }
+  .calendarWeekdays,
+  .calendarDays{
+    grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+    gap:4px !important;
+  }
+  .calendarDays button,
+  .calendarDay{
+    width:100% !important;
+    min-width:0 !important;
+    height:42px !important;
+    border-radius:14px !important;
+    font-size:13px !important;
+  }
+  .calendarFooterActions{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+  }
+  .calendarFooterActions .primary{
+    grid-column:1/-1 !important;
+  }
+
+  .modernScheduleModal .modalHeader{
+    position:sticky !important;
+    top:-20px !important;
+    z-index:2 !important;
+    background:#fff !important;
+    padding-top:4px !important;
+    padding-bottom:12px !important;
+  }
+  .compactDayChips{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  .compactDayChips .chipOption{
+    min-height:70px !important;
+    padding:12px !important;
+    border-radius:20px !important;
+  }
+  .compactDayChips .chipOption span{
+    font-size:17px !important;
+  }
+  .compactDayChips .chipOption small{
+    font-size:11px !important;
+    white-space:normal !important;
+  }
+  .wheelPickerRow{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+  }
+  .timeWheelPanel{
+    padding:14px !important;
+    border-radius:22px !important;
+  }
+  .timeWheel{
+    height:156px !important;
+    padding:50px 6px !important;
+  }
+  .timeWheelOption{
+    height:44px !important;
+    font-size:20px !important;
+  }
+  .timeWheel:before{top:55px !important}
+  .timeWheel:after{bottom:55px !important}
+  .scheduleAdderBar{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    padding:14px !important;
+    border-radius:22px !important;
+  }
+  .modalScheduleList,
+  .savedScheduleList{
+    gap:10px !important;
+  }
+  .modalScheduleItem,
+  .savedScheduleItem{
+    display:grid !important;
+    grid-template-columns:1fr auto !important;
+    gap:10px !important;
+    align-items:center !important;
+    padding:12px !important;
+    border-radius:18px !important;
+  }
+  .modalActions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+  }
+  .modalActions button{
+    width:100% !important;
+  }
+}
+
+/* very small phones */
+@media (max-width:420px){
+  .authCard,
+  .multiAuthCard{padding:20px !important;border-radius:24px !important}
+  .pageHeader h1{font-size:32px !important}
+  .compactDayChips{grid-template-columns:1fr !important}
+  .groupHeaderActions,
+  .pills,
+  .groupPills{
+    grid-template-columns:1fr !important;
+  }
+  .calendarDays button,
+  .calendarDay{
+    height:38px !important;
+    font-size:12px !important;
+  }
+}

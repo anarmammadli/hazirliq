@@ -1,3 +1,4 @@
+document.body.classList.add('authMode');
 let data={groups:[],students:[],payments:[]};
 let db=null;
 let currentTeacher=null;
@@ -177,12 +178,16 @@ async function resumeSupabaseConnection(reason='resume'){
   else if($('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
 }
 function showApp(){
+  document.body.classList.remove('authMode');
+  document.body.classList.add('appMode');
   $('appShell')?.classList.remove('locked');
   $('authScreen')?.classList.add('locked');
   const who=currentTeacher?.name||currentTeacher?.username;
   if(who && $('cloudStatus')) $('cloudStatus').textContent='Cloud aktivdir';
 }
 function showLogin(msg=''){
+  document.body.classList.remove('appMode');
+  document.body.classList.add('authMode');
   $('appShell')?.classList.add('locked');
   $('authScreen')?.classList.remove('locked');
   setAuthMessage(msg);
