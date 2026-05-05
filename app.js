@@ -878,10 +878,10 @@ function renderQuickPaymentGroups(){
           <b>${esc(s.name)}</b>
           <span>${esc(s.phone||'Telefon yoxdur')}</span>
         </div>
-        <div class="quickPayOptions">
-          <button type="button" class="amountChoice monthly" onclick="fillQuickAmount('${s.id}','${inputId}','monthly')"><small>Aylıq ödəniş</small><strong>${money(s.fee)}</strong></button>
-          <button type="button" class="amountChoice expected" onclick="fillQuickAmount('${s.id}','${inputId}','expected')"><small>Bu ay alınacaq</small><strong>${money(f.expected)}</strong></button>
-          <button type="button" class="amountChoice debt" onclick="fillQuickAmount('${s.id}','${inputId}','debt')"><small>1+ ay borc</small><strong>${money(f.debt)}</strong></button>
+        <div class="quickPayOptions infoOnlyOptions" aria-label="Şagird ödəniş məlumatı">
+          <div class="amountChoice infoCard monthly"><small>Aylıq ödəniş</small><strong>${money(s.fee)}</strong></div>
+          <div class="amountChoice infoCard expected"><small>Bu ay alınacaq</small><strong>${money(f.expected)}</strong></div>
+          <div class="amountChoice infoCard debt"><small>1+ ay borc</small><strong>${money(f.debt)}</strong></div>
         </div>
         <div class="quickPayActions">
           <input id="${inputId}" type="number" min="0" placeholder="Məbləği daxil edin">

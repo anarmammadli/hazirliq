@@ -898,3 +898,44 @@ body.nav-open{overflow:hidden;touch-action:none}
   .scheduleAdderBar{align-items:stretch !important;flex-direction:column !important}
   .scheduleAdderBar::after{content:'Yeni gün əlavə etmək üçün yuxarıdan yenisini seç' !important}
 }
+
+/* v27: non-action info cards must not behave like buttons */
+.metricPill,
+.amountChoice.infoCard{
+  cursor:default !important;
+  user-select:text;
+  pointer-events:auto;
+}
+.metricPill:hover,
+.amountChoice.infoCard:hover,
+.metricPill:active,
+.amountChoice.infoCard:active{
+  transform:none !important;
+  box-shadow:none !important;
+}
+.metricPill.expected:hover{border-color:#cfe2ff !important;background:linear-gradient(135deg,#eef6ff 0%,#e3f0ff 100%) !important}
+.metricPill.debt:hover{border-color:#ffd5d5 !important;background:linear-gradient(135deg,#fff7f7 0%,#ffecec 100%) !important}
+.metricPill.monthly:hover{border-color:#d8e7ff !important;background:linear-gradient(135deg,#f8fbff 0%,#edf5ff 100%) !important}
+.amountChoice.infoCard.expected:hover{border-color:#cfe2ff !important;background:linear-gradient(135deg,#eef6ff 0%,#e3f0ff 100%) !important}
+.amountChoice.infoCard.debt:hover{border-color:#ffd5d5 !important;background:linear-gradient(135deg,#fff7f7 0%,#ffecec 100%) !important}
+.amountChoice.infoCard.monthly:hover{border-color:#d8e7ff !important;background:linear-gradient(135deg,#f8fbff 0%,#edf5ff 100%) !important}
+.amountChoice.infoCard{
+  display:flex;
+  justify-content:center;
+  min-height:76px;
+}
+.quickPayOptions.infoOnlyOptions{
+  align-items:stretch;
+}
+.quickPayOptions.infoOnlyOptions .amountChoice.infoCard small,
+.quickPayOptions.infoOnlyOptions .amountChoice.infoCard strong{
+  pointer-events:none;
+}
+/* keep real action buttons visibly interactive */
+.primary,.secondary,.mini,.miniPrimary,.dateTriggerBtn,.pickerValueBtn,.chipOption,.nav,.bottomTab,.savePayBtn{
+  cursor:pointer;
+}
+.primary:hover,.miniPrimary:hover,.dateTriggerBtn:hover,.pickerValueBtn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 18px 34px rgba(37,99,235,.18);
+}
