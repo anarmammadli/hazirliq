@@ -1,23 +1,18 @@
-# Hazırlıq Sistemi
+# Hazırlıq sistemi
 
-Bu versiyada Alt+Tab / başqa tabdan geri qayıdanda yaranan Supabase save problemi üçün session refresh fix əlavə edildi.
+Bu versiyada session/save problemi düzəldildi.
 
-## Dəyişikliklər
+## v8 düzəlişi
 
-- Sayt yenidən aktiv olanda Supabase session avtomatik yoxlanır.
-- Session köhnəlibsə refresh edilir.
-- Save alınmasa məlumat müvəqqəti local backup-da saxlanır.
-- İnternet və ya session düzələndə app yenidən save etməyə çalışır.
-- RLS policy fix SQL faylı saxlanılıb: `supabase_rls_fix.sql`.
+- Alt-tab və tab dəyişəndən sonra app artıq hər klikdə session refresh etməyə çalışmır.
+- `Session yoxlanılır...` statusunda ilişib qalma problemi aradan qaldırıldı.
+- Save etməzdən əvvəl session yüngül şəkildə yoxlanılır.
+- Supabase cavab verməyəndə əməliyyat sonsuz gözləmir, timeout verir.
+- Save alınmasa məlumat müvəqqəti backup-da qalır və sonra yenidən cəhd edilir.
 
-## Deploy
+## Fayllar
 
-GitHub-a bu faylları upload edin:
-
-- `index.html`
-- `style.css`
-- `app.js`
-- `supabase-config.js`
-- `README.md`
-
-Vercel avtomatik redeploy edəcək.
+- index.html
+- style.css
+- app.js
+- supabase-config.js
