@@ -147,13 +147,12 @@ function todayDayName(){return days[(new Date().getDay()+6)%7]}
 function totalHoursText(minutes){const h=Math.floor(minutes/60);const m=minutes%60;if(h&&m)return `${h} saat ${m} dəq`;if(h)return `${h} saat`;return `${m} dəq`;}
 
 /*
-Correct payment logic:
+Payment logic:
 - Registration day is free/not debt.
 - First charge is after 1 month from join date.
-- Every next monthly anniversary creates one more charge.
-- Debt = overdue charges - all paid.
-- Expected = debt + next upcoming monthly charge, then minus paid amount already covering it.
-- Payments are treated as money credit. Partial payments reduce remaining amount.
+- "Bu ay alınacaq məbləğ" shows only the current calendar month's payment.
+- Old unpaid months are kept separately as debt.
+- Payments first reduce old debt, then reduce the current month's amount.
 */
 function studentFinance(s, referenceDate=new Date()){
   const fee=Number(s.fee||0);
@@ -164,27 +163,44 @@ function studentFinance(s, referenceDate=new Date()){
     return {fee, paid:0, overdueCharges:0, expectedCharges:0, debt:0, expected:0, nextDue:addMonths(new Date(),1), overdueCount:0, nextCovered:false};
   }
 
-  let paidTotal=data.payments
+  const paidTotal=data.payments
     .filter(p=>p.studentId===s.id)
     .reduce((a,p)=>a+Number(p.amount||0),0);
 
-  let overdueCount=0;
-  let due=addMonths(join,1);
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const nextMonthStart=new Date(now.getFullYear(),now.getMonth()+1,1);
 
-  while(cleanDate(due)<=now){
-    overdueCount++;
-    due=addMonths(join,overdueCount+1);
+  let previousCharges=0;
+  let currentMonthCharges=0;
+  let due=addMonths(join,1);
+  let count=1;
+  let firstFutureDue=null;
+
+  while(due < nextMonthStart){
+    const d=cleanDate(due);
+    if(d < monthStart) previousCharges += fee;
+    else if(d >= monthStart && d < nextMonthStart) currentMonthCharges += fee;
+    count++;
+    due=addMonths(join,count);
   }
 
-  const nextDue=due;
-  const overdueCharges=overdueCount*fee;
-  const expectedCharges=overdueCharges+fee;
+  let future=addMonths(join,1);
+  let futureCount=1;
+  while(cleanDate(future) < now){
+    futureCount++;
+    future=addMonths(join,futureCount);
+  }
+  firstFutureDue=future;
 
-  const debt=Math.max(overdueCharges-paidTotal,0);
-  const expected=Math.max(expectedCharges-paidTotal,0);
-  const nextCovered=paidTotal>=expectedCharges;
+  const paidAfterOldDebt=Math.max(paidTotal-previousCharges,0);
+  const debt=Math.max(previousCharges-paidTotal,0);
+  const expected=Math.max(currentMonthCharges-paidAfterOldDebt,0);
+  const expectedCharges=currentMonthCharges;
+  const overdueCharges=previousCharges;
+  const overdueCount=Math.round(previousCharges/fee);
+  const nextCovered=expected===0;
 
-  return {fee, paid:paidTotal, overdueCharges, expectedCharges, debt, expected, nextDue, overdueCount, nextCovered};
+  return {fee, paid:paidTotal, overdueCharges, expectedCharges, debt, expected, nextDue:firstFutureDue, overdueCount, nextCovered};
 }
 
 function monthlyMaximum(gid='all'){
@@ -218,7 +234,7 @@ function paidThisMonth(method='all'){
 
 function studentStatusHtml(s){
   const f=studentFinance(s);
-  if(f.debt>0)return '<span class="badge late">Keçmiş borclu</span>';
+  if(f.debt>0)return '<span class="badge late">Gecikmiş ödəniş</span>';
   if(f.expected>0)return '<span class="badge wait">Gözlənilir</span>';
   return '<span class="badge paid">Ödənib</span>';
 }
@@ -308,7 +324,7 @@ function fillSelects(){
   if ([...$('reportGroup').options].some(o=>o.value===currentReport)) $('reportGroup').value = currentReport;
   $('paymentStudent').innerHTML=active().map(s=>{
     const f=studentFinance(s);
-    return `<option value="${s.id}">${esc(s.name)} — ${esc(group(s.groupId)?.name||'Qrupsuz')} — Alınmalı: ${money(f.expected)}</option>`;
+    return `<option value="${s.id}">${esc(s.name)} — ${esc(group(s.groupId)?.name||'Qrupsuz')} — Bu ay alınacaq: ${money(f.expected)}</option>`;
   }).join('')||'<option value="">Aktiv şagird yoxdur</option>';
 }
 
@@ -366,15 +382,15 @@ function groupAccordions(onlyDebt=false){
       const f=studentFinance(s);
       return `<article class="mobileDataCard">
         <div class="mobileCardTop"><div><h4>${esc(s.name)}</h4><p>${esc(group(s.groupId)?.name||'Qrupsuz')} • ${esc(s.phone||'Telefon yoxdur')}</p></div>${studentStatusHtml(s)}</div>
-        ${mobileInfoGrid([['Növbəti',dateAz(f.nextDue)],['Aylıq',money(f.fee)],['Ödənilib',money(f.paid)],['Alınmalı',money(f.expected)],['Borc',money(f.debt)]])}
+        ${mobileInfoGrid([['Növbəti',dateAz(f.nextDue)],['Aylıq ödəniş',money(f.fee)],['Ödənilib',money(f.paid)],['Bu ay alınacaq',money(f.expected)],['Gecikmiş',money(f.debt)]])}
       </article>`;
     });
     return acc(
       'gacc'+g.id+onlyDebt,
       esc(g.name),
       scheduleText(g),
-      [`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],
-      responsiveList(['Şagird','Növbəti ödəniş','Aylıq','Ödənilib','Alınmalı','Keçmiş borc','Status'],rows,cards,'Bu qrupda məlumat yoxdur.'),
+      [`Bir aylıq maksimum gəlir: ${money(monthlyMaximum(g.id))}`,`Bu ay alınacaq: ${money(totalExpected(g.id))}`,`1 aydan artıq ödənməyən: ${money(totalDebt(g.id))}`],
+      responsiveList(['Şagird','Növbəti ödəniş','Aylıq ödəniş','Ödənilib','Bu ay alınacaq','1 aydan artıq ödənməyən','Status'],rows,cards,'Bu qrupda məlumat yoxdur.'),
       i===0
     )
   }).join('');
@@ -394,7 +410,7 @@ function renderGroups(){
         <button class="mini red" onclick="deleteGroup('${g.id}')">Sil</button>
       </div>
     </div>`;
-    return acc('groupRow'+g.id,esc(g.name),scheduleText(g),[`Şagird: ${active().filter(s=>s.groupId===g.id).length}`,`Alınmalı: ${money(totalExpected(g.id))}`],body,i===0);
+    return acc('groupRow'+g.id,esc(g.name),scheduleText(g),[`Şagird: ${active().filter(s=>s.groupId===g.id).length}`,`Bu ay alınacaq: ${money(totalExpected(g.id))}`],body,i===0);
   }).join('');
 }
 
@@ -518,11 +534,11 @@ function renderStudents(){
           <div><h4>${esc(s.name)}</h4><p>${esc(g.name)} • ${esc(s.phone||'Telefon yoxdur')}</p></div>
           <span class="badge ${s.status==='active'?'paid':'late'}">${s.status==='active'?'Aktiv':'Çıxıb'}</span>
         </div>
-        ${mobileInfoGrid([['Aylıq',money(s.fee)],['İlk ödəniş',dateAz(addMonths(cleanDate(s.joinDate),1))],['Növbəti',dateAz(f.nextDue)],['Alınmalı',money(f.expected)],['Borc',money(f.debt)]])}
+        ${mobileInfoGrid([['Aylıq ödəniş',money(s.fee)],['İlk ödəniş',dateAz(addMonths(cleanDate(s.joinDate),1))],['Növbəti',dateAz(f.nextDue)],['Bu ay alınacaq',money(f.expected)],['Gecikmiş',money(f.debt)]])}
         <div class="mobileCardActions"><button class="mini" onclick="editStudent('${s.id}')">Dəyiş</button><button class="mini red" onclick="deleteStudent('${s.id}')">Sil</button></div>
       </article>`;
     });
-    return acc('sg'+g.id,esc(g.name),ss.length+' şagird',[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq','İlk ödəniş','Növbəti ödəniş','Alınmalı','Keçmiş borc','Status','Əməliyyat'],rows,cards,'Bu qrupda şagird yoxdur.'),i===0)
+    return acc('sg'+g.id,esc(g.name),ss.length+' şagird',[`Bir aylıq maksimum gəlir: ${money(monthlyMaximum(g.id))}`,`Bu ay alınacaq: ${money(totalExpected(g.id))}`,`1 aydan artıq ödənməyən: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq ödəniş','İlk ödəniş','Növbəti ödəniş','Bu ay alınacaq','1 aydan artıq ödənməyən','Status','Əməliyyat'],rows,cards,'Bu qrupda şagird yoxdur.'),i===0)
   }).join('');
   $('studentList').innerHTML=html||'<div class="empty">Qrup yoxdur.</div>';
 }
@@ -574,8 +590,8 @@ function renderQuickPaymentGroups(){
             <div class="payHelperText">Hazır məbləğ seç:</div>
             <div class="presetBtns">
               <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','monthly')">${money(s.fee)} yaz</button>
-              <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Alınmalı məbləği yaz</button>
-              <button class="presetBtn debtPreset" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">Keçmiş borcu yaz</button>
+              <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Bu ayın məbləğini yaz</button>
+              <button class="presetBtn debtPreset" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">Gecikmiş borcu yaz</button>
             </div>
           </div>
         </td>
@@ -586,19 +602,19 @@ function renderQuickPaymentGroups(){
       const inputId = 'mpayinp_' + s.id.replaceAll('-', '_');
       return `<article class="mobileDataCard paymentMobileCard">
         <div class="mobileCardTop"><div><h4>${esc(s.name)}</h4><p>${esc(g.name)} • ${esc(s.phone||'Telefon yoxdur')}</p></div>${studentStatusHtml(s)}</div>
-        ${mobileInfoGrid([['Aylıq',money(s.fee)],['Ödənilib',money(f.paid)],['Alınmalı',money(f.expected)],['Borc',money(f.debt)]])}
+        ${mobileInfoGrid([['Aylıq ödəniş',money(s.fee)],['Ödənilib',money(f.paid)],['Bu ay alınacaq',money(f.expected)],['Gecikmiş',money(f.debt)]])}
         <div class="mobilePayBox">
           <input id="${inputId}" type="number" min="0" placeholder="Məbləğ yaz">
           <button class="savePayBtn" type="button" onclick="addQuickPayment('${s.id}','${inputId}')">Yadda saxla</button>
           <div class="presetBtns">
             <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','monthly')">Aylıq</button>
-            <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Alınmalı</button>
-            <button class="presetBtn debtPreset" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">Borc</button>
+            <button class="presetBtn" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','expected')">Bu ay alınacaq</button>
+            <button class="presetBtn debtPreset" type="button" onclick="fillQuickAmount('${s.id}','${inputId}','debt')">Gecikmiş</button>
           </div>
         </div>
       </article>`;
     });
-    return acc('quickpay'+g.id,esc(g.name),scheduleText(g),[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq','Ödənilib','Alınmalı','Keçmiş borc','Status','Ödəniş əlavə et'],rows,cards,'Bu qrupda şagird yoxdur.'),i===0);
+    return acc('quickpay'+g.id,esc(g.name),scheduleText(g),[`Bir aylıq maksimum gəlir: ${money(monthlyMaximum(g.id))}`,`Bu ay alınacaq: ${money(totalExpected(g.id))}`,`1 aydan artıq ödənməyən: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq ödəniş','Ödənilib','Bu ay alınacaq','1 aydan artıq ödənməyən','Status','Ödəniş əlavə et'],rows,cards,'Bu qrupda şagird yoxdur.'),i===0);
   }).join('');
 }
 
@@ -608,7 +624,7 @@ function renderPayments(){
     ps=ps.sort((a,b)=>b.date.localeCompare(a.date));
     let rows=ps.map(p=>`<tr><td>${esc(student(p.studentId)?.name||'Silinmiş')}</td><td>${money(p.amount)}</td><td>${dateAz(p.date)}</td><td>${methodHtml(p.method)}</td><td><button class="mini red" onclick="deletePayment('${p.id}')">Sil</button></td></tr>`);
     let cards=ps.map(p=>`<article class="mobileDataCard"><div class="mobileCardTop"><div><h4>${esc(student(p.studentId)?.name||'Silinmiş')}</h4><p>${dateAz(p.date)}</p></div>${methodHtml(p.method)}</div>${mobileInfoGrid([['Məbləğ',money(p.amount)]])}<div class="mobileCardActions"><button class="mini red" onclick="deletePayment('${p.id}')">Sil</button></div></article>`);
-    return acc('pay'+g.id,esc(g.name),ps.length+' ödəniş',[`Toplam ödənilib: ${money(ps.reduce((a,p)=>a+Number(p.amount||0),0))}`,`Alınmalı: ${money(totalExpected(g.id))}`],responsiveList(['Şagird','Məbləğ','Tarix','Forma',''],rows,cards,'Ödəniş yoxdur.'),i===0)
+    return acc('pay'+g.id,esc(g.name),ps.length+' ödəniş',[`Toplam ödənilib: ${money(ps.reduce((a,p)=>a+Number(p.amount||0),0))}`,`Bu ay alınacaq: ${money(totalExpected(g.id))}`],responsiveList(['Şagird','Məbləğ','Tarix','Forma',''],rows,cards,'Ödəniş yoxdur.'),i===0)
   }).join('');
 }
 
@@ -643,9 +659,9 @@ function renderReport(){
     });
     const cards = ss.map(s=>{
       const f=studentFinance(s);
-      return `<article class="mobileDataCard"><div class="mobileCardTop"><div><h4>${esc(s.name)}</h4><p>${esc(g.name)}</p></div>${studentStatusHtml(s)}</div>${mobileInfoGrid([['Aylıq',money(s.fee)],['Növbəti',dateAz(f.nextDue)],['Ödənilib',money(f.paid)],['Alınmalı',money(f.expected)],['Borc',money(f.debt)]])}</article>`;
+      return `<article class="mobileDataCard"><div class="mobileCardTop"><div><h4>${esc(s.name)}</h4><p>${esc(g.name)}</p></div>${studentStatusHtml(s)}</div>${mobileInfoGrid([['Aylıq ödəniş',money(s.fee)],['Növbəti',dateAz(f.nextDue)],['Ödənilib',money(f.paid)],['Bu ay alınacaq',money(f.expected)],['Gecikmiş',money(f.debt)]])}</article>`;
     });
-    return acc('rep'+g.id,esc(g.name),'Ümumi hesabat',[`Aylıq maksimum: ${money(monthlyMaximum(g.id))}`,`Alınmalı: ${money(totalExpected(g.id))}`,`Keçmiş borc: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq','Növbəti ödəniş','Ödənilib','Alınmalı','Keçmiş borc','Status'], rows, cards, 'Bu qrupda şagird yoxdur.'),i===0)
+    return acc('rep'+g.id,esc(g.name),'Ümumi hesabat',[`Bir aylıq maksimum gəlir: ${money(monthlyMaximum(g.id))}`,`Bu ay alınacaq: ${money(totalExpected(g.id))}`,`1 aydan artıq ödənməyən: ${money(totalDebt(g.id))}`],responsiveList(['Şagird','Aylıq ödəniş','Növbəti ödəniş','Ödənilib','Bu ay alınacaq','1 aydan artıq ödənməyən','Status'], rows, cards, 'Bu qrupda şagird yoxdur.'),i===0)
   }).join('');
 }
 
