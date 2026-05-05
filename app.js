@@ -1052,9 +1052,12 @@ function applyTheme(theme){
   document.querySelectorAll('[data-theme-toggle]').forEach(btn=>{
     const icon = btn.querySelector('i');
     const label = btn.querySelector('span');
-    if(icon) icon.setAttribute('data-lucide', safe === 'dark' ? 'sun' : 'moon');
-    if(label) label.textContent = safe === 'dark' ? 'Light' : 'Dark';
-    btn.setAttribute('aria-label', safe === 'dark' ? 'Light mode' : 'Dark mode');
+    btn.dataset.themeState = safe;
+    btn.dataset.themeTarget = safe === 'dark' ? 'light' : 'dark';
+    if(icon) icon.setAttribute('data-lucide', safe === 'dark' ? 'sun-medium' : 'moon-star');
+    if(label) label.textContent = safe === 'dark' ? 'Açıq rejim' : 'Tünd rejim';
+    btn.setAttribute('aria-label', safe === 'dark' ? 'Açıq rejimə keç' : 'Tünd rejimə keç');
+    btn.title = safe === 'dark' ? 'Açıq rejimə keç' : 'Tünd rejimə keç';
   });
   refreshIcons();
 }
