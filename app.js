@@ -788,7 +788,7 @@ function renderSchedule(){
   }
 
   const visibleDays=days;
-  const {startMin,endMin,slots}=buildTimeSlots(sessions);
+  const {startMin,slots}=buildTimeSlots(sessions);
   const slotHeight=62;
   const totalHeight=slots.length*slotHeight;
 
@@ -827,20 +827,51 @@ function renderSchedule(){
     return `<div class="dayColumn" style="height:${totalHeight}px">${lines}<div class="dayColumnOverlay">${blocks}</div></div>`;
   }).join('');
 
+  const mobileDays=visibleDays.map(day=>{
+    const ds=sessions.filter(s=>s.day===day).sort((a,b)=>timeToMinutes(a.start)-timeToMinutes(b.start));
+    const cards = ds.length ? ds.map(s=>{
+      const groupIndex=Math.max(data.groups.findIndex(g=>g.id===s.groupId),0);
+      const [c1,c2]=scheduleColor(groupIndex);
+      return `<div class="mobileSessionCard" style="background:linear-gradient(180deg, ${c1}, ${c2});">
+        <div class="mobileSessionTop">
+          <span class="mobileSessionTime">${s.start} - ${s.end}</span>
+          <span class="mobileSessionDuration">${durationText(s.start,s.end)}</span>
+        </div>
+        <h4>${esc(s.groupName)}</h4>
+        <div class="mobileSessionMeta">
+          <span><i data-lucide="users-round"></i>${s.students} şagird</span>
+          <span><i data-lucide="clock-3"></i>${durationText(s.start,s.end)}</span>
+        </div>
+      </div>`;
+    }).join('') : '<div class="mobileDayEmpty">Bu gün dərs yoxdur.</div>';
+    return `<section class="mobileScheduleDay ${ds.length ? '' : 'empty'}">
+      <div class="mobileDayHeader">
+        <div>
+          <b>${day}</b>
+          <span>${ds.length ? ds.length + ' dərs' : 'Boş gün'}</span>
+        </div>
+      </div>
+      <div class="mobileDaySessions">${cards}</div>
+    </section>`;
+  }).join('');
+
   mount.innerHTML=`
     <div class="timetableLegend">${legendItems}</div>
-    <div class="timetableWrap">
-      <div class="timetable">
-        <div class="timetableHeader">
-          <div class="timetableHeaderCell timeColHead">Saat</div>
-          ${header}
-        </div>
-        <div class="timetableMain">
-          ${timeColumn}
-          ${dayColumns}
+    <div class="desktopScheduleView">
+      <div class="timetableWrap">
+        <div class="timetable">
+          <div class="timetableHeader">
+            <div class="timetableHeaderCell timeColHead">Saat</div>
+            ${header}
+          </div>
+          <div class="timetableMain">
+            ${timeColumn}
+            ${dayColumns}
+          </div>
         </div>
       </div>
     </div>
+    <div class="mobileScheduleView">${mobileDays}</div>
     <div class="smallNote">Qeyd: Cədvəl qruplarda daxil etdiyiniz gün və saatlara əsasən avtomatik qurulur.</div>`;
 }
 

@@ -2886,3 +2886,168 @@ html[data-theme="dark"] .sessionBlock .blockMeta span{
   .bottomTab svg{width:18px !important;height:18px !important;}
   .bottomTab span{font-size:8.7px !important;}
 }
+
+
+/* =========================================================
+   V20 responsive schedule + compact lesson-days panel
+   ========================================================= */
+.desktopScheduleView{display:block}
+.mobileScheduleView{display:none}
+.mobileScheduleView{display:none;gap:12px}
+.mobileScheduleDay{
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+  box-shadow:0 10px 24px rgba(15,23,42,.05);
+  overflow:hidden;
+}
+.mobileDayHeader{
+  padding:14px 16px 12px;
+  border-bottom:1px solid rgba(203,213,225,.55);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.mobileDayHeader b{display:block;font-size:16px;font-weight:900;letter-spacing:-.02em;color:var(--ink)}
+.mobileDayHeader span{display:block;margin-top:3px;font-size:12px;font-weight:800;color:var(--muted)}
+.mobileDaySessions{display:grid;gap:10px;padding:12px}
+.mobileSessionCard{
+  border-radius:18px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.4);
+  box-shadow:0 10px 24px rgba(15,23,42,.10);
+  color:#0f172a;
+}
+.mobileSessionTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.mobileSessionTime{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
+  background:rgba(255,255,255,.74);font-size:11px;font-weight:900;color:#1e3a8a;border:1px solid rgba(255,255,255,.65)
+}
+.mobileSessionDuration{font-size:11px;font-weight:800;color:#334155}
+.mobileSessionCard h4{margin:0;font-size:16px;line-height:1.2;font-weight:900;letter-spacing:-.02em}
+.mobileSessionMeta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.mobileSessionMeta span{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.72);font-size:11px;font-weight:800;color:#334155;border:1px solid rgba(255,255,255,.62)}
+.mobileDayEmpty{
+  border:1px dashed rgba(148,163,184,.45);
+  border-radius:16px;
+  padding:14px;
+  text-align:center;
+  font-size:13px;
+  font-weight:800;
+  color:var(--muted);
+  background:rgba(248,250,252,.85);
+}
+
+@media (max-width:760px){
+  .desktopScheduleView{display:none !important}
+  .mobileScheduleView{display:grid !important;grid-template-columns:1fr !important;gap:12px !important}
+  .mobileScheduleDay{border-radius:20px !important}
+  .mobileDayHeader{padding:12px 14px 10px !important}
+  .mobileDayHeader b{font-size:15px !important}
+  .mobileDayHeader span{font-size:11.5px !important}
+  .mobileDaySessions{padding:10px !important;gap:10px !important}
+  .mobileSessionCard{padding:11px !important;border-radius:16px !important}
+  .mobileSessionCard h4{font-size:15px !important}
+  .mobileSessionTime,.mobileSessionMeta span{font-size:10.5px !important;padding:6px 9px !important}
+  .mobileSessionDuration{font-size:10.5px !important}
+}
+@media (max-width:420px){
+  .mobileScheduleView{gap:10px !important}
+  .mobileDayHeader{padding:11px 12px 9px !important}
+  .mobileDaySessions{padding:9px !important}
+  .mobileSessionCard{padding:10px !important}
+  .mobileSessionTop{margin-bottom:7px !important}
+  .mobileSessionCard h4{font-size:14px !important}
+}
+
+html[data-theme="dark"] .mobileScheduleDay{
+  background:linear-gradient(180deg,#0f1d32 0%,#0b1728 100%) !important;
+  border-color:rgba(148,163,184,.18) !important;
+  box-shadow:0 14px 28px rgba(2,6,23,.22) !important;
+}
+html[data-theme="dark"] .mobileDayHeader{border-bottom-color:rgba(148,163,184,.16) !important}
+html[data-theme="dark"] .mobileDayHeader b,
+html[data-theme="dark"] .mobileSessionCard h4{color:#f8fbff !important}
+html[data-theme="dark"] .mobileDayHeader span,
+html[data-theme="dark"] .mobileSessionDuration,
+html[data-theme="dark"] .mobileDayEmpty{color:#9fb4d6 !important}
+html[data-theme="dark"] .mobileDayEmpty{background:#0b1a2f !important;border-color:rgba(148,163,184,.22) !important}
+html[data-theme="dark"] .mobileSessionCard{
+  color:#f8fbff !important;
+  border-color:rgba(255,255,255,.14) !important;
+  box-shadow:inset 0 0 0 999px rgba(7,17,31,.16), 0 14px 28px rgba(2,6,23,.24) !important;
+}
+html[data-theme="dark"] .mobileSessionTime,
+html[data-theme="dark"] .mobileSessionMeta span{
+  background:rgba(7,17,31,.32) !important;
+  border-color:rgba(255,255,255,.12) !important;
+  color:#f8fbff !important;
+}
+html[data-theme="dark"] .mobileSessionMeta svg{color:#f8fbff !important}
+
+/* compact lesson-days modal/panel */
+.modernScheduleModal{
+  width:min(700px,calc(100vw - 24px)) !important;
+}
+.compactDayChips{gap:8px !important}
+.compactDayChips .chipOption{
+  min-height:64px !important;
+  padding:10px 8px !important;
+  border-radius:16px !important;
+}
+.compactDayChips .chipOption span{font-size:16px !important}
+.compactDayChips .chipOption small{font-size:9px !important;max-width:78px !important}
+.wheelPickerRow{gap:12px !important;margin-top:14px !important}
+.timeWheelPanel{padding:12px !important;border-radius:20px !important}
+.timeWheelTitle{margin-bottom:10px !important}
+.timeWheelTitle span{font-size:11px !important}
+.timeWheelTitle b{font-size:15px !important}
+.timeWheel{
+  height:164px !important;
+  padding:50px 6px !important;
+  gap:6px !important;
+  border-radius:16px !important;
+}
+.timeWheel:before{top:54px !important}
+.timeWheel:after{bottom:54px !important}
+.timeWheelOption{height:38px !important;font-size:17px !important}
+
+@media (max-width:760px){
+  .modernScheduleModal{
+    width:calc(100vw - 14px) !important;
+    max-height:calc(100vh - 14px) !important;
+    padding:14px !important;
+    border-radius:20px !important;
+  }
+  .modernScheduleModal .modalHeader{
+    margin:-14px -14px 8px !important;
+    padding:12px 12px 10px !important;
+    border-radius:20px 20px 0 0 !important;
+  }
+  .modernScheduleModal .modalHeader h3{font-size:20px !important;line-height:1.05 !important}
+  .modernScheduleModal .modalHeader p{font-size:13px !important;line-height:1.4 !important}
+  .compactDayChips{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:7px !important}
+  .compactDayChips .chipOption{
+    min-height:54px !important;
+    padding:8px 6px !important;
+    border-radius:14px !important;
+  }
+  .compactDayChips .chipOption span{font-size:14px !important}
+  .compactDayChips .chipOption small{font-size:8px !important;max-width:64px !important}
+  .wheelPickerRow{grid-template-columns:1fr 1fr !important;gap:8px !important;margin-top:10px !important}
+  .timeWheelPanel{padding:10px !important;border-radius:16px !important}
+  .timeWheelTitle span{font-size:10px !important}
+  .timeWheelTitle b{font-size:13px !important}
+  .timeWheel{height:138px !important;padding:42px 5px !important;border-radius:14px !important}
+  .timeWheel:before{top:46px !important}.timeWheel:after{bottom:46px !important}
+  .timeWheelOption{height:32px !important;font-size:15px !important}
+}
+@media (max-width:420px){
+  .compactDayChips{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:6px !important}
+  .compactDayChips .chipOption{min-height:50px !important;padding:7px 6px !important}
+  .wheelPickerRow{grid-template-columns:1fr !important}
+  .timeWheel{height:128px !important;padding:38px 4px !important}
+  .timeWheel:before{top:42px !important}.timeWheel:after{bottom:42px !important}
+  .timeWheelOption{height:30px !important;font-size:14px !important}
+}
