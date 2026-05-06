@@ -3449,3 +3449,30 @@ html[data-theme="dark"] .compactDayChips .chipOption.active small{
   #students .formCard .customSelectButton,
   #reports .customSelectButton{min-height:52px;}
 }
+
+
+/* =========================================================
+   V25 payment toolbar alignment fix
+   ========================================================= */
+#payments .toolbarGrid{
+  align-items:center !important;
+}
+#payments .toolbarGrid > *{
+  align-self:center !important;
+}
+#payments .toolbarGrid .customSelect{
+  margin-top:0 !important;
+  align-self:center !important;
+}
+#payments .toolbarGrid .customSelectButton,
+#payments .toolbarGrid .smartDateInput,
+#payments .toolbarGrid .dateTriggerBtn,
+#payments .toolbarGrid #paymentSearch{
+  min-height:56px !important;
+}
+@media (max-width:760px){
+  #payments .toolbarGrid .customSelect,
+  #payments .toolbarGrid > *{
+    align-self:stretch !important;
+  }
+}

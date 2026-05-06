@@ -376,8 +376,21 @@ window.deleteTeacherAccount=async(username)=>{
 
 function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function money(n){return Number(n||0).toFixed(0)+' AZN'}
-function today(){return new Date().toISOString().slice(0,10)}
-function curMonth(){return new Date().toISOString().slice(0,7)}
+function bakuParts(date=new Date()){
+  const fmt=new Intl.DateTimeFormat('en-CA',{
+    timeZone:'Asia/Baku',
+    year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',
+    hour12:false
+  });
+  return Object.fromEntries(fmt.formatToParts(date).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+}
+function bakuNow(){
+  const p=bakuParts();
+  return new Date(Number(p.year), Number(p.month)-1, Number(p.day), Number(p.hour), Number(p.minute), Number(p.second));
+}
+function today(){const p=bakuParts(); return `${p.year}-${p.month}-${p.day}`}
+function curMonth(){const p=bakuParts(); return `${p.year}-${p.month}`}
 function active(){return data.students.filter(s=>s.status==='active')}
 function group(id){return data.groups.find(g=>g.id===id)}
 function student(id){return data.students.find(s=>s.id===id)}
@@ -496,7 +509,7 @@ function addMonths(date,count){const d=new Date(date);const originalDay=d.getDat
 function timeToMinutes(t){if(!t)return 0;const [h,m]=String(t).split(':').map(Number);return (h||0)*60+(m||0)}
 function durationMinutes(start,end){return Math.max(timeToMinutes(end)-timeToMinutes(start),0)}
 function durationText(start,end){const mins=durationMinutes(start,end);const h=Math.floor(mins/60);const m=mins%60;if(h&&m)return `${h} saat ${m} dəq`;if(h)return `${h} saat`;return `${m} dəq`;}
-function todayDayName(){return days[(new Date().getDay()+6)%7]}
+function todayDayName(){return days[(bakuNow().getDay()+6)%7]}
 function totalHoursText(minutes){const h=Math.floor(minutes/60);const m=minutes%60;if(h&&m)return `${h} saat ${m} dəq`;if(h)return `${h} saat`;return `${m} dəq`;}
 
 /*
@@ -509,13 +522,13 @@ Example: joined 04 Apr, today 05 May, fee 70:
   04 Apr - 04 May -> old unpaid amount
   04 May - 04 Jun -> current amount
 */
-function studentFinance(s, referenceDate=new Date()){
+function studentFinance(s, referenceDate=bakuNow()){
   const fee=Number(s.fee||0);
   const now=cleanDate(referenceDate);
   const join=cleanDate(s.joinDate);
 
   if(!s.joinDate || fee<=0 || now < join){
-    return {fee, paid:0, oldDebt:0, debt:0, expected:0, currentCharge:0, oldCharges:0, nextDue:addMonths(new Date(),1), overdueCount:0, nextCovered:false};
+    return {fee, paid:0, oldDebt:0, debt:0, expected:0, currentCharge:0, oldCharges:0, nextDue:addMonths(bakuNow(),1), overdueCount:0, nextCovered:false};
   }
 
   const paidTotal=data.payments
