@@ -685,7 +685,7 @@ function fillSelects(){
     return `<option value="${s.id}">${esc(s.name)} — ${esc(group(s.groupId)?.name||'Qrupsuz')} — Bu ay alınacaq: ${money(f.expected)}</option>`;
   }).join('');
   if(!active().length) $('paymentStudent').innerHTML='<option value="">Aktiv şagird yoxdur</option>';
-  initReportGroupCustomSelect();
+  initDefaultCustomSelects();
 }
 
 function closeCustomSelects(except=null){
@@ -694,15 +694,15 @@ function closeCustomSelects(except=null){
   });
 }
 
-function initReportGroupCustomSelect(){
-  const select=$('reportGroup');
+function initCustomSelect(selectId){
+  const select=$(selectId);
   if(!select) return;
   select.classList.add('customSelectNative');
-  let wrap=select.parentElement.querySelector('.customSelect[data-for="reportGroup"]');
+  let wrap=select.parentElement.querySelector(`.customSelect[data-for="${selectId}"]`);
   if(!wrap){
     wrap=document.createElement('div');
     wrap.className='customSelect';
-    wrap.dataset.for='reportGroup';
+    wrap.dataset.for=selectId;
     wrap.innerHTML=`
       <button type="button" class="customSelectButton" aria-haspopup="listbox" aria-expanded="false">
         <span class="customSelectValue"></span>
@@ -722,12 +722,12 @@ function initReportGroupCustomSelect(){
       const opt=e.target.closest('[data-value]');
       if(!opt) return;
       select.value=opt.dataset.value;
-      initReportGroupCustomSelect();
+      initCustomSelect(selectId);
       closeCustomSelects();
       select.dispatchEvent(new Event('change',{bubbles:true}));
     });
     if(!select.dataset.customBound){
-      select.addEventListener('change',()=>initReportGroupCustomSelect());
+      select.addEventListener('change',()=>initCustomSelect(selectId));
       select.dataset.customBound='1';
     }
   }
@@ -739,6 +739,14 @@ function initReportGroupCustomSelect(){
   menu.innerHTML=[...select.options].map(option=>`<button type="button" class="customSelectOption ${option.value===select.value?'active':''}" data-value="${esc(option.value)}" role="option" aria-selected="${String(option.value===select.value)}">${esc(option.textContent||'')}</button>`).join('');
   wrap.classList.remove('is-open');
   btn.setAttribute('aria-expanded','false');
+}
+
+function initDefaultCustomSelects(){
+  ['reportGroup','studentGroup','quickPaymentMethod','paymentMethod'].forEach(initCustomSelect);
+}
+
+function initReportGroupCustomSelect(){
+  initCustomSelect('reportGroup');
 }
 
 function renderHome(){
@@ -1194,7 +1202,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('quickPaymentMethod').onchange=renderQuickPaymentGroups;
   $('quickPaymentDate').onchange=renderQuickPaymentGroups;
   $('clearGroup').onclick=()=>{$('groupForm').reset();$('groupId').value='';renderExternalScheduleRows([]);};
-  $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value=''; setInputDateValue('joinDate', today()); $('studentGroup').value=''; $('studentStatus').value='';};
+  $('clearStudent').onclick=()=>{$('studentForm').reset();$('studentId').value=''; setInputDateValue('joinDate', today()); $('studentGroup').value=''; $('studentStatus').value=''; initCustomSelect('studentGroup');};
   $('studentSearch').oninput=renderStudents;
   $('groupForm').onsubmit=e=>{
     e.preventDefault();
@@ -1227,9 +1235,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(!paymentDate) return alert('Ödəniş tarixini Gün/Ay/İl formatında yazın. məsələn 05/05/2025');
     if(!$('paymentMethod').value) return alert('Ödəniş üsulunu seçin.');
     data.payments.push({id:id(),studentId:sid,amount:Number($('paymentAmount').value),date:paymentDate,method:$('paymentMethod').value,note:$('paymentNote').value.trim()});
-    $('paymentForm').reset(); setInputDateValue('paymentDate', today()); persistAndRender('Ödəniş yazıldı');
+    $('paymentForm').reset(); setInputDateValue('paymentDate', today()); initCustomSelect('paymentMethod'); persistAndRender('Ödəniş yazıldı');
   };
   if($('exportData')) $('exportData').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hazirliq-melumatlari.json';a.click();};
   if($('clearAll')) $('clearAll').onclick=()=>{if(confirm('Bütün məlumatlar silinsin?')){data={groups:[],students:[],payments:[]};persistAndRender('Bütün məlumatlar silindi')}};
-  setInputDateValue('joinDate', today()); setInputDateValue('paymentDate', today()); setInputDateValue('quickPaymentDate', today()); document.querySelectorAll('[data-date-target]').forEach(btn=>btn.onclick=()=>openDatePicker(btn.dataset.dateTarget)); ['joinDate','paymentDate','quickPaymentDate'].forEach(id=>$(id)?.addEventListener('blur',()=>{ const iso=toIsoDate($(id).value); if(iso) $(id).value=fromIsoDate(iso); })); if($('closeDatePickerModal')) $('closeDatePickerModal').onclick=closeDatePicker; if($('prevCalendarMonth')) $('prevCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()-1,1); renderDatePicker(); }; if($('nextCalendarMonth')) $('nextCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()+1,1); renderDatePicker(); }; if($('calendarDays')) $('calendarDays').onclick=(e)=>{ const btn=e.target.closest('[data-date-value]'); if(!btn) return; pickerState.tempDate=btn.dataset.dateValue; renderDatePicker(); }; if($('pickTodayDate')) $('pickTodayDate').onclick=()=>{ pickerState.tempDate=today(); pickerState.monthCursor=monthStartDate(today()); renderDatePicker(); }; if($('clearSelectedDate')) $('clearSelectedDate').onclick=()=>{ pickerState.tempDate=''; if(pickerState.dateTarget) $(pickerState.dateTarget).value=''; closeDatePicker(); }; if($('applyDateSelection')) $('applyDateSelection').onclick=()=>{ if(pickerState.dateTarget && pickerState.tempDate) setInputDateValue(pickerState.dateTarget,pickerState.tempDate); closeDatePicker(); }; if($('datePickerModal')) $('datePickerModal').addEventListener('click',e=>{ if(e.target.id==='datePickerModal') closeDatePicker(); }); if($('openSchedulePicker')) $('openSchedulePicker').onclick=()=>openScheduleModal(); if($('closeScheduleModal')) $('closeScheduleModal').onclick=closeScheduleModal; if($('cancelScheduleModal')) $('cancelScheduleModal').onclick=closeScheduleModal; if($('addScheduleRowBtn')) $('addScheduleRowBtn').onclick=()=>{ const {day,start,end}=pickerState.schedule; if(!day||!start||!end) return alert('Əvvəl gün, başlama saatı və bitmə saatını seçin.'); if(end<=start) return alert('Bitmə saatı başlama saatından sonra olmalıdır.'); const ix=pickerState.scheduleItems.findIndex(x=>x.day===day); if(ix>=0) pickerState.scheduleItems[ix]={day,start,end}; else pickerState.scheduleItems.push({day,start,end}); pickerState.schedule={day:'',start:'',end:''}; renderExternalScheduleRows(pickerState.scheduleItems); initSchedulePicker(); };  if($('scheduleModal')) $('scheduleModal').addEventListener('click',(e)=>{ if(e.target.id==='scheduleModal') closeScheduleModal(); }); if($('scheduleDayChips')) $('scheduleDayChips').onclick=(e)=>{ const b=e.target.closest('[data-sched-day]'); if(!b) return; pickerState.schedule.day=b.dataset.schedDay; initSchedulePicker(); }; if($('scheduleStartWheel')) $('scheduleStartWheel').onclick=(e)=>{ const b=e.target.closest('[data-sched-start]'); if(!b) return; pickerState.schedule.start=b.dataset.schedStart; initSchedulePicker(); b.scrollIntoView({block:'center',behavior:'smooth'}); }; if($('scheduleEndWheel')) $('scheduleEndWheel').onclick=(e)=>{ const b=e.target.closest('[data-sched-end]'); if(!b) return; pickerState.schedule.end=b.dataset.schedEnd; initSchedulePicker(); b.scrollIntoView({block:'center',behavior:'smooth'}); }; if($('modalScheduleList')) $('modalScheduleList').onclick=(e)=>{ const b=e.target.closest('[data-remove-schedule]'); if(!b) return; pickerState.scheduleItems.splice(Number(b.dataset.removeSchedule),1); initSchedulePicker(); }; document.addEventListener('click',e=>{ if(!e.target.closest('.customSelect')) closeCustomSelects(); }); document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeCustomSelects(); }); initSchedulePicker(); initReportGroupCustomSelect(); initSupabase();refreshIcons();
+  setInputDateValue('joinDate', today()); setInputDateValue('paymentDate', today()); setInputDateValue('quickPaymentDate', today()); document.querySelectorAll('[data-date-target]').forEach(btn=>btn.onclick=()=>openDatePicker(btn.dataset.dateTarget)); ['joinDate','paymentDate','quickPaymentDate'].forEach(id=>$(id)?.addEventListener('blur',()=>{ const iso=toIsoDate($(id).value); if(iso) $(id).value=fromIsoDate(iso); })); if($('closeDatePickerModal')) $('closeDatePickerModal').onclick=closeDatePicker; if($('prevCalendarMonth')) $('prevCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()-1,1); renderDatePicker(); }; if($('nextCalendarMonth')) $('nextCalendarMonth').onclick=()=>{ pickerState.monthCursor=new Date(pickerState.monthCursor.getFullYear(),pickerState.monthCursor.getMonth()+1,1); renderDatePicker(); }; if($('calendarDays')) $('calendarDays').onclick=(e)=>{ const btn=e.target.closest('[data-date-value]'); if(!btn) return; pickerState.tempDate=btn.dataset.dateValue; renderDatePicker(); }; if($('pickTodayDate')) $('pickTodayDate').onclick=()=>{ pickerState.tempDate=today(); pickerState.monthCursor=monthStartDate(today()); renderDatePicker(); }; if($('clearSelectedDate')) $('clearSelectedDate').onclick=()=>{ pickerState.tempDate=''; if(pickerState.dateTarget) $(pickerState.dateTarget).value=''; closeDatePicker(); }; if($('applyDateSelection')) $('applyDateSelection').onclick=()=>{ if(pickerState.dateTarget && pickerState.tempDate) setInputDateValue(pickerState.dateTarget,pickerState.tempDate); closeDatePicker(); }; if($('datePickerModal')) $('datePickerModal').addEventListener('click',e=>{ if(e.target.id==='datePickerModal') closeDatePicker(); }); if($('openSchedulePicker')) $('openSchedulePicker').onclick=()=>openScheduleModal(); if($('closeScheduleModal')) $('closeScheduleModal').onclick=closeScheduleModal; if($('cancelScheduleModal')) $('cancelScheduleModal').onclick=closeScheduleModal; if($('addScheduleRowBtn')) $('addScheduleRowBtn').onclick=()=>{ const {day,start,end}=pickerState.schedule; if(!day||!start||!end) return alert('Əvvəl gün, başlama saatı və bitmə saatını seçin.'); if(end<=start) return alert('Bitmə saatı başlama saatından sonra olmalıdır.'); const ix=pickerState.scheduleItems.findIndex(x=>x.day===day); if(ix>=0) pickerState.scheduleItems[ix]={day,start,end}; else pickerState.scheduleItems.push({day,start,end}); pickerState.schedule={day:'',start:'',end:''}; renderExternalScheduleRows(pickerState.scheduleItems); initSchedulePicker(); };  if($('scheduleModal')) $('scheduleModal').addEventListener('click',(e)=>{ if(e.target.id==='scheduleModal') closeScheduleModal(); }); if($('scheduleDayChips')) $('scheduleDayChips').onclick=(e)=>{ const b=e.target.closest('[data-sched-day]'); if(!b) return; pickerState.schedule.day=b.dataset.schedDay; initSchedulePicker(); }; if($('scheduleStartWheel')) $('scheduleStartWheel').onclick=(e)=>{ const b=e.target.closest('[data-sched-start]'); if(!b) return; pickerState.schedule.start=b.dataset.schedStart; initSchedulePicker(); b.scrollIntoView({block:'center',behavior:'smooth'}); }; if($('scheduleEndWheel')) $('scheduleEndWheel').onclick=(e)=>{ const b=e.target.closest('[data-sched-end]'); if(!b) return; pickerState.schedule.end=b.dataset.schedEnd; initSchedulePicker(); b.scrollIntoView({block:'center',behavior:'smooth'}); }; if($('modalScheduleList')) $('modalScheduleList').onclick=(e)=>{ const b=e.target.closest('[data-remove-schedule]'); if(!b) return; pickerState.scheduleItems.splice(Number(b.dataset.removeSchedule),1); initSchedulePicker(); }; document.addEventListener('click',e=>{ if(!e.target.closest('.customSelect')) closeCustomSelects(); }); document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeCustomSelects(); }); initSchedulePicker(); initDefaultCustomSelects(); initSupabase();refreshIcons();
 });
