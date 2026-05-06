@@ -1681,34 +1681,35 @@ body.authMode .authScreen{display:flex !important;}
 }
 
 /* =========================================================
-   CLEAN DARK MODE SYSTEM — rewritten from scratch
+   FINAL THEME SYSTEM — one file, no dark.css/light.css split
+   Fixes mixed white/dark UI by overriding hardcoded white cards.
    ========================================================= */
 html[data-theme="dark"]{
   color-scheme:dark;
   --bg:#07111f;
-  --bg-2:#0b1728;
+  --bg-2:#0a1628;
   --surface:#0e1a2d;
-  --surface-2:#12223a;
-  --surface-3:#173150;
+  --surface-2:#13223a;
+  --surface-3:#193152;
   --text:#f8fbff;
   --muted:#a8b7ce;
-  --line:rgba(148,163,184,.22);
-  --line-strong:rgba(191,219,254,.30);
+  --line:rgba(148,163,184,.24);
+  --line-strong:rgba(191,219,254,.34);
   --accent:#60a5fa;
   --accent-2:#22d3ee;
-  --accent-soft:rgba(96,165,250,.15);
+  --accent-soft:rgba(96,165,250,.16);
   --ok:#34d399;
-  --ok-soft:rgba(16,185,129,.14);
+  --ok-soft:rgba(16,185,129,.13);
   --warn:#fbbf24;
   --warn-soft:rgba(251,191,36,.14);
   --danger:#fb7185;
   --danger-soft:rgba(251,113,133,.14);
   --navy:#f8fbff;
-  --navy-2:#dbeafe;
+  --navy-2:#e5eefc;
   --ink:#f8fbff;
-  --soft-shadow:0 18px 44px rgba(0,0,0,.24);
-  --shadow:0 28px 90px rgba(0,0,0,.40);
-  --shadow-soft:0 18px 44px rgba(0,0,0,.26);
+  --soft-shadow:0 18px 44px rgba(0,0,0,.26);
+  --shadow:0 28px 90px rgba(0,0,0,.42);
+  --shadow-soft:0 18px 44px rgba(0,0,0,.28);
 }
 
 html[data-theme="dark"] body{
@@ -1723,26 +1724,26 @@ html[data-theme="dark"] .ambientTwo{background:rgba(34,211,238,.14) !important}
 
 html[data-theme="dark"] .side{
   background:linear-gradient(180deg,#07111f 0%,#0b1728 100%) !important;
-  border-color:var(--line) !important;
-  box-shadow:0 28px 70px rgba(0,0,0,.34) !important;
+  border-color:rgba(148,163,184,.20) !important;
+  box-shadow:0 28px 70px rgba(0,0,0,.36) !important;
 }
 html[data-theme="dark"] .brandText h1,
 html[data-theme="dark"] .sideNote b,
-html[data-theme="dark"] .topHeader h2,
 html[data-theme="dark"] .nav.active span,
 html[data-theme="dark"] .nav.active svg{color:#fff !important}
 html[data-theme="dark"] .brandText p,
-html[data-theme="dark"] .sideNote span,
-html[data-theme="dark"] .topHeader p{color:#9fb4d6 !important}
+html[data-theme="dark"] .sideNote span{color:#9fb4d6 !important}
 html[data-theme="dark"] .nav{color:#dbe7f5 !important}
 html[data-theme="dark"] .nav svg{color:#9fb4d6 !important}
 html[data-theme="dark"] .nav:hover{background:rgba(255,255,255,.07) !important;border-color:rgba(191,211,238,.14) !important}
 html[data-theme="dark"] .nav.active{background:linear-gradient(135deg,rgba(96,165,250,.24),rgba(34,211,238,.12)) !important;border-color:rgba(96,165,250,.34) !important}
 
+html[data-theme="dark"] .authScreen,
 html[data-theme="dark"] .authCard,
 html[data-theme="dark"] .multiAuthCard,
 html[data-theme="dark"] .adminPanel,
 html[data-theme="dark"] .heroPanel,
+html[data-theme="dark"] .heroMiniCard,
 html[data-theme="dark"] .surfaceCard,
 html[data-theme="dark"] .statCard,
 html[data-theme="dark"] .quickScheduleCard,
@@ -1756,62 +1757,44 @@ html[data-theme="dark"] .timeWheelPanel,
 html[data-theme="dark"] .scheduleAdderBar,
 html[data-theme="dark"] .scheduleHelpText,
 html[data-theme="dark"] .modalScheduleItem,
-html[data-theme="dark"] .teacherAdminRow,
+html[data-theme="dark"] .teacherAdminList,
+html[data-theme="dark"] .teacherAdminItem,
+html[data-theme="dark"] .empty,
 html[data-theme="dark"] .reportBox,
 html[data-theme="dark"] .reportFilter,
 html[data-theme="dark"] .studentCard,
-html[data-theme="dark"] .groupCard,
-html[data-theme="dark"] .scheduleCardItem,
-html[data-theme="dark"] .quickPayRow,
-html[data-theme="dark"] .improvedPayRow,
-html[data-theme="dark"] .empty{
+html[data-theme="dark"] .groupCard{
   background:linear-gradient(180deg,rgba(15,30,52,.96),rgba(10,23,40,.96)) !important;
   border-color:var(--line) !important;
   color:var(--text) !important;
   box-shadow:var(--shadow-soft) !important;
 }
-html[data-theme="dark"] .heroPanel,
-html[data-theme="dark"] .topHeader{
+
+html[data-theme="dark"] .heroPanel{
   background:
     linear-gradient(135deg,rgba(15,30,52,.96),rgba(9,21,37,.96)),
-    radial-gradient(circle at top right,rgba(96,165,250,.14),transparent 35%) !important;
-  border-color:var(--line) !important;
+    radial-gradient(circle at top right,rgba(96,165,250,.16),transparent 35%) !important;
 }
+html[data-theme="dark"] .heroMiniCard,
 html[data-theme="dark"] .statCard,
-html[data-theme="dark"] .teacherAdminRow{background:linear-gradient(180deg,#10203a 0%,#0b1728 100%) !important}
-html[data-theme="dark"] .panelLabel,
-html[data-theme="dark"] .statIcon,
-html[data-theme="dark"] .topBadge,
-html[data-theme="dark"] .schedulePreviewCount,
-html[data-theme="dark"] .moreTag,
-html[data-theme="dark"] .pill,
-html[data-theme="dark"] .metricPill,
-html[data-theme="dark"] .amountChoice,
-html[data-theme="dark"] .calendarDay,
-html[data-theme="dark"] .chipOption,
-html[data-theme="dark"] .timeChoiceBtn,
-html[data-theme="dark"] .secondary,
-html[data-theme="dark"] .mini,
-html[data-theme="dark"] .presetBtn,
-html[data-theme="dark"] .themeToggle,
-html[data-theme="dark"] .dateTriggerBtn,
-html[data-theme="dark"] .pickerValueBtn{
-  background:#101f34 !important;
-  color:var(--text) !important;
-  border-color:var(--line) !important;
-  box-shadow:none !important;
+html[data-theme="dark"] .statCard.accent,
+html[data-theme="dark"] .statCard.softDanger{
+  background:linear-gradient(180deg,#10203a 0%,#0b1728 100%) !important;
 }
-html[data-theme="dark"] .secondary:hover,
-html[data-theme="dark"] .mini:hover,
-html[data-theme="dark"] .presetBtn:hover,
-html[data-theme="dark"] .themeToggle:hover,
-html[data-theme="dark"] .dateTriggerBtn:hover,
-html[data-theme="dark"] .pickerValueBtn:hover{background:#152842 !important;border-color:var(--line-strong) !important}
+html[data-theme="dark"] .statIcon,
+html[data-theme="dark"] .panelLabel{
+  background:rgba(96,165,250,.15) !important;
+  color:var(--accent) !important;
+  border-color:rgba(96,165,250,.24) !important;
+}
+html[data-theme="dark"] .softDanger .statIcon{background:rgba(251,113,133,.14) !important;color:var(--danger) !important;border-color:rgba(251,113,133,.25) !important}
 
 html[data-theme="dark"] input,
 html[data-theme="dark"] select,
 html[data-theme="dark"] textarea,
 html[data-theme="dark"] .nativeDatePicker,
+html[data-theme="dark"] .dateTriggerBtn,
+html[data-theme="dark"] .pickerValueBtn,
 html[data-theme="dark"] .searchInput{
   background:#0b1728 !important;
   color:var(--text) !important;
@@ -1824,8 +1807,39 @@ html[data-theme="dark"] input:focus,
 html[data-theme="dark"] select:focus,
 html[data-theme="dark"] textarea:focus{
   background:#0f1e34 !important;
-  border-color:rgba(96,165,250,.68) !important;
+  border-color:rgba(96,165,250,.70) !important;
   box-shadow:0 0 0 5px rgba(96,165,250,.14) !important;
+}
+
+html[data-theme="dark"] .secondary,
+html[data-theme="dark"] .mini,
+html[data-theme="dark"] .presetBtn,
+html[data-theme="dark"] .themeToggle,
+html[data-theme="dark"] .topThemeToggle,
+html[data-theme="dark"] .mobileNavToggle,
+html[data-theme="dark"] .drawerClose,
+html[data-theme="dark"] .calendarDay,
+html[data-theme="dark"] .chipOption,
+html[data-theme="dark"] .timeChoiceBtn,
+html[data-theme="dark"] .amountChoice,
+html[data-theme="dark"] .metricPill,
+html[data-theme="dark"] .pill,
+html[data-theme="dark"] .topBadge,
+html[data-theme="dark"] .schedulePreviewCount,
+html[data-theme="dark"] .moreTag{
+  background:#101f34 !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+  box-shadow:none !important;
+}
+html[data-theme="dark"] .secondary:hover,
+html[data-theme="dark"] .mini:hover,
+html[data-theme="dark"] .presetBtn:hover,
+html[data-theme="dark"] .themeToggle:hover,
+html[data-theme="dark"] .chipOption:hover,
+html[data-theme="dark"] .pickerValueBtn:hover{
+  background:#152842 !important;
+  border-color:var(--line-strong) !important;
 }
 
 html[data-theme="dark"] table,
@@ -1834,15 +1848,12 @@ html[data-theme="dark"] tbody,
 html[data-theme="dark"] tr,
 html[data-theme="dark"] td,
 html[data-theme="dark"] th{
+  background:transparent !important;
   color:var(--text) !important;
   border-color:var(--line) !important;
 }
-html[data-theme="dark"] table,
-html[data-theme="dark"] tbody,
-html[data-theme="dark"] tr,
-html[data-theme="dark"] td{background:transparent !important}
-html[data-theme="dark"] th{background:#0e1a2d !important;color:#cfe0f8 !important}
-html[data-theme="dark"] tr:hover td{background:rgba(96,165,250,.05) !important}
+html[data-theme="dark"] th{color:#cfe0f8 !important;background:#0e1a2d !important}
+html[data-theme="dark"] tr:hover td{background:rgba(96,165,250,.06) !important}
 
 html[data-theme="dark"] .accHead,
 html[data-theme="dark"] .collapsibleHead{background:transparent !important;color:var(--text) !important}
@@ -1851,150 +1862,1027 @@ html[data-theme="dark"] .collapsibleHead:hover{background:rgba(255,255,255,.04) 
 html[data-theme="dark"] .accChevron{background:#14243b !important;color:var(--text) !important}
 html[data-theme="dark"] .accIndicator{background:rgba(96,165,250,.14) !important;border-color:rgba(96,165,250,.25) !important;color:var(--accent) !important}
 
-/* schedule page: dark mode changes only colors, not geometry */
-html[data-theme="dark"] .timetableWrap,
-html[data-theme="dark"] .timetable,
-html[data-theme="dark"] .timetableMain,
-html[data-theme="dark"] .timeColumn,
-html[data-theme="dark"] .dayColumn,
-html[data-theme="dark"] .legendChip{
-  background:#0e1a2d !important;
+html[data-theme="dark"] .scheduleRow,
+html[data-theme="dark"] .previewItem,
+html[data-theme="dark"] .modalScheduleList .empty,
+html[data-theme="dark"] .calendarDay,
+html[data-theme="dark"] .timeWheel,
+html[data-theme="dark"] .timePaletteGrid,
+html[data-theme="dark"] .bottomTabBar{
+  background:#0b1728 !important;
   border-color:var(--line) !important;
   color:var(--text) !important;
 }
-html[data-theme="dark"] .timetableHeaderCell,
-html[data-theme="dark"] .timeCell{
-  background:#0f1d32 !important;
-  color:#dbe7f5 !important;
-  border-color:var(--line) !important;
+html[data-theme="dark"] .timeWheel{
+  background:
+    linear-gradient(180deg,rgba(15,30,52,.92),rgba(11,23,40,.55) 34%,rgba(11,23,40,.55) 66%,rgba(15,30,52,.92)),
+    #0b1728 !important;
+  box-shadow:inset 0 0 0 1px rgba(148,163,184,.10) !important;
 }
-html[data-theme="dark"] .timetableHeaderCell span,
-html[data-theme="dark"] .timeCell,
-html[data-theme="dark"] .smallNote{color:var(--muted) !important}
-html[data-theme="dark"] .slotLine{
-  background:linear-gradient(180deg,#0c182a 0%, #0b1728 100%) !important;
-  border-color:rgba(148,163,184,.18) !important;
+html[data-theme="dark"] .timeWheel:before,
+html[data-theme="dark"] .timeWheel:after{background:rgba(96,165,250,.38) !important}
+html[data-theme="dark"] .wheelTime{color:#a8b7ce !important;background:transparent !important}
+html[data-theme="dark"] .wheelTime:hover{background:#14243b !important;color:#93c5fd !important}
+html[data-theme="dark"] .wheelTime.active,
+html[data-theme="dark"] .calendarDay.selected,
+html[data-theme="dark"] .chipOption.active,
+html[data-theme="dark"] .timeChoiceBtn.active,
+html[data-theme="dark"] .bottomTab.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2)) !important;
+  color:#06111f !important;
+  border-color:transparent !important;
+  box-shadow:0 12px 26px rgba(34,211,238,.16) !important;
 }
-html[data-theme="dark"] .slotLine:nth-child(even){background:#0d1b30 !important}
-html[data-theme="dark"] .sessionBlock{
-  color:#f8fbff !important;
-  border-color:rgba(255,255,255,.14) !important;
-  box-shadow:0 16px 30px rgba(2,6,23,.26) !important;
-}
-html[data-theme="dark"] .sessionBlock::before{background:rgba(255,255,255,.16) !important}
-html[data-theme="dark"] .sessionBlock h4,
-html[data-theme="dark"] .sessionBlock p,
-html[data-theme="dark"] .sessionBlock .blockTime,
-html[data-theme="dark"] .sessionBlock .blockMeta span,
-html[data-theme="dark"] .sessionBlock .blockMeta svg{color:#f8fbff !important}
-html[data-theme="dark"] .sessionBlock .blockTime,
-html[data-theme="dark"] .sessionBlock .blockMeta span{
-  background:rgba(7,17,31,.28) !important;
-  border-color:rgba(255,255,255,.12) !important;
-}
-html[data-theme="dark"] .sessionBlock p{color:rgba(248,251,255,.86) !important}
+html[data-theme="dark"] .chipOption.active span,
+html[data-theme="dark"] .chipOption.active small{color:#06111f !important}
+html[data-theme="dark"] .calendarDay.today{border-color:var(--accent) !important;color:#93c5fd !important}
 
 html[data-theme="dark"] .metricPill.expected,
-html[data-theme="dark"] .amountChoice.expected{
-  background:rgba(96,165,250,.14) !important;
+html[data-theme="dark"] .amountChoice.expected,
+html[data-theme="dark"] .amountChoice.actionAmount.expected,
+html[data-theme="dark"] .amountChoice.infoCard.expected,
+html[data-theme="dark"] .metricPill.expected:hover,
+html[data-theme="dark"] .amountChoice.infoCard.expected:hover{
+  background:rgba(96,165,250,.13) !important;
   border-color:rgba(96,165,250,.30) !important;
   color:#93c5fd !important;
 }
 html[data-theme="dark"] .metricPill.debt,
-html[data-theme="dark"] .amountChoice.debt{
+html[data-theme="dark"] .amountChoice.debt,
+html[data-theme="dark"] .amountChoice.actionAmount.debt,
+html[data-theme="dark"] .amountChoice.infoCard.debt,
+html[data-theme="dark"] .metricPill.debt:hover,
+html[data-theme="dark"] .amountChoice.infoCard.debt:hover{
   background:rgba(251,113,133,.12) !important;
-  border-color:rgba(251,113,133,.30) !important;
+  border-color:rgba(251,113,133,.32) !important;
   color:#fb7185 !important;
 }
 html[data-theme="dark"] .metricPill.monthly,
-html[data-theme="dark"] .amountChoice.monthly{
+html[data-theme="dark"] .amountChoice.monthly,
+html[data-theme="dark"] .amountChoice.infoCard.monthly,
+html[data-theme="dark"] .metricPill.monthly:hover,
+html[data-theme="dark"] .amountChoice.infoCard.monthly:hover{
   background:rgba(34,211,238,.11) !important;
   border-color:rgba(34,211,238,.28) !important;
   color:#67e8f9 !important;
 }
 html[data-theme="dark"] .metricPill.clearDebt,
-html[data-theme="dark"] .amountChoice.clearDebt{
+html[data-theme="dark"] .amountChoice.actionAmount.clearDebt,
+html[data-theme="dark"] .metricPill.clearDebt:hover{
   background:rgba(52,211,153,.12) !important;
   border-color:rgba(52,211,153,.30) !important;
   color:#34d399 !important;
 }
 html[data-theme="dark"] .metricPill b,
 html[data-theme="dark"] .amountChoice strong,
-html[data-theme="dark"] .quickPayStudent b,
-html[data-theme="dark"] .scheduleDayText,
-html[data-theme="dark"] .teacherAdminRow b,
-html[data-theme="dark"] .adminPanelHead b,
-html[data-theme="dark"] .authCard h2{color:var(--text) !important}
+html[data-theme="dark"] .amountChoice.actionAmount strong,
+html[data-theme="dark"] .quickPayStudent .monthlyInline strong,
+html[data-theme="dark"] .timeWheelTitle b,
+html[data-theme="dark"] .compactDayChips .chipOption span,
+html[data-theme="dark"] .modalScheduleItem b{color:var(--text) !important}
 html[data-theme="dark"] .metricPill small,
 html[data-theme="dark"] .amountChoice small,
-html[data-theme="dark"] .quickPayStudent span,
-html[data-theme="dark"] .scheduleTimeText,
-html[data-theme="dark"] .teacherAdminRow span,
-html[data-theme="dark"] .adminPanelHead span,
-html[data-theme="dark"] .authCard p{color:var(--muted) !important}
+html[data-theme="dark"] .amountChoice.actionAmount small,
+html[data-theme="dark"] .quickPayStudent .monthlyInline,
+html[data-theme="dark"] .timeWheelTitle span,
+html[data-theme="dark"] .compactDayChips .chipOption small,
+html[data-theme="dark"] .modalScheduleItem span,
+html[data-theme="dark"] .scheduleAdderBar::after,
+html[data-theme="dark"] .scheduleHelpText{color:var(--muted) !important}
 
 html[data-theme="dark"] .authTab{background:#0b1728 !important;color:var(--muted) !important;border-color:var(--line) !important}
 html[data-theme="dark"] .authTab.active{background:rgba(96,165,250,.15) !important;color:#93c5fd !important;border-color:rgba(96,165,250,.30) !important}
 html[data-theme="dark"] .authMessage{color:#fca5a5 !important;background:rgba(251,113,133,.10) !important;border-color:rgba(251,113,133,.20) !important}
 html[data-theme="dark"] .authMessage.ok{color:#6ee7b7 !important;background:rgba(52,211,153,.10) !important;border-color:rgba(52,211,153,.22) !important}
 
+html[data-theme="dark"] .danger,
+html[data-theme="dark"] .mini.red,
+html[data-theme="dark"] .debtPreset{
+  background:rgba(251,113,133,.12) !important;
+  color:#fb7185 !important;
+  border-color:rgba(251,113,133,.28) !important;
+}
 html[data-theme="dark"] .primary,
-html[data-theme="dark"] .savePayBtn,
-html[data-theme="dark"] .bottomTab.active,
-html[data-theme="dark"] .calendarDay.selected,
-html[data-theme="dark"] .chipOption.active,
-html[data-theme="dark"] .timeChoiceBtn.active,
-html[data-theme="dark"] .wheelTime.active{
+html[data-theme="dark"] .savePayBtn{
   color:#06111f !important;
   background:linear-gradient(135deg,var(--accent),var(--accent-2)) !important;
-  border-color:transparent !important;
-  box-shadow:0 12px 26px rgba(34,211,238,.16) !important;
+  box-shadow:0 16px 32px rgba(34,211,238,.16) !important;
 }
-html[data-theme="dark"] .calendarDay.today{border-color:var(--accent) !important;color:#93c5fd !important}
-html[data-theme="dark"] .timeWheel,
-html[data-theme="dark"] .scheduleRow,
-html[data-theme="dark"] .previewItem,
-html[data-theme="dark"] .bottomTabBar{background:#0b1728 !important;border-color:var(--line) !important;color:var(--text) !important}
-html[data-theme="dark"] .timeWheel:before,
-html[data-theme="dark"] .timeWheel:after{background:rgba(96,165,250,.36) !important}
-html[data-theme="dark"] .wheelTime{color:#a8b7ce !important}
-html[data-theme="dark"] .wheelTime:hover{background:#14243b !important;color:#93c5fd !important}
 
-/* mobile nav: keep report visible */
+/* mobile card conversion was forcing white; keep it dark too */
+@media (max-width:760px){
+  html[data-theme="dark"] #studentList tr,
+  html[data-theme="dark"] #paymentGroups tr,
+  html[data-theme="dark"] #studentList td,
+  html[data-theme="dark"] #paymentGroups td{
+    background:#0e1a2d !important;
+    color:var(--text) !important;
+    border-color:var(--line) !important;
+  }
+  html[data-theme="dark"] .bottomTabBar{
+    background:rgba(8,18,32,.94) !important;
+    border-color:var(--line) !important;
+  }
+  html[data-theme="dark"] .bottomTab{color:#a8b7ce !important}
+  html[data-theme="dark"] .bottomTab.active{color:#06111f !important}
+}
+
+
+/* =========================================================
+   V15 polish patch — dark mode consistency + mobile cleanup
+   ========================================================= */
+.authTopLine{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.authTopLine .panelLabel{margin-right:auto}
+
+.themeToggle{
+  position:relative;
+  min-height:46px;
+  border-radius:999px;
+  padding:0 16px 0 13px;
+  border:1px solid rgba(191,211,238,.78);
+  background:linear-gradient(135deg, rgba(255,255,255,.98), rgba(238,247,255,.98));
+  color:var(--navy);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-weight:900;
+  letter-spacing:-.02em;
+  box-shadow:0 10px 28px rgba(15,23,42,.10);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+.themeToggle:hover{transform:translateY(-1px);box-shadow:0 16px 34px rgba(15,23,42,.14)}
+.themeToggle i{
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+  display:grid;
+  place-items:center;
+  color:#2563eb;
+}
+.themeToggle span{white-space:nowrap;font-size:14px;line-height:1}
+.topThemeToggle{min-width:136px}
+html[data-theme="dark"] .themeToggle{
+  background:linear-gradient(135deg, rgba(16,31,52,.96), rgba(10,23,40,.96)) !important;
+  border-color:rgba(96,165,250,.28) !important;
+  color:#f8fbff !important;
+  box-shadow:0 16px 34px rgba(0,0,0,.22) !important;
+}
+html[data-theme="dark"] .themeToggle i{color:#93c5fd !important}
+html[data-theme="dark"] .themeToggle[data-theme-state="dark"]{
+  background:linear-gradient(135deg, rgba(245,158,11,.17), rgba(251,191,36,.10)), linear-gradient(135deg, rgba(16,31,52,.96), rgba(10,23,40,.96)) !important;
+  border-color:rgba(251,191,36,.26) !important;
+}
+html[data-theme="light"] .themeToggle[data-theme-state="light"]{
+  background:linear-gradient(135deg, rgba(37,99,235,.09), rgba(14,165,233,.08)), linear-gradient(135deg, rgba(255,255,255,.98), rgba(238,247,255,.98));
+}
+
+/* dark login/admin consistency */
+html[data-theme="dark"] body.authMode .authScreen{
+  background:
+    radial-gradient(circle at 25% 15%, rgba(96,165,250,.22), transparent 34%),
+    radial-gradient(circle at 85% 0%, rgba(34,211,238,.14), transparent 30%),
+    linear-gradient(135deg,#07111f 0%,#081423 100%) !important;
+}
+html[data-theme="dark"] .authCard,
+html[data-theme="dark"] .adminPanel,
+html[data-theme="dark"] .teacherAdminRow,
+html[data-theme="dark"] .authTabs{
+  background:linear-gradient(180deg, rgba(12,24,41,.96), rgba(9,20,35,.96)) !important;
+  border-color:var(--line) !important;
+}
+html[data-theme="dark"] .teacherAdminRow strong,
+html[data-theme="dark"] .teacherAdminRow b,
+html[data-theme="dark"] .authCard h2,
+html[data-theme="dark"] .adminPanelHead b{color:var(--text) !important}
+html[data-theme="dark"] .teacherAdminRow span,
+html[data-theme="dark"] .adminPanelHead span,
+html[data-theme="dark"] .authCard p{color:var(--muted) !important}
+html[data-theme="dark"] .authTab{
+  background:transparent !important;
+  color:#9fb4d6 !important;
+  border:1px solid transparent !important;
+  box-shadow:none !important;
+}
+html[data-theme="dark"] .authTab.active{
+  background:linear-gradient(135deg, rgba(96,165,250,.22), rgba(34,211,238,.12)) !important;
+  color:#f8fbff !important;
+  border-color:rgba(96,165,250,.32) !important;
+  box-shadow:0 12px 24px rgba(0,0,0,.18) !important;
+}
+
+/* quick payment cards in dark mode */
+html[data-theme="dark"] .quickPayRow,
+html[data-theme="dark"] .improvedPayRow,
+html[data-theme="dark"] .scheduleCardItem,
+html[data-theme="dark"] .metricPills,
+html[data-theme="dark"] .payBox{
+  background:linear-gradient(180deg, #0e1a2d 0%, #0b1728 100%) !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+html[data-theme="dark"] .quickPayStudent b,
+html[data-theme="dark"] .quickPayStudent strong,
+html[data-theme="dark"] .scheduleDayText{color:var(--text) !important}
+html[data-theme="dark"] .quickPayStudent span,
+html[data-theme="dark"] .scheduleTimeText,
+html[data-theme="dark"] .monthlyInline{color:var(--muted) !important}
+html[data-theme="dark"] .amountChoice{
+  background:#101f34 !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+  box-shadow:none !important;
+}
+html[data-theme="dark"] .amountChoice.expected{
+  background:rgba(96,165,250,.14) !important;
+  border-color:rgba(96,165,250,.30) !important;
+}
+html[data-theme="dark"] .amountChoice.debt,
+html[data-theme="dark"] .amountChoice.actionAmount.debt{
+  background:rgba(251,113,133,.12) !important;
+  border-color:rgba(251,113,133,.26) !important;
+}
+html[data-theme="dark"] .amountChoice.clearDebt,
+html[data-theme="dark"] .amountChoice.actionAmount.clearDebt{
+  background:rgba(52,211,153,.12) !important;
+  border-color:rgba(52,211,153,.26) !important;
+}
+html[data-theme="dark"] .amountChoice small{color:var(--muted) !important}
+html[data-theme="dark"] .amountChoice strong{color:var(--text) !important}
+html[data-theme="dark"] .quickPayActions input{
+  background:#0b1728 !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+}
+
+/* schedule board in dark mode */
+}
+
+/* payment / filter bar polishing */
+.toolbarGrid{
+  align-items:stretch;
+}
+.toolbarGrid > *{min-width:0}
+.smartDateField,
+.compactSmartDateField{align-items:stretch}
+.smartDateInput,
+.dateTriggerBtn,
+select#quickPaymentMethod,
+#paymentSearch{min-height:56px}
+
+/* improved mobile resilience */
+@media (max-width:980px){
+  .toolbarGrid,
+  .schedulePickerRow,
+  .wheelPickerRow,
+  .scheduleModalGrid,
+  .compactSmartDateField,
+  .smartDateField{
+    grid-template-columns:1fr !important;
+  }
+  .dateTriggerBtn,
+  .compactDateTrigger,
+  .smartDateInput,
+  #paymentSearch,
+  #quickPaymentMethod{
+    width:100% !important;
+  }
+  .quickPayActions,
+  .quickPayOptions,
+  .actionAmountOptions{
+    width:100% !important;
+  }
+  .timetableWrap{overflow-x:auto !important;-webkit-overflow-scrolling:touch !important}
+  .timetable{min-width:980px !important}
+}
+
+@media (max-width:760px){
+  .authScreen{padding:16px !important}
+  .authCard,
+  .multiAuthCard{padding:22px !important;border-radius:26px !important}
+  .authTopLine{align-items:stretch}
+  .authTopLine .panelLabel,
+  .authTopLine .themeToggle{width:100%;justify-content:center}
+
+  .surfaceCard,
+  .heroPanel,
+  .accordion,
+  .tableWrap{border-radius:22px !important}
+
+  .toolbarGrid,
+  .filterGrid,
+  .scheduleRow,
+  .schedulePickerRow,
+  .wheelPickerRow,
+  .compactSmartDateField,
+  .smartDateField{grid-template-columns:1fr !important}
+
+  .schedulePickerBox,
+  .scheduleCards,
+  #scheduleRows{width:100% !important}
+  .schedulePickerBox .secondary,
+  .schedulePickerBox .iconButton{
+    width:100% !important;
+    justify-content:center !important;
+    min-height:52px !important;
+  }
+  .scheduleCardItem{
+    flex-direction:column !important;
+    align-items:flex-start !important;
+  }
+  .scheduleCardItem .mini{
+    width:100% !important;
+    justify-content:center !important;
+    min-height:46px !important;
+  }
+  .modalCard{width:min(100%, 100%) !important;padding:18px !important;border-radius:24px !important}
+  .timePaletteGrid{grid-template-columns:1fr 1fr !important}
+  .timetableLegend{display:grid !important;grid-template-columns:1fr 1fr !important;gap:8px !important}
+
+  .quickPayRow,
+  .improvedPayRow{
+    padding:14px !important;
+    gap:12px !important;
+  }
+  .quickPayStudent b{font-size:18px !important}
+  .quickPayActions,
+  .quickPayOptions,
+  .actionAmountOptions{grid-template-columns:1fr !important}
+  .quickPayActions input,
+  .quickPayActions button,
+  .amountChoice{width:100% !important}
+
+  .topHeader{
+    align-items:flex-start !important;
+  }
+  .topHeaderLeft{align-items:flex-start !important}
+}
+
+@media (max-width:520px){
+  .timePaletteGrid,
+  .timetableLegend{grid-template-columns:1fr !important}
+  .themeToggle span{font-size:13px !important}
+}
+
+
+/* =========================================================
+   V16 patch — schedule cards, stat pills, mobile top area
+   ========================================================= */
+
+/* 1) Schedule blocks: darker colorful cards with white text */
+
+/* 2) remove ugly dark box around stats pills */
+html[data-theme="dark"] .metricPills,
+html[data-theme="dark"] .pills,
+html[data-theme="dark"] .groupPills{
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+html[data-theme="dark"] .metricPill{
+  box-shadow:0 10px 22px rgba(2,6,23,.18) !important;
+}
+html[data-theme="dark"] .metricPill b,
+html[data-theme="dark"] .metricPill small{color:inherit !important}
+html[data-theme="dark"] .metricPill.expected b,
+html[data-theme="dark"] .metricPill.debt b,
+html[data-theme="dark"] .metricPill.monthly b,
+html[data-theme="dark"] .metricPill.clearDebt b{color:#f8fbff !important}
+html[data-theme="dark"] .metricPill.expected small,
+html[data-theme="dark"] .metricPill.debt small,
+html[data-theme="dark"] .metricPill.monthly small,
+html[data-theme="dark"] .metricPill.clearDebt small{color:rgba(248,251,255,.78) !important}
+
+/* 3) Cleaner mobile top header */
+@media (max-width:760px){
+  .topHeader{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    align-items:stretch !important;
+    margin:0 0 16px !important;
+    padding:14px !important;
+    border-radius:24px !important;
+  }
+  .topHeaderLeft{
+    width:100% !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:12px !important;
+  }
+  .topHeader .eyebrow{
+    display:none !important;
+  }
+  .topHeader h2{
+    font-size:28px !important;
+    line-height:1.02 !important;
+    max-width:100% !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .topHeaderActions{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    align-items:center !important;
+    gap:10px !important;
+    margin:0 !important;
+  }
+  .topThemeToggle{
+    width:100% !important;
+    min-width:0 !important;
+    justify-content:center !important;
+  }
+  .topHeaderActions .logoutBtn,
+  .topHeaderActions #logoutBtn{
+    width:auto !important;
+    min-width:108px !important;
+    justify-content:center !important;
+  }
+  .mobileBrandPill{
+    width:48px !important;
+    height:48px !important;
+    flex:0 0 48px !important;
+    border-radius:16px !important;
+  }
+}
+@media (max-width:420px){
+  .topHeaderActions{
+    grid-template-columns:1fr 88px !important;
+  }
+  .topHeaderActions .logoutBtn,
+  .topHeaderActions #logoutBtn{
+    min-width:88px !important;
+    padding:0 10px !important;
+  }
+  .topHeaderActions .logoutBtn span{
+    display:inline !important;
+  }
+}
+html[data-theme="dark"] .topHeader{
+  background:linear-gradient(180deg, rgba(11,23,40,.92), rgba(7,17,31,.92)) !important;
+  border:1px solid var(--line) !important;
+  box-shadow:0 18px 38px rgba(2,6,23,.18) !important;
+}
+html[data-theme="dark"] .topHeader h2{color:var(--text) !important}
+html[data-theme="dark"] .topHeaderActions .logoutBtn,
+html[data-theme="dark"] .topHeaderActions #logoutBtn{
+  background:#101f34 !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+
+/* 4) Mobile schedule modal header fix */
+html[data-theme="dark"] .modernScheduleModal{
+  background:linear-gradient(180deg,#0f1d32 0%, #0b1728 100%) !important;
+  border-color:var(--line) !important;
+}
+html[data-theme="dark"] .modernScheduleModal .modalHeader{
+  background:linear-gradient(180deg,#0f1d32 0%, #0c192c 100%) !important;
+  border-bottom:1px solid var(--line) !important;
+}
+html[data-theme="dark"] .modernScheduleModal .modalHeader h3,
+html[data-theme="dark"] .modernScheduleModal .modalHeader p{
+  color:var(--text) !important;
+}
+html[data-theme="dark"] .modernScheduleModal .modalHeader p{color:var(--muted) !important}
+html[data-theme="dark"] .modernScheduleModal .iconOnlyBtn{
+  background:#101f34 !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+html[data-theme="dark"] .modernScheduleModal .compactDayChips .chipOption{
+  background:#10203a !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+html[data-theme="dark"] .modernScheduleModal .compactDayChips .chipOption span,
+html[data-theme="dark"] .modernScheduleModal .compactDayChips .chipOption small{color:inherit !important}
+
+@media (max-width:760px){
+  .modernScheduleModal{
+    width:min(100vw - 16px, 100%) !important;
+    max-height:calc(100vh - 16px) !important;
+    padding:16px !important;
+    border-radius:24px !important;
+  }
+  .modernScheduleModal .modalHeader{
+    top:-16px !important;
+    margin:-16px -16px 10px !important;
+    padding:14px 14px 12px !important;
+    border-radius:24px 24px 0 0 !important;
+  }
+  .modernScheduleModal .modalHeader h3{
+    font-size:22px !important;
+    margin-top:6px !important;
+    line-height:1.05 !important;
+  }
+  .modernScheduleModal .modalHeader p{
+    font-size:14px !important;
+    line-height:1.45 !important;
+    max-width:100% !important;
+  }
+  .modernScheduleModal .iconOnlyBtn{
+    width:46px !important;
+    height:46px !important;
+    border-radius:16px !important;
+  }
+}
+
+
+/* =========================================================
+   V17 patch — schedule card fix + premium mobile header
+   ========================================================= */
+
+/* Better schedule board cards */
+.timetableWrap{
+  overflow-x:auto !important;
+  overflow-y:visible !important;
+  padding:6px 2px 12px !important;
+}
+.dayColumn,
+.dayColumnOverlay{
+  overflow:visible !important;
+}
+.sessionBlock{
+  left:10px !important;
+  right:10px !important;
+  width:auto !important;
+  border-radius:22px !important;
+  border:1px solid rgba(255,255,255,.52) !important;
+  box-shadow:
+    0 16px 34px rgba(15,23,42,.14),
+    inset 0 1px 0 rgba(255,255,255,.30) !important;
+}
+.sessionBlock::after{display:none !important;}
+.sessionBlock::before{
+  width:5px !important;
+  background:rgba(15,23,42,.14) !important;
+}
+.sessionBlock .blockTime,
+.sessionBlock .blockMeta span{
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+
+  color:rgba(248,251,255,.88) !important;
+}
+
+/* Premium consistent mobile header */
+@media (max-width:760px){
+  html{font-size:15px !important;}
+  body{font-size:15px !important;}
+
+  .appShell{padding:10px 10px 92px !important;}
+  .mainContent{zoom:.98;}
+
+  .topHeader{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    align-items:stretch !important;
+    margin:0 0 16px !important;
+    padding:14px !important;
+    border-radius:24px !important;
+    background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(242,247,255,.96)) !important;
+    border:1px solid rgba(203,213,225,.78) !important;
+    box-shadow:0 16px 36px rgba(15,23,42,.08) !important;
+  }
+  .topHeaderLeft{
+    width:100% !important;
+    min-width:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:12px !important;
+  }
+  .mobileBrandPill{
+    width:46px !important;
+    height:46px !important;
+    flex:0 0 46px !important;
+    border-radius:16px !important;
+    box-shadow:0 10px 24px rgba(37,99,235,.18) !important;
+  }
+  .topHeader .eyebrow{
+    display:block !important;
+    font-size:9.5px !important;
+    letter-spacing:.14em !important;
+    line-height:1.1 !important;
+    margin:0 0 4px !important;
+    max-width:100% !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .topHeader h2{
+    font-size:24px !important;
+    line-height:1.02 !important;
+    letter-spacing:-.04em !important;
+    max-width:100% !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .topHeader p{display:none !important;}
+
+  .topHeaderActions{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    width:100% !important;
+    gap:10px !important;
+    margin:0 !important;
+    align-items:stretch !important;
+    justify-content:stretch !important;
+  }
+  .topThemeToggle,
+  .topHeaderActions .logoutBtn,
+  .topHeaderActions #logoutBtn{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:44px !important;
+    height:44px !important;
+    padding:0 12px !important;
+    border-radius:16px !important;
+    justify-content:center !important;
+    font-size:13px !important;
+    white-space:nowrap !important;
+  }
+  .topThemeToggle span,
+  .topHeaderActions .logoutBtn span{font-size:13px !important;}
+
+  .surfaceCard,
+  .formCard,
+  .heroPanel,
+  .accordion,
+  .tableWrap{
+    padding:16px !important;
+    border-radius:22px !important;
+  }
+  .sectionHeader h3{font-size:22px !important;}
+  .heroPanel h3{font-size:28px !important;}
+  .panelLabel{font-size:11px !important;padding:7px 10px !important;}
+  input,select,textarea,.primary,.secondary,.mini,.themeToggle{font-size:14px !important;}
+  input,select,textarea{padding:12px 13px !important;border-radius:16px !important;}
+  .primary,.secondary,.mini,.savePayBtn,.presetBtn{min-height:42px !important;}
+  .bottomTabBar{padding:7px !important;border-radius:22px !important;}
+  .bottomTab{min-height:54px !important;}
+  .bottomTab svg{width:20px !important;height:20px !important;}
+  .bottomTab span{font-size:10px !important;}
+}
+
+@media (max-width:420px){
+  html{font-size:14px !important;}
+  body{font-size:14px !important;}
+  .mainContent{zoom:.95;}
+  .topHeader{
+    padding:12px !important;
+    gap:10px !important;
+    border-radius:22px !important;
+  }
+  .topHeader h2{font-size:22px !important;}
+  .topHeader .eyebrow{font-size:9px !important;}
+  .topHeaderActions{gap:8px !important;}
+  .topThemeToggle,
+  .topHeaderActions .logoutBtn,
+  .topHeaderActions #logoutBtn{
+    min-height:42px !important;
+    height:42px !important;
+    font-size:12px !important;
+    padding:0 10px !important;
+  }
+  .topThemeToggle span,
+  .topHeaderActions .logoutBtn span{font-size:12px !important;}
+  .surfaceCard,
+  .formCard,
+  .heroPanel,
+  .accordion,
+  .tableWrap{padding:14px !important;}
+}
+
+html[data-theme="dark"] .topHeader{
+  background:linear-gradient(180deg, rgba(11,23,40,.96), rgba(7,17,31,.96)) !important;
+  border:1px solid rgba(148,163,184,.24) !important;
+  box-shadow:0 18px 38px rgba(2,6,23,.18) !important;
+}
+html[data-theme="dark"] .topHeader .eyebrow,
+html[data-theme="dark"] .topHeader h2{color:var(--text) !important;}
+html[data-theme="dark"] .topThemeToggle,
+html[data-theme="dark"] .topHeaderActions .logoutBtn,
+html[data-theme="dark"] .topHeaderActions #logoutBtn{
+  background:#101f34 !important;
+  border-color:rgba(148,163,184,.24) !important;
+  color:var(--text) !important;
+  box-shadow:none !important;
+}
+
+
+/* =========================================================
+   V18 FINAL polish — keep schedule layout stable, premium mobile
+   ========================================================= */
+
+/* 1) Restore stable timetable geometry. Only visuals should differ in dark mode. */
+.timetableWrap{
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  padding-bottom:6px !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+.timetable,
+.timetableMain{
+  overflow:hidden !important;
+}
+.dayColumn{
+  position:relative !important;
+  overflow:hidden !important;
+}
+.dayColumnOverlay{
+  position:absolute !important;
+  inset:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+}
+.sessionBlock{
+  left:8px !important;
+  right:8px !important;
+  width:auto !important;
+  border-radius:18px !important;
+  padding:12px 12px 10px !important;
+  overflow:hidden !important;
+  transform:none !important;
+}
+.sessionBlock::after{display:none !important;}
+.sessionBlock::before{width:4px !important;}
+
+@media (max-width:760px){
+  .timetableWrap{
+    margin-left:-16px !important;
+    margin-right:-16px !important;
+    padding:0 16px 8px !important;
+  }
+  .dayColumn,
+  .dayColumnOverlay{overflow:hidden !important;}
+  .sessionBlock{
+    left:5px !important;
+    right:5px !important;
+    border-radius:14px !important;
+    padding:9px 8px !important;
+  }
+  .sessionBlock h4{font-size:12px !important;margin-top:7px !important;}
+  .sessionBlock p,.blockMeta{display:none !important;}
+  .sessionBlock .blockTime{font-size:10px !important;padding:5px 7px !important;}
+}
+
+/* Dark mode timetable: color-only enhancement, no layout changes */
+
+/* 2) Premium centered mobile bottom nav */
+@media (max-width:1080px){
+  .bottomTabBar{
+    position:fixed !important;
+    left:50% !important;
+    right:auto !important;
+    bottom:max(10px,env(safe-area-inset-bottom)) !important;
+    transform:translateX(-50%) !important;
+    width:min(620px, calc(100vw - 20px)) !important;
+    max-width:calc(100vw - 20px) !important;
+    display:grid !important;
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+    gap:6px !important;
+    padding:8px !important;
+    border-radius:28px !important;
+    background:rgba(255,255,255,.94) !important;
+    border:1px solid rgba(191,211,238,.90) !important;
+    box-shadow:0 18px 46px rgba(15,23,42,.16) !important;
+    backdrop-filter:blur(20px) !important;
+    -webkit-backdrop-filter:blur(20px) !important;
+  }
+  .bottomTab.moreTab{display:none !important;}
+  .bottomTab{
+    min-width:0 !important;
+    min-height:56px !important;
+    border-radius:20px !important;
+    gap:4px !important;
+    padding:7px 4px !important;
+  }
+  .bottomTab svg{width:20px !important;height:20px !important;}
+  .bottomTab span{font-size:10px !important;line-height:1.05 !important;}
+}
+@media (max-width:520px){
+  .bottomTabBar{
+    width:calc(100vw - 16px) !important;
+    max-width:calc(100vw - 16px) !important;
+    bottom:max(8px,env(safe-area-inset-bottom)) !important;
+    padding:7px !important;
+    gap:4px !important;
+    border-radius:24px !important;
+  }
+  .bottomTab{min-height:54px !important;border-radius:18px !important;}
+  .bottomTab span{font-size:9.5px !important;}
+}
+html[data-theme="dark"] .bottomTabBar{
+  background:rgba(8,18,32,.94) !important;
+  border-color:rgba(148,163,184,.22) !important;
+  box-shadow:0 18px 48px rgba(0,0,0,.30) !important;
+}
+html[data-theme="dark"] .bottomTab{
+  color:#a8b7ce !important;
+}
+html[data-theme="dark"] .bottomTab.active{
+  background:linear-gradient(135deg,#60a5fa,#22d3ee) !important;
+  color:#06111f !important;
+  box-shadow:0 12px 28px rgba(34,211,238,.18) !important;
+}
+
+/* 3) Mobile global scale/spacing refinement */
+@media (max-width:760px){
+  html{font-size:14.5px !important;}
+  body{font-size:14.5px !important;}
+  .appShell{padding:10px 10px 92px !important;}
+  .mainContent{min-width:0 !important;}
+
+  .topHeader{
+    margin:0 0 14px !important;
+    padding:13px !important;
+    gap:10px !important;
+    border-radius:22px !important;
+  }
+  .topHeaderLeft{gap:11px !important;align-items:center !important;}
+  .mobileBrandPill{width:44px !important;height:44px !important;flex:0 0 44px !important;border-radius:15px !important;}
+  .topHeader .eyebrow{font-size:9px !important;letter-spacing:.12em !important;margin:0 0 3px !important;}
+  .topHeader h2{font-size:22px !important;line-height:1.02 !important;}
+  .topHeaderActions{grid-template-columns:1fr 1fr !important;gap:8px !important;}
+  .topThemeToggle,
+  .topHeaderActions .logoutBtn,
+  .topHeaderActions #logoutBtn{
+    min-height:42px !important;
+    height:42px !important;
+    padding:0 10px !important;
+    font-size:12.5px !important;
+    border-radius:15px !important;
+  }
+  .topThemeToggle span,
+  .topHeaderActions .logoutBtn span{font-size:12.5px !important;}
+
+  .surfaceCard,
+  .formCard,
+  .heroPanel,
+  .accordion,
+  .tableWrap,
+  .modalCard,
+  .modernScheduleModal{
+    padding:15px !important;
+    border-radius:22px !important;
+  }
+  .sectionHeader{margin-bottom:16px !important;}
+  .sectionHeader h3{font-size:21px !important;}
+  .heroPanel h3{font-size:26px !important;}
+  .panelLabel{font-size:10.5px !important;padding:7px 10px !important;}
+  .statCard{padding:16px !important;border-radius:20px !important;min-height:120px !important;}
+  .statCard b{font-size:24px !important;}
+  .quickPayRow,.improvedPayRow{padding:14px !important;gap:10px !important;}
+  .scheduleCardItem{padding:13px !important;border-radius:18px !important;}
+  input,select,textarea{padding:12px 13px !important;border-radius:15px !important;font-size:14px !important;}
+  .primary,.secondary,.mini,.savePayBtn,.presetBtn,.dateTriggerBtn,.pickerValueBtn{min-height:42px !important;font-size:13px !important;border-radius:15px !important;}
+}
+@media (max-width:420px){
+  html{font-size:14px !important;}
+  body{font-size:14px !important;}
+  .topHeader{padding:12px !important;border-radius:20px !important;}
+  .topHeader h2{font-size:21px !important;}
+  .topHeaderActions .logoutBtn,
+  .topHeaderActions #logoutBtn,
+  .topThemeToggle{font-size:12px !important;}
+  .surfaceCard,
+  .formCard,
+  .heroPanel,
+  .accordion,
+  .tableWrap,
+  .modalCard,
+  .modernScheduleModal{padding:14px !important;}
+}
+
+/* =========================================================
+   V19 DARK TIMETABLE REWRITE — only schedule dark mode section
+   ========================================================= */
+html[data-theme="dark"] .timetableWrap{
+  background:transparent !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+}
+html[data-theme="dark"] .timetable,
+html[data-theme="dark"] .timetableMain{
+  background:transparent !important;
+  overflow:hidden !important;
+}
+html[data-theme="dark"] .timetableHeader,
+html[data-theme="dark"] .timeColumn,
+html[data-theme="dark"] .dayColumn,
+html[data-theme="dark"] .dayColumnOverlay{
+  background:#081528 !important;
+}
+html[data-theme="dark"] .timetableHeaderCell,
+html[data-theme="dark"] .timeCell{
+  background:#0b1a2f !important;
+  color:#d9e7fb !important;
+  border-color:rgba(148,163,184,.18) !important;
+}
+html[data-theme="dark"] .timetableHeaderCell span,
+html[data-theme="dark"] .smallNote,
+html[data-theme="dark"] .timeCell{
+  color:#9fb4d6 !important;
+}
+html[data-theme="dark"] .dayColumn,
+html[data-theme="dark"] .dayColumnOverlay{
+  overflow:hidden !important;
+}
+html[data-theme="dark"] .slotLine{
+  background:linear-gradient(180deg,#081528 0%, #071321 100%) !important;
+  border-color:rgba(148,163,184,.18) !important;
+}
+html[data-theme="dark"] .slotLine:nth-child(even){
+  background:#09182b !important;
+}
+html[data-theme="dark"] .legendChip{
+  background:#0b1a2f !important;
+  color:#f8fbff !important;
+  border:1px solid rgba(148,163,184,.18) !important;
+}
+html[data-theme="dark"] .sessionBlock{
+  color:#f8fbff !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  box-shadow:
+    inset 0 0 0 999px rgba(7,17,31,.18),
+    0 14px 30px rgba(2,6,23,.28) !important;
+  overflow:hidden !important;
+}
+html[data-theme="dark"] .sessionBlock::after{display:none !important;}
+html[data-theme="dark"] .sessionBlock::before{
+  background:rgba(255,255,255,.18) !important;
+}
+html[data-theme="dark"] .sessionBlockInner{position:relative;z-index:2 !important;}
+html[data-theme="dark"] .sessionBlock h4,
+html[data-theme="dark"] .sessionBlock p,
+html[data-theme="dark"] .sessionBlock .blockTime,
+html[data-theme="dark"] .sessionBlock .blockMeta span,
+html[data-theme="dark"] .sessionBlock .blockMeta svg{
+  color:#f8fbff !important;
+}
+html[data-theme="dark"] .sessionBlock p{color:rgba(248,251,255,.86) !important;}
+html[data-theme="dark"] .sessionBlock .blockTime,
+html[data-theme="dark"] .sessionBlock .blockMeta span{
+  background:rgba(7,17,31,.32) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+
+/* =========================================================
+   V19 mobile bottom nav — show Hesabat too
+   ========================================================= */
 @media (max-width:1080px){
   .bottomTabBar{
     left:50% !important;
     right:auto !important;
     transform:translateX(-50%) !important;
-    width:min(720px,calc(100vw - 20px)) !important;
-    max-width:calc(100vw - 20px) !important;
+    width:min(760px, calc(100vw - 16px)) !important;
+    max-width:calc(100vw - 16px) !important;
     grid-template-columns:repeat(6,minmax(0,1fr)) !important;
     gap:4px !important;
-    padding:8px !important;
+    padding:7px !important;
     border-radius:26px !important;
   }
   .bottomTab.moreTab{display:flex !important;}
-  .bottomTab{min-width:0 !important;}
-}
-@media (max-width:760px){
-  .bottomTabBar{
-    left:50% !important;
-    right:auto !important;
-    transform:translateX(-50%) !important;
-    width:calc(100vw - 16px) !important;
-    max-width:calc(100vw - 16px) !important;
-    grid-template-columns:repeat(6,minmax(0,1fr)) !important;
-    gap:3px !important;
-    padding:7px !important;
-    border-radius:24px !important;
+  .bottomTab{
+    min-width:0 !important;
+    min-height:55px !important;
+    padding:6px 3px !important;
+    border-radius:18px !important;
+    gap:4px !important;
   }
-  .bottomTab.moreTab{display:flex !important;}
-  .bottomTab{min-height:54px !important;border-radius:18px !important;padding:6px 2px !important;}
-  .bottomTab svg{width:18px !important;height:18px !important;}
-  .bottomTab span{font-size:8.8px !important;line-height:1.05 !important;white-space:normal !important;}
+  .bottomTab svg{width:19px !important;height:19px !important;}
+  .bottomTab span{font-size:9.4px !important;line-height:1.02 !important;}
 }
-@media (max-width:420px){
-  .bottomTabBar{width:calc(100vw - 12px) !important;max-width:calc(100vw - 12px) !important;padding:6px !important;}
-  .bottomTab{min-height:52px !important;padding:6px 1px !important;}
-  .bottomTab span{font-size:8.2px !important;}
+@media (max-width:520px){
+  .bottomTabBar{
+    width:calc(100vw - 12px) !important;
+    max-width:calc(100vw - 12px) !important;
+    gap:3px !important;
+    padding:6px !important;
+    border-radius:22px !important;
+  }
+  .bottomTab{
+    min-height:52px !important;
+    padding:6px 2px !important;
+    border-radius:16px !important;
+  }
+  .bottomTab svg{width:18px !important;height:18px !important;}
+  .bottomTab span{font-size:8.7px !important;}
 }
